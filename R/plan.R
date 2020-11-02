@@ -7,16 +7,12 @@ the_plan <-
                               tool = "PC"),
     
    ## STEP 2: Load auxiliary data
-    cpi = pipload::pip_load_aux(measure = "cpi"),
-    ppp = pipload::pip_load_aux(measure = "ppp"),
-    pop = pipload::pip_load_aux(measure = "pop"),
-    gdp = pipload::pip_load_aux(measure = "gdp"),
-    pce = pipload::pip_load_aux(measure = "pce"),
-    pfw = pipload::pip_load_aux(measure = "pfw"),
-    
+    aux_data = load_aux_data(),
     
    ## STEP 3: Deflate welfare means (survey years) 
    ## Creates a table of deflated survey means
-   # deflated_svy_means = create_deflated_means_table()
+   deflated_svy_means = create_deflated_means_table(microdata = microdata, 
+                                                    aux_data  = aux_data,
+                                                    inventory = inventory)
 
 )
