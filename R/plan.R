@@ -29,9 +29,18 @@ aux_files_to_load <- as.character(
               regexp  = ".*/[a-z]+\\.fst")
 )
 
+# in case we need to filter the aux data
+filt <- TRUE
+aux_to_keep <- c("cpi", "ppp")
+if (filt == TRUE) {
+   to_keep <- paste(aux_to_keep,
+                    collapse = "|")
+   
+   aux_files_to_load <- grep(to_keep, aux_files_to_load, value = TRUE)
+}
+
 aux_indicators <- as.character(gsub(auxdir, "", aux_files_to_load))
 aux_indicators <- as.character(gsub("/.*", "", aux_indicators))
-
 
 #----------------------------------------------------------
 # Drake Plan   
@@ -41,17 +50,11 @@ the_plan <-
   drake_plan(
 
    ## STEP 1: Load microdata
-    inventory =  fst::read_fst(file_in(!!paste0(maindir, "_inventory/inventory.fst"))),
-       
-    # inventory_list = target({
-    #    df <- fst::read_fst(file_in(!!paste0(maindir, "_inventory/inventory.fst")))
-    #    df$orig
-    # },
-    # format = "file"
-    # ),
+    raw_inventory =  fst::read_fst(file_in(!!paste0(maindir, "_inventory/inventory.fst"))),
+    inventory     =  filter_inventory(raw_inventory),
     
-    # microdata = pip_load_data(country =  c("KGZ", "AGO", "PRY"),
-    #                           tool = "PC"),
+    microdata = pip_load_data(country =  c("KGZ", "AGO", "PRY"),
+                              tool = "PC"),
     # 
    ## STEP 2: Load auxiliary data
    # aux_data = load_aux_data(),
@@ -68,17 +71,19 @@ the_plan <-
        transform = map(file  = !!aux_files_to_load,
                        label = !!aux_indicators,
                        .id = label)
-    )
+    ),
     
    ## STEP 3: Deflate welfare means (survey years) 
    ## Creates a table of deflated survey means
-   # deflated_svy_means = target(
-   #   create_deflated_means_table(dt        = microdata,
-   #                               cpi       = aux_data[["cpi"]],
-   #                               ppp       = aux_data[["ppp"]],
-   #                               inventory = inventory),
-   #   format = "fst"
-   # )
+   deflated_svy_means = target(
+     create_deflated_means_table(dt        = microdata,
+                                 cpi       = aux_cpi,
+                                 ppp       = aux_ppp,
+                                 inventory = inventory),
+     format = "fst"
+   ),
+   out_deflated_svy_means = fst::write_fst(deflated_svy_means, 
+                                           file_out("output/deflated_svy_means.fst")) 
 
 ) 
 
