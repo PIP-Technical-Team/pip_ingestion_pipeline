@@ -11,3 +11,12 @@ load_aux_data <- function() {
   
   return(ll)
 }
+
+load_aux <- function(auxdir, dr) {
+  file_to_load <- paste0(auxdir, dr, "/pip_", dr, ".fst")
+  fst::read_fst(file_to_load)
+}
+
+
+
+
