@@ -18,5 +18,27 @@ load_aux <- function(auxdir, dr) {
 }
 
 
+find_aux_data <- function(auxdir) {
+  files <- fs::dir_ls(auxdir,
+             type    = "file", 
+             recurse = TRUE,
+             regexp  = ".*/[a-z]+\\.fst")
+  
+  files <- as.character(files)
+  return(files)
+}
+
+
+aux_names <- function(auxdir, aux_files_to_load) {
+  
+  aux_indicators <- as.character(gsub(auxdir, "", aux_files_to_load))
+  aux_indicators <- as.character(gsub("/.*", "", aux_indicators))
+  return(aux_indicators)
+
+}
+
+import_file <- function(file) {
+  fst::read_fst(file)
+}
 
 
