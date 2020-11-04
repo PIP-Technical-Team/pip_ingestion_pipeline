@@ -76,7 +76,7 @@ the_plan <-
    deflated_svy_means = target(
      create_deflated_means_table(cpi = aux_cpi,
                                  ppp = aux_ppp,
-                                 inv = inventory),
+                                 inv = inventory$survey_id),
      format = "fst"
    ),
    out_deflated_svy_means = fst::write_fst(deflated_svy_means, 

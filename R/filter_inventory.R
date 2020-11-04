@@ -32,7 +32,7 @@ filter_inventory <- function(raw_inventory) {
   
   
   # To DELETE
-  ni <- ni[country_code == "HND"]
+  ni <- ni[country_code %chin% c("HND", "PER")]
   
   return(ni)
 

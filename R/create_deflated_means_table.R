@@ -14,8 +14,7 @@ create_deflated_means_table <- function(cpi = aux_cpi,
 
   #--------- Load Microdata ---------
   
-  dt  <- pip_load_data(country =  c("KGZ", "AGO", "PRY"),
-                            tool = "PC")
+  dt  <- pip_load_data(survey_id = inv)
   
   # Make sure everything is in data.table format
   setDT(dt)
