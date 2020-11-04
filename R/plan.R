@@ -49,12 +49,10 @@ aux_indicators <- as.character(gsub("/.*", "", aux_indicators))
 the_plan <-
   drake_plan(
 
-   ## STEP 1: Load microdata
+   ## STEP 1: Load Inventory of microdata
     raw_inventory =  fst::read_fst(file_in(!!paste0(maindir, "_inventory/inventory.fst"))),
     inventory     =  filter_inventory(raw_inventory),
-    
-    microdata = pip_load_data(country =  c("KGZ", "AGO", "PRY"),
-                              tool = "PC"),
+
     # 
    ## STEP 2: Load auxiliary data
    # aux_data = load_aux_data(),
@@ -76,10 +74,9 @@ the_plan <-
    ## STEP 3: Deflate welfare means (survey years) 
    ## Creates a table of deflated survey means
    deflated_svy_means = target(
-     create_deflated_means_table(dt        = microdata,
-                                 cpi       = aux_cpi,
-                                 ppp       = aux_ppp,
-                                 inventory = inventory),
+     create_deflated_means_table(cpi = aux_cpi,
+                                 ppp = aux_ppp,
+                                 inv = inventory),
      format = "fst"
    ),
    out_deflated_svy_means = fst::write_fst(deflated_svy_means, 

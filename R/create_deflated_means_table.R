@@ -8,11 +8,15 @@
 ##' @param cpi 
 ##' @param ppp 
 ##' @param inventory
-create_deflated_means_table <- function(dt        = microdata, 
-                                        cpi       = aux_data[["cpi"]], 
-                                        ppp       = aux_data[["ppp"]], 
-                                        inventory = inventory) {
+create_deflated_means_table <- function(cpi = aux_cpi, 
+                                        ppp = aux_ppp, 
+                                        inv = inventory) {
 
+  #--------- Load Microdata ---------
+  
+  dt  <- pip_load_data(country =  c("KGZ", "AGO", "PRY"),
+                            tool = "PC")
+  
   # Make sure everything is in data.table format
   setDT(dt)
   setDT(cpi)

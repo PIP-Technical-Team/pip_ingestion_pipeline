@@ -9,8 +9,9 @@ filter_inventory <- function(raw_inventory) {
   # Raw Inventory
   ri <- data.table::as.data.table(raw_inventory)
   ri <- ri[,
-     .(survey_id = gsub("\\.dta", "", filename))
-     ]
+     survey_id := gsub("\\.dta", "", filename)
+     ][toupper(tool) == "PC"
+       ]
   
   if (fs::file_exists("output/deflated_svy_means.fst")) {
     # Inventory in Use
@@ -28,6 +29,10 @@ filter_inventory <- function(raw_inventory) {
     # If deflated svy file does not exist use the whole raw inventory
     ni <- ri
   }
+  
+  
+  # To DELETE
+  ni <- ni[country_code == "HND"]
   
   return(ni)
 
