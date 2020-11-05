@@ -20,9 +20,11 @@ join_dsm_tables <- function(ud,
                on = .(survey_id)]
     
     # append data
-    df <- rbindlist(list(ud, old))
+    df <- rbindlist(list(ud, old), 
+                    use.names = TRUE, 
+                    fill = TRUE)
   }
-  setorder(df, country_code, year, module, vermast, veralt)
+  setorder(df, country_code, surveyid_year, module, vermast, veralt)
   
   return(df)
 

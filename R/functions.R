@@ -41,16 +41,5 @@ import_file <- function(file) {
   fst::read_fst(file)
 }
 
-load_old_dsm <- function() {
-  
-  if (fs::file_exists("output/deflated_svy_means.fst")) {
-    df <- fst::read_fst("output/deflated_svy_means.fst")
-  } else {
-    df <- NULL
-  }
-  
-  return(df)
-}
-
 
 

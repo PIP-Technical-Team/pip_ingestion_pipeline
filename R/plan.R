@@ -51,6 +51,7 @@ the_plan <-
   drake_plan(
      
    ## dsm stands for deflated_svy_means
+   ## lcu stands for Lucal Currency Unit
 
    ## STEP 1: Load Inventory of microdata
     raw_inventory =  fst::read_fst(file_in(!!paste0(maindir, "_inventory/inventory.fst"))),
@@ -68,12 +69,14 @@ the_plan <-
     
    ## STEP 3: Deflate welfare means (survey years) 
    ## Creates a table of deflated survey means
-   update_dsm = create_dsm_table(cpi = aux_cpi,
-                      ppp = aux_ppp,
-                      inv = inventory$survey_id),
+   updated_lcum = calculate_lcum(inv = inventory$survey_id),
+   
+   updated_dsm = create_dsm_table(cpi = aux_cpi,
+                                  ppp = aux_ppp,
+                                  dt  = updated_lcum),
    
    old_dsm = load_old_dsm(),
-   new_dsm = join_dsm_tables(ud = update_dsm,
+   new_dsm = join_dsm_tables(ud  = updated_dsm,
                              old = old_dsm),
    
    out_dsm = save_dsm(new_dsm,

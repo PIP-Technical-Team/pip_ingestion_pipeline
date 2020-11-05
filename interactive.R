@@ -12,7 +12,7 @@ r_outdated()
 
 r_make()
 
-r_outdated()
+# r_outdated()
 
 r_vis_drake_graph(targets_only = TRUE)
 # r_vis_drake_graph()

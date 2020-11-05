@@ -7,15 +7,11 @@
 ##' @param dt 
 ##' @param cpi 
 ##' @param ppp 
-##' @param inventory
+##' @param dt
 create_dsm_table <- function(cpi = aux_cpi, 
                              ppp = aux_ppp, 
-                             inv = inventory) {
+                             dt  = updated_lcum) {
 
-  #--------- Load Microdata ---------
-  
-  dt  <- pip_load_data(survey_id = inv)
-  
   # Make sure everything is in data.table format
   setDT(dt)
   setDT(cpi)
@@ -23,6 +19,9 @@ create_dsm_table <- function(cpi = aux_cpi,
   
   #--------- merge CPI ---------
   cpi_keys <- c("country_code", "surveyid_year", "survey_acronym", "cpi_data_level")
+  cpi[, 
+      surveyid_year := as.character(surveyid_year)]
+  
   dt[cpi,
      on = cpi_keys,
      `:=`(
@@ -43,52 +42,10 @@ create_dsm_table <- function(cpi = aux_cpi,
   
   #--------- Welfare to PPP values ---------
   dt[,
-     welfare_ppp := welfare/cpi/ppp/ccf
+      dsm_mean := lcu_mean/cpi/ppp/ccf
   ]
   
-  #--------- calculate survey mean ---------
   
-  # Survey-Mean
-  sm <- dt[,
-           .(svy_mean = weighted.mean(welfare_ppp, weight, na.rm = TRUE)),
-           by = survey_id
-  ]
-  
-  #--------- create components of survey ID ---------
-  
-  cnames <-
-    c(
-      "country_code",
-      "year",
-      "survey_acronym",
-      "vermast",
-      "M",
-      "veralt",
-      "A",
-      "collection",
-      "module"
-    )
-  
-  sm[,
-     
-     # Name sections of filename into variables
-     (cnames) := tstrsplit(survey_id, "_", fixed=TRUE)
-  ][,
-    # create tool and source
-    c("tool", "source") := tstrsplit(module, "-", fixed = TRUE)
-  ][,
-    # change to lower case
-    c("vermast", "veralt") := lapply(.SD, tolower),
-    .SDcols = c("vermast", "veralt")
-  ][
-    ,
-    # Remove unnecessary variables
-    c("M", "A", "collection") := NULL
-  ][
-    # Remove unnecessary rows
-    !(is.na(survey_id))
-  ]
-  
-  return(sm)
+  return(dt)
 
 }
