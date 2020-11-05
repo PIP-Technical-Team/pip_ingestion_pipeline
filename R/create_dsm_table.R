@@ -8,9 +8,9 @@
 ##' @param cpi 
 ##' @param ppp 
 ##' @param inventory
-create_deflated_means_table <- function(cpi = aux_cpi, 
-                                        ppp = aux_ppp, 
-                                        inv = inventory) {
+create_dsm_table <- function(cpi = aux_cpi, 
+                             ppp = aux_ppp, 
+                             inv = inventory) {
 
   #--------- Load Microdata ---------
   
@@ -33,7 +33,7 @@ create_deflated_means_table <- function(cpi = aux_cpi,
   
   #--------- merge PPP ---------
   ppp_keys <- c("country_code", "ppp_data_level")
-  dt[ppp[ppp_default == TRUE],  # just defatul values
+  dt[ppp[ppp_default == TRUE],  # just default values
      on = ppp_keys,
      `:=`(
        ppp = i.ppp
@@ -54,6 +54,8 @@ create_deflated_means_table <- function(cpi = aux_cpi,
            by = survey_id
   ]
   
+  #--------- create components of survey ID ---------
+  
   cnames <-
     c(
       "country_code",
@@ -66,10 +68,6 @@ create_deflated_means_table <- function(cpi = aux_cpi,
       "collection",
       "module"
     )
-  
-  # check number of items Pick third one by random (it could be any other row)
-  # linv <- inventory[[3]]
-  # nobj <- length(strsplit(linv, "/")[[1]])
   
   sm[,
      

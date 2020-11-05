@@ -19,6 +19,7 @@
 
 #--------- Main Directory ---------
 maindir <- "//w1wbgencifs01/pip/PIP-Data/"
+pipedir <- paste0(maindir, "_pip_ingestion_pipeline/")
 
 #--------- Auxiliary indicators ---------
 auxdir <- paste0(maindir, "_aux/")
@@ -48,21 +49,15 @@ aux_indicators <- as.character(gsub("/.*", "", aux_indicators))
 
 the_plan <-
   drake_plan(
+     
+   ## dsm stands for deflated_svy_means
 
    ## STEP 1: Load Inventory of microdata
     raw_inventory =  fst::read_fst(file_in(!!paste0(maindir, "_inventory/inventory.fst"))),
     inventory     =  filter_inventory(raw_inventory),
 
     # 
-   ## STEP 2: Load auxiliary data
-   # aux_data = load_aux_data(),
-   
-   # Find aux data
-   # aux_files_to_load = find_aux_data(auxdir),
-   
-   # Name of indicators
-   # aux_indicators    = aux_names(auxdir, aux_files_to_load),
-   
+   ## STEP 2: Load auxiliary data (statics branching)
    # include files into plan
     aux = target(
        import_file(file_in(file)),
@@ -73,14 +68,17 @@ the_plan <-
     
    ## STEP 3: Deflate welfare means (survey years) 
    ## Creates a table of deflated survey means
-   deflated_svy_means = target(
-     create_deflated_means_table(cpi = aux_cpi,
-                                 ppp = aux_ppp,
-                                 inv = inventory$survey_id),
-     format = "fst"
-   ),
-   out_deflated_svy_means = fst::write_fst(deflated_svy_means, 
-                                           file_out("output/deflated_svy_means.fst")) 
+   update_dsm = create_dsm_table(cpi = aux_cpi,
+                      ppp = aux_ppp,
+                      inv = inventory$survey_id),
+   
+   old_dsm = load_old_dsm(),
+   new_dsm = join_dsm_tables(ud = update_dsm,
+                             old = old_dsm),
+   
+   out_dsm = save_dsm(new_dsm,
+                      pipedir,
+                      file_out("output/deflated_svy_means.fst")) 
 
 ) 
 
