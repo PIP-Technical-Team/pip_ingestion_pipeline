@@ -47,19 +47,18 @@ aux_indicators <- as.character(gsub("/.*", "", aux_indicators))
 # Drake Plan   
 #----------------------------------------------------------
 
+## dsm stands for deflated_svy_means
+## lcu stands for Local Currency Unit
+
 the_plan <-
   drake_plan(
      
-   ## dsm stands for deflated_svy_means
-   ## lcu stands for Lucal Currency Unit
 
    ## STEP 1: Load Inventory of microdata
     raw_inventory =  fst::read_fst(file_in(!!paste0(maindir, "_inventory/inventory.fst"))),
     inventory     =  filter_inventory(raw_inventory),
 
-    # 
    ## STEP 2: Load auxiliary data (statics branching)
-   # include files into plan
     aux = target(
        import_file(file_in(file)),
        transform = map(file  = !!aux_files_to_load,

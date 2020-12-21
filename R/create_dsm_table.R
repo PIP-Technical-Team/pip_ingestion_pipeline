@@ -4,10 +4,9 @@
 ##'
 ##' @title
 ##'
-##' @param dt 
-##' @param cpi 
-##' @param ppp 
-##' @param dt
+##' @param cpi Data frame with most latest version of CPI
+##' @param ppp Data frame with most latest version of PPP
+##' @param dt  Updated table with LCU means
 create_dsm_table <- function(cpi = aux_cpi, 
                              ppp = aux_ppp, 
                              dt  = updated_lcum) {
@@ -44,7 +43,6 @@ create_dsm_table <- function(cpi = aux_cpi,
   dt[,
       dsm_mean := lcu_mean/cpi/ppp/ccf
   ]
-  
   
   return(dt)
 
