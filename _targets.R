@@ -17,6 +17,7 @@
 #----------------------------------------------------------
 
 # devtools::install_github("PIP-Technical-Team/wbpip")
+# devtools::install_github("PIP-Technical-Team/pipload")
 # devtools::install_github("PIP-Technical-Team/pipdm@improvments")
 
 library(here)
@@ -57,6 +58,10 @@ if (filt == TRUE) {
 aux_indicators <- as.character(gsub(auxdir, "", aux_files_to_load))
 aux_indicators <- as.character(gsub("/.*", "", aux_indicators))
 
+aux_tb <- tibble::tibble(
+  auxname  = aux_indicators,
+  auxfiles = aux_files_to_load
+)
 
 #----------------------------------------------------------
 #   Set up
@@ -66,34 +71,60 @@ pkgs <- c("data.table",
           "pipload", 
           "dplyr",
           "purrr",
-          "pipdm")
+          "pipdm", 
+          "pipload", 
+          "wbpip")
 
-tar_option_set(packages = pkgs,
-               imports = pkgs
+tar_option_set(packages = pkgs)
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#---------   Pipeline   ---------
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+#--------- CReate batch of targets for auxiliary data ---------
+
+aux_targ <- tar_map(
+  values = aux_tb, 
+  names  = "auxname", 
+  
+  # create dynamic name
+  tar_target(
+    rawaux,
+    auxfiles, 
+    format = "file"
+  ), 
+  # load data using pipload
+  tar_target(
+    aux,
+    pipload::pip_load_aux(file_to_load = rawaux)
+  )
 )
 
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#---------   PLAN   ---------
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+#--------- define targets and pipeline ---------
 
-# Define targets
-targets <- list(
+tar_pipeline(
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  #---------   Auxiliary data   ---------
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  aux_targ,
+  
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  #---------   Inventory   ---------
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  
   # Declare inventory file as dynamic
   tar_target(raw_inventory_file, 
              paste0(maindir, "_inventory/inventory.fst"),
              format = "file"),
   
-  # Load RAW inventory file
+  # Load RAW inventory file and filter with `filter_to_pc`
   tar_target(raw_inventory, 
-             fst::read_fst(raw_inventory_file)),
+             pipload::pip_find_data(inv_file     = raw_inventory_file,
+                                    filter_to_pc = TRUE)),
   
   
 )
-
-# End with a call to tar_pipeline() to wrangle the targets together.
-# This target script must return a pipeline object.
-tar_pipeline(targets)
 
 
 #----------------------------------------------------------
@@ -103,36 +134,36 @@ tar_pipeline(targets)
 ## dsm stands for deflated_svy_means
 ## lcu stands for Local Currency Unit
 
-the_plan <-
-  drake_plan(
-    
-    
-    ## STEP 1: Load Inventory of microdata
-    raw_inventory =  fst::read_fst(file_in(!!paste0(maindir, "_inventory/inventory.fst"))),
-    inventory     =  filter_inventory(raw_inventory),
-    
-    ## STEP 2: Load auxiliary data (statics branching)
-    aux = target(
-      import_file(file_in(file)),
-      transform = map(file  = !!aux_files_to_load,
-                      label = !!aux_indicators,
-                      .id = label)
-    ),
-    
-    ## STEP 3: Deflate welfare means (survey years) 
-    ## Creates a table of deflated survey means
-    updated_lcum = calculate_lcum(inv = inventory$survey_id),
-    
-    updated_dsm = create_dsm_table(cpi = aux_cpi,
-                                   ppp = aux_ppp,
-                                   dt  = updated_lcum),
-    
-    old_dsm = load_old_dsm(),
-    new_dsm = join_dsm_tables(ud  = updated_dsm,
-                              old = old_dsm),
-    
-    out_dsm = save_dsm(new_dsm,
-                       pipedir,
-                       file_out("output/deflated_svy_means.fst")) 
-    
-  ) 
+# the_plan <-
+#   drake_plan(
+#     
+#     
+#     ## STEP 1: Load Inventory of microdata
+#     raw_inventory =  fst::read_fst(file_in(!!paste0(maindir, "_inventory/inventory.fst"))),
+#     inventory     =  filter_inventory(raw_inventory),
+#     
+#     ## STEP 2: Load auxiliary data (statics branching)
+#     aux = target(
+#       import_file(file_in(file)),
+#       transform = map(file  = !!aux_files_to_load,
+#                       label = !!aux_indicators,
+#                       .id = label)
+#     ),
+#     
+#     ## STEP 3: Deflate welfare means (survey years) 
+#     ## Creates a table of deflated survey means
+#     updated_lcum = calculate_lcum(inv = inventory$survey_id),
+#     
+#     updated_dsm = create_dsm_table(cpi = aux_cpi,
+#                                    ppp = aux_ppp,
+#                                    dt  = updated_lcum),
+#     
+#     old_dsm = load_old_dsm(),
+#     new_dsm = join_dsm_tables(ud  = updated_dsm,
+#                               old = old_dsm),
+#     
+#     out_dsm = save_dsm(new_dsm,
+#                        pipedir,
+#                        file_out("output/deflated_svy_means.fst")) 
+#     
+#   ) 
