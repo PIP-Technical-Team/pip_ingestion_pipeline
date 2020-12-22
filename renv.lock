@@ -205,6 +205,13 @@
       "Repository": "CRAN",
       "Hash": "221d0ad75dfa03ebf17b1a4cc5c31dfc"
     },
+    "here": {
+      "Package": "here",
+      "Version": "1.0.1",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "24b224366f9c2e7534d2344d10d59211"
+    },
     "hms": {
       "Package": "hms",
       "Version": "0.5.3",
@@ -315,12 +322,32 @@
       "Repository": "CRAN",
       "Hash": "9d7aba7bed9a79e2403b4777428a2b12"
     },
+    "rprojroot": {
+      "Package": "rprojroot",
+      "Version": "2.0.2",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "249d8cd1e74a8f6a26194a91b47f21d1"
+    },
     "storr": {
       "Package": "storr",
       "Version": "1.2.5",
       "Source": "Repository",
       "Repository": "CRAN",
       "Hash": "96034207276a46a44dc81b8d43397602"
+    },
+    "tarchetypes": {
+      "Package": "tarchetypes",
+      "Version": "0.0.0.9001",
+      "Source": "GitHub",
+      "Remotes": "wlandau/targets",
+      "RemoteType": "github",
+      "RemoteHost": "api.github.com",
+      "RemoteRepo": "tarchetypes",
+      "RemoteUsername": "wlandau",
+      "RemoteRef": "HEAD",
+      "RemoteSha": "55411da458c8f549d9f2f24ee611f684bc66df74",
+      "Hash": "23c6ad85f69b674ebe2e44d0553eac76"
     },
     "targets": {
       "Package": "targets",
