@@ -345,6 +345,18 @@
       "Repository": "CRAN",
       "Hash": "3b3dd89b2ee115a8b54e93a34cd546b4"
     },
+    "pipdm": {
+      "Package": "pipdm",
+      "Version": "0.0.0.9000",
+      "Source": "GitHub",
+      "RemoteType": "github",
+      "RemoteHost": "api.github.com",
+      "RemoteRepo": "pipdm",
+      "RemoteUsername": "PIP-Technical-Team",
+      "RemoteRef": "for_targets",
+      "RemoteSha": "a1907d2f96b958bb25859037bcf34ba80c6c4bdd",
+      "Hash": "2f88c1ae1a54f74ad89279b414c1a4b8"
+    },
     "pipload": {
       "Package": "pipload",
       "Version": "0.0.0.9000",
@@ -473,6 +485,20 @@
       "Repository": "CRAN",
       "Hash": "71dffd8544691c520dd8e41ed2d7e070"
     },
+    "tidyfast": {
+      "Package": "tidyfast",
+      "Version": "0.2.1",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "cc8e5849cfe2e67e2a0a577389118dae"
+    },
+    "tidyr": {
+      "Package": "tidyr",
+      "Version": "1.1.2",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "c40b2d5824d829190f4b825f4496dfae"
+    },
     "tidyselect": {
       "Package": "tidyselect",
       "Version": "1.1.0",
@@ -507,6 +533,18 @@
       "Source": "Repository",
       "Repository": "CRAN",
       "Hash": "5cf1957f93076c19fdc81d01409d240b"
+    },
+    "wbpip": {
+      "Package": "wbpip",
+      "Version": "0.0.0.9000",
+      "Source": "GitHub",
+      "RemoteType": "github",
+      "RemoteHost": "api.github.com",
+      "RemoteRepo": "wbpip",
+      "RemoteUsername": "PIP-Technical-Team",
+      "RemoteRef": "HEAD",
+      "RemoteSha": "6e1c778b2eb78070573cbbd5bf525d421a240b74",
+      "Hash": "61f10977bd06d580c6752947b65b26ff"
     },
     "whisker": {
       "Package": "whisker",

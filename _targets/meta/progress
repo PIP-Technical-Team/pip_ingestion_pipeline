@@ -1,3 +1,3 @@
 name|progress
-inventory|running
-inventory|built
+dt_load_clean|running
+dt_load_clean|errored

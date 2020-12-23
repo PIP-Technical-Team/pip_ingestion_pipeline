@@ -113,19 +113,27 @@ tar_pipeline(
   tar_target(raw_inventory, 
              pipload::pip_find_data(inv_file     = raw_inventory_file,
                                     filter_to_pc = TRUE)),
-  tar_target(inventory, {
-             nin <- pipdm::db_filter_inventory(raw_inventory = raw_inventory, 
-                                 pfw_table = aux_pfw,
-                                 pipedir = pipedir)
+  tar_target(inventory,
+             pipdm::db_filter_inventory(raw_inventory = raw_inventory, 
+                                        pfw_table = aux_pfw,
+                                        pipedir = pipedir)[1:5] # To delete
              
-             nin[["survey_id"]]
-             }
-             )
+             ),
+  
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   #---------   Survey mean   ---------
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   
+  # load and clean welfare data
+  tar_target(dt_load_clean,
+             pipdm::db_load_and_clean(survey_id = inventory, 
+                                      maindir   = maindir),
+             error = "workspace"),
   
+  tar_target(tmp_lcu_mean,
+             pipdm::db_create_lcu_table(dlc     = dt_load_clean,
+                                        pop     = aux_pop,
+                                        maindir = maindir))
 )
 
 
