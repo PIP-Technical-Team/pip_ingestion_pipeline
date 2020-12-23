@@ -17,7 +17,7 @@
 #----------------------------------------------------------
 
 # devtools::install_github("PIP-Technical-Team/wbpip")
-# devtools::install_github("PIP-Technical-Team/pipload")
+# devtools::install_github("PIP-Technical-Team/pipload@development")
 # devtools::install_github("PIP-Technical-Team/pipdm@for_targets")
 
 library(here)
@@ -27,6 +27,19 @@ library(tarchetypes)
 #----------------------------------------------------------
 #   subfunctions
 #----------------------------------------------------------
+
+# Set target-specific options such as packages.
+pkgs <- c("data.table", 
+          "pipload", 
+          "dplyr",
+          "purrr",
+          "pipdm", 
+          "pipload", 
+          "wbpip")
+
+tar_option_set(packages = pkgs)
+
+# tar_option_set(debug = "dt_load_clean")
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #---------   initial parameters   ---------
@@ -54,19 +67,6 @@ aux_tb <- tibble::tibble(
   auxfiles = aux_files_to_load
 )
 
-#----------------------------------------------------------
-#   Set up
-#----------------------------------------------------------
-# Set target-specific options such as packages.
-pkgs <- c("data.table", 
-          "pipload", 
-          "dplyr",
-          "purrr",
-          "pipdm", 
-          "pipload", 
-          "wbpip")
-
-tar_option_set(packages = pkgs)
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #---------   Pipeline   ---------
@@ -127,13 +127,19 @@ tar_pipeline(
   # load and clean welfare data
   tar_target(dt_load_clean,
              pipdm::db_load_and_clean(survey_id = inventory, 
-                                      maindir   = maindir),
-             error = "workspace"),
+                                      maindir   = maindir)),
   
+  # LCU mean for unused surveys 
   tar_target(tmp_lcu_mean,
              pipdm::db_create_lcu_table(dlc     = dt_load_clean,
                                         pop     = aux_pop,
-                                        maindir = maindir))
+                                        maindir = maindir)),
+  
+  # Deflated mean for tmp 
+  tar_target(tmp_dsm,
+             pipdm::db_create_dsm_table(lcu_table = tmp_lcu_mean,
+                                        cpi_table = aux_cpi,
+                                        ppp_table = aux_ppp))
 )
 
 
