@@ -1,15 +1,3 @@
 name|progress
-aux_maddison|running
-aux_maddison|built
-aux_gdp|running
-aux_gdp|built
-aux_pop|running
-aux_pop|built
-aux_cpi|running
-aux_cpi|built
-aux_pfw|running
-aux_pfw|built
-aux_ppp|running
-aux_ppp|built
-aux_pce|running
-aux_pce|built
+inventory|running
+inventory|built

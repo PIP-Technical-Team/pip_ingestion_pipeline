@@ -18,7 +18,7 @@
 
 # devtools::install_github("PIP-Technical-Team/wbpip")
 # devtools::install_github("PIP-Technical-Team/pipload")
-# devtools::install_github("PIP-Technical-Team/pipdm@improvments")
+# devtools::install_github("PIP-Technical-Team/pipdm@for_targets")
 
 library(here)
 library(targets)
@@ -34,7 +34,7 @@ library(tarchetypes)
 
 #--------- Main Directory ---------
 maindir <- "//w1wbgencifs01/pip/PIP-Data/_testing/pipdp_testing/"
-pipedir <- paste0(maindir, "//w1wbgencifs01/pip/pip_ingestion_pipeline/")
+pipedir <- "//w1wbgencifs01/pip/pip_ingestion_pipeline/"
 
 #--------- Auxiliary indicators ---------
 auxdir <- paste0(maindir, "_aux/")
@@ -45,15 +45,6 @@ aux_files_to_load <- as.character(
              regexp  = ".*/[a-z]+\\.fst")
 )
 
-# in case we need to filter the aux data
-filt <- FALSE
-aux_to_keep <- c("cpi", "ppp")
-if (filt == TRUE) {
-  to_keep <- paste(aux_to_keep,
-                   collapse = "|")
-  
-  aux_files_to_load <- grep(to_keep, aux_files_to_load, value = TRUE)
-}
 
 aux_indicators <- as.character(gsub(auxdir, "", aux_files_to_load))
 aux_indicators <- as.character(gsub("/.*", "", aux_indicators))
@@ -122,6 +113,17 @@ tar_pipeline(
   tar_target(raw_inventory, 
              pipload::pip_find_data(inv_file     = raw_inventory_file,
                                     filter_to_pc = TRUE)),
+  tar_target(inventory, {
+             nin <- pipdm::db_filter_inventory(raw_inventory = raw_inventory, 
+                                 pfw_table = aux_pfw,
+                                 pipedir = pipedir)
+             
+             nin[["survey_id"]]
+             }
+             )
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  #---------   Survey mean   ---------
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   
   
 )
