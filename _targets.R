@@ -20,7 +20,6 @@
 # devtools::install_github("PIP-Technical-Team/pipload@development")
 # devtools::install_github("PIP-Technical-Team/pipdm@for_targets")
 
-library(here)
 library(targets)
 library(tarchetypes)
 
@@ -31,13 +30,12 @@ library(tarchetypes)
 # Set target-specific options such as packages.
 pkgs <- c("data.table", 
           "pipload", 
-          "dplyr",
-          "purrr",
-          "pipdm", 
-          "pipload", 
-          "wbpip")
+          "wbpip",
+          "pipdm")
 
 tar_option_set(packages = pkgs)
+
+ll <- lapply(pkgs, library, character.only = TRUE) # should not be necessary
 
 # tar_option_set(debug = "dt_load_clean")
 
@@ -93,12 +91,18 @@ aux_targ <- tar_map(
 
 
 #--------- define targets and pipeline ---------
-
+runit <- TRUE
 tar_pipeline(
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  #---------   Auxiliary data   ---------
+  #---------   Auxiliary and input data   ---------
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # Aux
   aux_targ,
+  
+  # input dsm data
+  tar_target(dsm_in, 
+             paste0(pipedir, "dsm/deflated_svy_means_in.fst"),
+             format = "file"),
   
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   #---------   Inventory   ---------
@@ -111,13 +115,19 @@ tar_pipeline(
   
   # Load RAW inventory file and filter with `filter_to_pc`
   tar_target(raw_inventory, 
-             pipload::pip_find_data(inv_file     = raw_inventory_file,
-                                    filter_to_pc = TRUE)),
+             pip_find_data(inv_file     = raw_inventory_file,
+                          filter_to_pc  = TRUE)),
+  # tar_force(inventory,
+  #            db_filter_inventory(raw_inventory = raw_inventory, 
+  #                                pfw_table     = aux_pfw,
+  #                                dsm_in        = dsm_in),
+  #           force = runit
+  #            ),
+  
   tar_target(inventory,
-             pipdm::db_filter_inventory(raw_inventory = raw_inventory, 
-                                        pfw_table = aux_pfw,
-                                        pipedir = pipedir)[1:5] # To delete
-             
+             db_filter_inventory(raw_inventory = raw_inventory, 
+                                 pfw_table     = aux_pfw,
+                                 dsm_in        = dsm_in)
              ),
   
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -126,60 +136,29 @@ tar_pipeline(
   
   # load and clean welfare data
   tar_target(dt_load_clean,
-             pipdm::db_load_and_clean(survey_id = inventory, 
-                                      maindir   = maindir)),
+             db_load_and_clean(survey_id = inventory, 
+                               maindir   = maindir)),
   
   # LCU mean for unused surveys 
   tar_target(tmp_lcu_mean,
-             pipdm::db_create_lcu_table(dlc     = dt_load_clean,
-                                        pop     = aux_pop,
-                                        maindir = maindir)),
+             db_create_lcu_table(dlc     = dt_load_clean,
+                                 pop     = aux_pop,
+                                 maindir = maindir)),
   
-  # Deflated mean for tmp 
-  tar_target(tmp_dsm,
-             pipdm::db_create_dsm_table(lcu_table = tmp_lcu_mean,
-                                        cpi_table = aux_cpi,
-                                        ppp_table = aux_ppp))
+  # Deflated mean of  tmp  LCU
+  tar_target(dsm_tmp,
+             db_create_dsm_table(lcu_table = tmp_lcu_mean,
+                                 cpi_table = aux_cpi,
+                                 ppp_table = aux_ppp)),
+  
+  # append new dsm to final file
+  tar_target(dsm_out,
+             db_bind_dsm_tables(dsm_in  = dsm_in, 
+                                tmp_dsm = dsm_tmp)),
+  # save dsm table
+  tar_target(dsm_file,
+             save_dsm(dsm_out = dsm_out, 
+                      pipedir = pipedir),
+             format = "file")
 )
 
-
-#----------------------------------------------------------
-# Drake Plan   
-#----------------------------------------------------------
-
-## dsm stands for deflated_svy_means
-## lcu stands for Local Currency Unit
-
-# the_plan <-
-#   drake_plan(
-#     
-#     
-#     ## STEP 1: Load Inventory of microdata
-#     raw_inventory =  fst::read_fst(file_in(!!paste0(maindir, "_inventory/inventory.fst"))),
-#     inventory     =  filter_inventory(raw_inventory),
-#     
-#     ## STEP 2: Load auxiliary data (statics branching)
-#     aux = target(
-#       import_file(file_in(file)),
-#       transform = map(file  = !!aux_files_to_load,
-#                       label = !!aux_indicators,
-#                       .id = label)
-#     ),
-#     
-#     ## STEP 3: Deflate welfare means (survey years) 
-#     ## Creates a table of deflated survey means
-#     updated_lcum = calculate_lcum(inv = inventory$survey_id),
-#     
-#     updated_dsm = create_dsm_table(cpi = aux_cpi,
-#                                    ppp = aux_ppp,
-#                                    dt  = updated_lcum),
-#     
-#     old_dsm = load_old_dsm(),
-#     new_dsm = join_dsm_tables(ud  = updated_dsm,
-#                               old = old_dsm),
-#     
-#     out_dsm = save_dsm(new_dsm,
-#                        pipedir,
-#                        file_out("output/deflated_svy_means.fst")) 
-#     
-#   ) 
