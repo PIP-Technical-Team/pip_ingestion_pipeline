@@ -167,5 +167,11 @@ tar_pipeline(
              save_dsm(dsm_out = dsm_out, 
                       pipedir = pipedir),
              format = "file")
+  
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  #--  adjusted welfare means for each reference year -------
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  
+  
 )
 
