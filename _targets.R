@@ -27,7 +27,7 @@ library(tarchetypes)
 library(data.table)
 library(pipload)
 library(wbpip)
-library(pipdm)
+# library(pipdm)
 
 #----------------------------------------------------------
 #   subfunctions
@@ -36,12 +36,16 @@ library(pipdm)
 # Set target-specific options such as packages.
 pkgs <- c("data.table", 
           "pipload", 
-          "wbpip",
-          "pipdm")
+          # "pipdm",
+          "wbpip")
 
 tar_option_set(packages = pkgs)
 
+# read all files in R folder
+rfiles <- fs::dir_ls(path = "R/",
+           type = "file")
 
+purrr::walk(rfiles, source)
 
 
 # tar_option_set(debug = "dt_load_clean")
