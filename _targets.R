@@ -23,6 +23,12 @@
 library(targets)
 library(tarchetypes)
 
+# Load packages for the sake of renv
+library(data.table)
+library(pipload)
+library(wbpip)
+library(pipdm)
+
 #----------------------------------------------------------
 #   subfunctions
 #----------------------------------------------------------
@@ -35,7 +41,8 @@ pkgs <- c("data.table",
 
 tar_option_set(packages = pkgs)
 
-ll <- lapply(pkgs, library, character.only = TRUE) # should not be necessary
+
+
 
 # tar_option_set(debug = "dt_load_clean")
 
