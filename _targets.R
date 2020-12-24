@@ -125,14 +125,14 @@ tar_pipeline(
              pip_find_data(inv_file     = raw_inventory_file,
                           filter_to_pc  = TRUE)),
   # tar_force(inventory,
-  #            db_filter_inventory(raw_inventory = raw_inventory, 
+  #            db_filter_inventory(raw_inventory = raw_inventory,
   #                                pfw_table     = aux_pfw,
   #                                dsm_in        = dsm_in),
   #           force = runit
   #            ),
   
   tar_target(inventory,
-             db_filter_inventory(raw_inventory = raw_inventory, 
+             db_filter_inventory(raw_inventory = raw_inventory,
                                  pfw_table     = aux_pfw,
                                  dsm_in        = dsm_in)
              ),
@@ -160,8 +160,14 @@ tar_pipeline(
   
   # append new dsm to final file
   tar_target(dsm_out,
-             db_bind_dsm_tables(dsm_in  = dsm_in, 
+             db_bind_dsm_tables(dsm_in  = dsm_in,
                                 tmp_dsm = dsm_tmp)),
+  
+  # tar_force(dsm_out,
+  #            db_bind_dsm_tables(dsm_in  = dsm_in, 
+  #                               tmp_dsm = dsm_tmp),
+  #           force = runit),
+  
   # save dsm table
   tar_target(dsm_file,
              save_dsm(dsm_out = dsm_out, 
