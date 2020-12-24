@@ -23,7 +23,11 @@ db_load_and_clean <- function(survey_id, maindir) {
   sm <- data.table::rbindlist(sm,
                               use.names = TRUE,
                               fill = TRUE)
-
+  
+  if (nrow(sm) == 0) {
+    sm <- NULL
+  }
+  
   return(sm)
 }
 
