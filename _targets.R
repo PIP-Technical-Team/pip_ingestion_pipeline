@@ -1,5 +1,5 @@
 # ==================================================
-# project:       PIP ingestrion pipline using Targets
+# project:       PIP ingestion pipeline using Targets
 # Author:        Andres Castaneda
 # Dependencies:  The World Bank
 # ----------------------------------------------------
@@ -24,6 +24,8 @@ library(targets)
 library(tarchetypes)
 
 # Load packages for the sake of renv
+library(dplyr)
+library(tidyr)
 library(data.table)
 library(pipload)
 library(wbpip)
@@ -58,6 +60,14 @@ purrr::walk(rfiles, source)
 maindir <- "//w1wbgencifs01/pip/PIP-Data/_testing/pipdp_testing/"
 pipedir <- "//w1wbgencifs01/pip/pip_ingestion_pipeline/"
 
+
+# Years
+
+ref_years <- c(1981:2019)
+pip_years <- c(1981:2019)
+
+
+
 #--------- Auxiliary indicators ---------
 auxdir <- paste0(maindir, "_aux/")
 aux_files_to_load <- as.character(
@@ -80,7 +90,7 @@ aux_tb <- tibble::tibble(
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #---------   Pipeline   ---------
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
+runit <- TRUE
 #--------- CReate batch of targets for auxiliary data ---------
 
 aux_targ <- tar_map(
@@ -94,15 +104,20 @@ aux_targ <- tar_map(
     format = "file"
   ), 
   # load data using pipload
+  # tar_force(
+  #   aux,
+  #   pipload::pip_load_aux(file_to_load = rawaux), 
+  #   force = runit
+  # )
   tar_target(
     aux,
     pipload::pip_load_aux(file_to_load = rawaux)
   )
+  
 )
 
 
 #--------- define targets and pipeline ---------
-runit <- TRUE
 tar_pipeline(
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   #---------   Auxiliary and input data   ---------
@@ -127,7 +142,8 @@ tar_pipeline(
   # Load RAW inventory file and filter with `filter_to_pc`
   tar_target(raw_inventory, 
              pip_find_data(inv_file     = raw_inventory_file,
-                          filter_to_pc  = TRUE)),
+                          filter_to_pc  = TRUE)[1:5]
+             ),
   # tar_force(inventory,
   #            db_filter_inventory(raw_inventory = raw_inventory,
   #                                pfw_table     = aux_pfw,
@@ -138,7 +154,7 @@ tar_pipeline(
   tar_target(inventory,
              db_filter_inventory(raw_inventory = raw_inventory,
                                  pfw_table     = aux_pfw,
-                                 dsm_in        = dsm_in)
+                                 dsm_in        = dsm_in)[1:5]
              ),
   
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -176,12 +192,20 @@ tar_pipeline(
   tar_target(dsm_file,
              save_dsm(dsm_out = dsm_out, 
                       pipedir = pipedir),
-             format = "file")
+             format = "file"),
   
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   #--  adjusted welfare means for each reference year -------
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   
+  tar_target(ref_year_table,
+             db_create_ref_year_table(gdp_table = aux_gdp,
+                                      pce_table = aux_pce,
+                                      pop_table = aux_pop,
+                                      pfw_table = aux_pfw,
+                                      dsm_table = dsm_out,
+                                      ref_years = ref_years,
+                                      pip_years = pip_years))
   
 )
 
