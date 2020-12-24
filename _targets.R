@@ -24,11 +24,11 @@ library(targets)
 library(tarchetypes)
 
 # Load packages for the sake of renv
-library(dplyr)
-library(tidyr)
-library(data.table)
-library(pipload)
-library(wbpip)
+# library(dplyr)
+# library(tidyr)
+# library(data.table)
+# library(pipload)
+# library(wbpip)
 # library(pipdm)
 
 #----------------------------------------------------------
@@ -36,7 +36,9 @@ library(wbpip)
 #----------------------------------------------------------
 
 # Set target-specific options such as packages.
-pkgs <- c("data.table", 
+pkgs <- c("dplyr", 
+          "tidyr",
+          "data.table", 
           "pipload", 
           # "pipdm",
           "wbpip")
@@ -81,11 +83,13 @@ aux_files_to_load <- as.character(
 aux_indicators <- as.character(gsub(auxdir, "", aux_files_to_load))
 aux_indicators <- as.character(gsub("/.*", "", aux_indicators))
 
-aux_tb <- tibble::tibble(
+aux_tb <- data.table::data.table(
   auxname  = aux_indicators,
   auxfiles = aux_files_to_load
 )
 
+# filter 
+aux_tb <- aux_tb[auxname != "maddison"]
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #---------   Pipeline   ---------
@@ -142,7 +146,7 @@ tar_pipeline(
   # Load RAW inventory file and filter with `filter_to_pc`
   tar_target(raw_inventory, 
              pip_find_data(inv_file     = raw_inventory_file,
-                          filter_to_pc  = TRUE)[1:5]
+                          filter_to_pc  = TRUE)
              ),
   # tar_force(inventory,
   #            db_filter_inventory(raw_inventory = raw_inventory,
@@ -154,7 +158,7 @@ tar_pipeline(
   tar_target(inventory,
              db_filter_inventory(raw_inventory = raw_inventory,
                                  pfw_table     = aux_pfw,
-                                 dsm_in        = dsm_in)[1:5]
+                                 dsm_in        = dsm_in)
              ),
   
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -198,6 +202,7 @@ tar_pipeline(
   #--  adjusted welfare means for each reference year -------
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   
+  # Reference year table
   tar_target(ref_year_table,
              db_create_ref_year_table(gdp_table = aux_gdp,
                                       pce_table = aux_pce,
@@ -205,7 +210,13 @@ tar_pipeline(
                                       pfw_table = aux_pfw,
                                       dsm_table = dsm_out,
                                       ref_years = ref_years,
-                                      pip_years = pip_years))
+                                      pip_years = pip_years)),
+  
+  # National accounts table
+  tar_target(nac_table,
+             db_create_nac_table(gdp_table = aux_gdp, 
+                                 pce_table = aux_pce, 
+                                 pip_years = pip_years))
   
 )
 

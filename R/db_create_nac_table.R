@@ -26,7 +26,7 @@ db_create_nac_table <- function(gdp_table, pce_table, pip_years){
 
   # Subset to only include years used by PIP
   dt <- dt[dt$year %in% pip_years, ]
-  nac_table <- dt[dt$year %in% 1979:2019, ]
+  # nac_table <- dt[dt$year %in% 1979:2019, ]
 
   return(dt)
 }

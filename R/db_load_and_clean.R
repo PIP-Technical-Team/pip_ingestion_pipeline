@@ -57,7 +57,6 @@ load_clean <- function(survey_id, maindir) {
       )$data
     )
   }
-
   return(sm)
 }
 

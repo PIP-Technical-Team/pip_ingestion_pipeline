@@ -2,6 +2,8 @@
 targets::tar_make()
 targets::tar_visnetwork(targets_only = TRUE)
 
+pushover("Done running targets")
+
 # targets::tar_visnetwork()
 # Uncomment to run targets in parallel
 # on local processes or a Sun Grid Engine cluster.
