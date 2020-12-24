@@ -38,7 +38,7 @@ db_bind_dsm_tables <- function(dsm_in, tmp_dsm) {
     df <- tmp_dsm
   }
 
-  setorder(df, country_code, surveyid_year, module, vermast, veralt)
+  setorder(df, survey_id)
 
   return(df)
 }
