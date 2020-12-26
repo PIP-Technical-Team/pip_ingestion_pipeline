@@ -9,7 +9,7 @@
 db_compute_predicted_means <- function(dt) {
 
   # CHECK inputs
-  check_inputs_db_class(dt)
+  data.table::setDT(dt)
 
   # Get proxy values
   proxy <-
@@ -33,7 +33,7 @@ db_compute_predicted_means <- function(dt) {
   }
 
   # Calculate predicted request means
-  out <- purrr::map2(means, proxy, compute_predicted_mean)
+  out <- purrr::map2(means, proxy, wbpip::compute_predicted_mean)
 
   # Add predicted means to the survey data tables
   dt$req_items <-

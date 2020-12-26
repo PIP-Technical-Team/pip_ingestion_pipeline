@@ -1,1 +1,17 @@
 name|progress
+dsm_in|running
+dsm_in|built
+inventory|running
+inventory|built
+dt_load_clean|running
+dt_load_clean|built
+tmp_lcu_mean|running
+tmp_lcu_mean|built
+dsm_tmp|running
+dsm_tmp|built
+dsm_out|running
+dsm_out|built
+ref_year_table|running
+ref_year_table|built
+dsm_file|running
+dsm_file|built

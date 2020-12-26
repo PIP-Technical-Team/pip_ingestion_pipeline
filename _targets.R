@@ -16,7 +16,7 @@
 #   Load libraries
 #----------------------------------------------------------
 
-# devtools::install_github("PIP-Technical-Team/wbpip")
+# devtools::install_github("PIP-Technical-Team/wbpip@pipeline")
 # devtools::install_github("PIP-Technical-Team/pipload@development")
 # devtools::install_github("PIP-Technical-Team/pipdm@for_targets")
 
