@@ -202,21 +202,46 @@ tar_pipeline(
   #--  adjusted welfare means for each reference year -------
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   
-  # Reference year table
-  tar_target(ref_year_table,
-             db_create_ref_year_table(gdp_table = aux_gdp,
-                                      pce_table = aux_pce,
-                                      pop_table = aux_pop,
-                                      pfw_table = aux_pfw,
-                                      dsm_table = dsm_out,
-                                      ref_years = ref_years,
-                                      pip_years = pip_years)),
+  # survey Anchor
+  tar_target(svy_anchor,
+             db_create_svy_anchor(dsm_table = dsm_out, 
+                                  pfw_table = aux_pfw)),
   
   # National accounts table
   tar_target(nac_table,
              db_create_nac_table(gdp_table = aux_gdp, 
                                  pce_table = aux_pce, 
-                                 pip_years = pip_years))
+                                 pip_years = pip_years)),
+  
+  # Merge Anchor and NAC
+  tar_target(merge_nac_anchor, 
+             db_merge_anchor_nac(nac_table  = nac_table, 
+                                 svy_anchor = svy_anchor)),
+  
+  # Look up table
+  tar_target(lkup,
+             db_create_lkup_table(dt         = merge_nac_anchor, 
+                                  nac_table  = nac_table, 
+                                  pop_table  = aux_pop, 
+                                  ref_years  = ref_years)),
+  
+  # Closest survey
+  tar_target(closest_svy,
+             db_get_closest_surveys(lkup)),
+  
+  # Line up surveys
+  tar_target(lnup_svy, 
+             db_select_lineup_surveys(closest_svy)),
+  
+  # compute predicted means
+  tar_target(predicted_means, 
+             db_compute_predicted_means(lnup_svy)),
+  
+  
+  
+  # Reference year table
+  tar_target(ref_year_table,
+             db_finalize_ref_year_table(dt        = predicted_means, 
+                                        pfw_table = aux_pfw))
   
 )
-

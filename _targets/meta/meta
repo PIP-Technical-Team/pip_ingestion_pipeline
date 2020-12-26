@@ -39,7 +39,6 @@ aux_change_gdp|stem|9d91f073819c4b2e|4e46ef8bcace363c|bf6c8f34368d4375|154649580
 aux_change_maddison|stem|794e850e71918545|4e46ef8bcace363c|bf6c8f34368d4375|530568739|_targets/objects/aux_change_maddison|ef0c0ef00a679e44|6a7d693e2118d888|64|rds|vector|||0||
 aux_maddison|stem|0669aed949a34513|9fcf7e983065276b|ca41ecf7512ee486|-876974854|_targets/objects/aux_maddison|a1ea8d255a38512c|dad28bbd01c6c9bb|162036|rds|vector|||1.33||
 aux_pop|stem|d3f6f90a94c32e85|93f038bccba1079f|9eb372695e6ddf6f|-913183573|_targets/objects/aux_pop|353f5582274e188a|7b0e5c5c419c5e06|174452|rds|vector|||0.44||
-dt_load_clean|stem|aa5395c03eb01242|08903284fd74fe4a|01ac1a7099b929fb|330895132|_targets/objects/dt_load_clean|f9935e8f5d06e1a1|75f30b77993a4be5|124165963|rds|vector|||699.02||
 pipedir|object|626a59457708af0e||||||||||||||
 auxdir|object|05fd457337c30574||||||||||||||
 maindir|object|dd5e5423a35bf2f8||||||||||||||
@@ -91,7 +90,7 @@ db_create_lcu_table|function|d7d6730e72a26d26||||||||||||||
 db_compute_predicted_means|function|201fdc89676c5264||||||||||||||
 db_create_ref_year_table|function|ac948437a3b75dde||||||||||||||
 raw_inventory_file|stem|fc71d669c533d15e|b3f424fffa4b376a|83f33d22ea06a807|1138077034|//w1wbgencifs01/pip/PIP-Data/_testing/pipdp_testing/_inventory/inventory.fst|452e6885c275e450|0bd8a000d9d6b7f4|73397|file|vector|||0||
-dsm_in|stem|f56690b548f858cf|107f0d6fc88f0ba2|f4006a50ecf10819|-1707251248|//w1wbgencifs01/pip/pip_ingestion_pipeline/dsm/deflated_svy_means_in.fst|2f3bb71c2cf57937|14aeb5fdd39e8da9|3540|file|vector|||0||
+dsm_in|stem|ef19fccddabe821e|107f0d6fc88f0ba2|f4006a50ecf10819|-1707251248|//w1wbgencifs01/pip/pip_ingestion_pipeline/dsm/deflated_svy_means_in.fst|0b989f3a00569634|fe82c4c166321c1f|49212|file|vector|||0.14|package data.table was built under R version 4.0.3|
 rawaux_ppp|stem|6f165fac4ff8ed93|011f9c533da2fb5b|ef46db3751d8e999|791529743|//w1wbgencifs01/pip/PIP-Data/_testing/pipdp_testing/_aux/ppp/ppp.fst|33699f448b669107|0f59883071cafc0e|31729|file|vector|||0||
 raw_inventory|stem|445376be06073bec|c5d8763634d36c3c|6ad7c8c1b8901ae7|-65835321|_targets/objects/raw_inventory|9d5760230a4520fb|bcf181c7f339856c|13833|rds|vector|||1.21|package data.table was built under R version 4.0.3|
 aux_gdp|stem|5920be2b58aa906d|33c683c4ee5a8ce9|7d46ed2c89ae2d32|-2038598486|_targets/objects/aux_gdp|ad89ca07c31e5ee8|6d105574119783f4|87334|rds|vector|||0.28||
@@ -99,13 +98,14 @@ aux_cpi|stem|4366d2344b45a0f0|670b74f561bc50c5|1d159c92ab3b5cec|-1021492615|_tar
 aux_pfw|stem|db9dd89781a8d789|82711bfeece10989|edad378bcb16e7a7|1832855790|_targets/objects/aux_pfw|535132477da0a581|39fb6b0089e6690a|42402|rds|vector|||0.27||
 aux_ppp|stem|74c48d6a97ec84b2|2bb049ce61a29614|5c0fb47e73150d94|-228080034|_targets/objects/aux_ppp|42facf1138076cda|c0284eb2a50d9ef6|8326|rds|vector|||0.16||
 aux_pce|stem|7329753c1ba1692b|bc26a2e7c9de1e5f|7f7c907f67c14e0d|-4203327|_targets/objects/aux_pce|ec864ecc53654412|5500b149109a1b1f|51545|rds|vector|||0.23||
-inventory|stem|906705a324ec565b|d4c5cb8baf1b31ee|9d5826eb3a2749de|805880880|_targets/objects/inventory|7ab344fe4046f5dc|720388990957b3b3|2569|rds|vector|||0.19||
+inventory|stem|13b162978eb065f0|d4c5cb8baf1b31ee|567b7545b7719b86|805880880|_targets/objects/inventory|5bccdcd5070bdab3|3bd8f66805fd112b|45|rds|vector|||0.63||
 nac_table|stem|f23bea7b5c485c7d|7b205330b4309bf9|cc62ace21521d714|351542863|_targets/objects/nac_table|c255019d41a73166|a3b30c2b9107f446|99103|rds|vector|||0.06||
-tmp_lcu_mean|stem|768c0c44be04cbbb|e05588ef272b9eb2|0fc8bc24d0b1f8b1|-1232106627|_targets/objects/tmp_lcu_mean|51e5a4377ed85fd6|a70bb83ed890eebc|12806|rds|vector|||3.51||
-dsm_tmp|stem|ec42aada9340f475|8922dfb910fdcad0|a8416cc9d9143d0a|691312266|_targets/objects/dsm_tmp|84919f9c0641bef4|e0ebf1c237776c63|16108|rds|vector|||0.04||
-dsm_out|stem|3adf88897eb5461d|c5f5fe118c1f6159|c15d27f960954a27|1796331786|_targets/objects/dsm_out|b9edcdd7eb88bf91|be749da1b3d3102d|16678|rds|vector|||0.25||
-ref_year_table|stem|e2140ab1badf039f|84d4addcc7ac313d|10d9d8ffec729093|-627612088|_targets/objects/ref_year_table|cfbe1c9679194d87|227f95fd4c610a8b|64955|rds|vector|||22.71|package data.table was built under R version 4.0.3|
-dsm_file|stem|ef19fccddabe821e|d8b253313bcb1bbd|a98ca727c1f74540|1888080197|//w1wbgencifs01/pip/pip_ingestion_pipeline/dsm/deflated_svy_means.fst|ef8d56ca8f5fe8d6|fe82c4c166321c1f|49212|file|vector|||4.75||
+dt_load_clean|stem|13b162978eb065f0|08903284fd74fe4a|d73f833a0a471cc3|330895132|_targets/objects/dt_load_clean|eaae866518b3db96|3bd8f66805fd112b|45|rds|vector|||0||
+tmp_lcu_mean|stem|13b162978eb065f0|e05588ef272b9eb2|7b27293f8443d483|-1232106627|_targets/objects/tmp_lcu_mean|19aa0fb76cff6a6d|3bd8f66805fd112b|45|rds|vector|||0.05||
+dsm_tmp|stem|13b162978eb065f0|8922dfb910fdcad0|78655ddf0cde2738|691312266|_targets/objects/dsm_tmp|d7340a283a150b43|3bd8f66805fd112b|45|rds|vector|||0.01||
+dsm_out|stem|2f009bfc180e9ffa|c5f5fe118c1f6159|f2464ea88ad41b7e|1796331786|_targets/objects/dsm_out|ac95a44029b519cc|7358a2b3606d3af4|16605|rds|vector|||0.12||
+ref_year_table|stem|e2140ab1badf039f|84d4addcc7ac313d|3486fe859eb730fa|-627612088|_targets/objects/ref_year_table|8c4ba05438a44793|227f95fd4c610a8b|64955|rds|vector|||23.58||
+dsm_file|stem|ef19fccddabe821e|d8b253313bcb1bbd|6d7abf792d5f6e7d|1888080197|//w1wbgencifs01/pip/pip_ingestion_pipeline/dsm/deflated_svy_means.fst|d78f2e8fbff12ae5|fe82c4c166321c1f|49212|file|vector|||3.33||
 pipedir|object|626a59457708af0e
 auxdir|object|05fd457337c30574
 maindir|object|dd5e5423a35bf2f8
@@ -157,19 +157,25 @@ db_create_lcu_table|function|d7d6730e72a26d26
 db_compute_predicted_means|function|201fdc89676c5264
 db_create_ref_year_table|function|ac948437a3b75dde
 raw_inventory_file|stem|fc71d669c533d15e|b3f424fffa4b376a|83f33d22ea06a807|1138077034|//w1wbgencifs01/pip/PIP-Data/_testing/pipdp_testing/_inventory/inventory.fst|452e6885c275e450|0bd8a000d9d6b7f4|73397|file|vector|||0||
-dsm_in|stem|ef19fccddabe821e|107f0d6fc88f0ba2|f4006a50ecf10819|-1707251248|//w1wbgencifs01/pip/pip_ingestion_pipeline/dsm/deflated_svy_means_in.fst|0b989f3a00569634|fe82c4c166321c1f|49212|file|vector|||0.14|package data.table was built under R version 4.0.3|
+dsm_in|stem|ef19fccddabe821e|107f0d6fc88f0ba2|f4006a50ecf10819|-1707251248|//w1wbgencifs01/pip/pip_ingestion_pipeline/dsm/deflated_svy_means_in.fst|36bc4f8142b6cb41|fe82c4c166321c1f|49212|file|vector|||0.14|package data.table was built under R version 4.0.3|
 rawaux_ppp|stem|6f165fac4ff8ed93|011f9c533da2fb5b|ef46db3751d8e999|791529743|//w1wbgencifs01/pip/PIP-Data/_testing/pipdp_testing/_aux/ppp/ppp.fst|33699f448b669107|0f59883071cafc0e|31729|file|vector|||0||
 raw_inventory|stem|445376be06073bec|c5d8763634d36c3c|6ad7c8c1b8901ae7|-65835321|_targets/objects/raw_inventory|9d5760230a4520fb|bcf181c7f339856c|13833|rds|vector|||1.21|package data.table was built under R version 4.0.3|
-aux_gdp|stem|5920be2b58aa906d|33c683c4ee5a8ce9|7d46ed2c89ae2d32|-2038598486|_targets/objects/aux_gdp|ad89ca07c31e5ee8|6d105574119783f4|87334|rds|vector|||0.28||
 aux_cpi|stem|4366d2344b45a0f0|670b74f561bc50c5|1d159c92ab3b5cec|-1021492615|_targets/objects/aux_cpi|531dea47fa192fbb|e19ecc9e577addf0|63671|rds|vector|||0.25||
-aux_pfw|stem|db9dd89781a8d789|82711bfeece10989|edad378bcb16e7a7|1832855790|_targets/objects/aux_pfw|535132477da0a581|39fb6b0089e6690a|42402|rds|vector|||0.27||
 aux_ppp|stem|74c48d6a97ec84b2|2bb049ce61a29614|5c0fb47e73150d94|-228080034|_targets/objects/aux_ppp|42facf1138076cda|c0284eb2a50d9ef6|8326|rds|vector|||0.16||
+aux_gdp|stem|5920be2b58aa906d|33c683c4ee5a8ce9|7d46ed2c89ae2d32|-2038598486|_targets/objects/aux_gdp|ad89ca07c31e5ee8|6d105574119783f4|87334|rds|vector|||0.28||
 aux_pce|stem|7329753c1ba1692b|bc26a2e7c9de1e5f|7f7c907f67c14e0d|-4203327|_targets/objects/aux_pce|ec864ecc53654412|5500b149109a1b1f|51545|rds|vector|||0.23||
-inventory|stem|13b162978eb065f0|d4c5cb8baf1b31ee|567b7545b7719b86|805880880|_targets/objects/inventory|5bccdcd5070bdab3|3bd8f66805fd112b|45|rds|vector|||0.63||
+aux_pfw|stem|db9dd89781a8d789|82711bfeece10989|edad378bcb16e7a7|1832855790|_targets/objects/aux_pfw|535132477da0a581|39fb6b0089e6690a|42402|rds|vector|||0.27||
 nac_table|stem|f23bea7b5c485c7d|7b205330b4309bf9|cc62ace21521d714|351542863|_targets/objects/nac_table|c255019d41a73166|a3b30c2b9107f446|99103|rds|vector|||0.06||
+inventory|stem|13b162978eb065f0|d4c5cb8baf1b31ee|567b7545b7719b86|805880880|_targets/objects/inventory|5bccdcd5070bdab3|3bd8f66805fd112b|45|rds|vector|||0.63||
 dt_load_clean|stem|13b162978eb065f0|08903284fd74fe4a|d73f833a0a471cc3|330895132|_targets/objects/dt_load_clean|eaae866518b3db96|3bd8f66805fd112b|45|rds|vector|||0||
 tmp_lcu_mean|stem|13b162978eb065f0|e05588ef272b9eb2|7b27293f8443d483|-1232106627|_targets/objects/tmp_lcu_mean|19aa0fb76cff6a6d|3bd8f66805fd112b|45|rds|vector|||0.05||
 dsm_tmp|stem|13b162978eb065f0|8922dfb910fdcad0|78655ddf0cde2738|691312266|_targets/objects/dsm_tmp|d7340a283a150b43|3bd8f66805fd112b|45|rds|vector|||0.01||
 dsm_out|stem|2f009bfc180e9ffa|c5f5fe118c1f6159|f2464ea88ad41b7e|1796331786|_targets/objects/dsm_out|ac95a44029b519cc|7358a2b3606d3af4|16605|rds|vector|||0.12||
-ref_year_table|stem|e2140ab1badf039f|84d4addcc7ac313d|3486fe859eb730fa|-627612088|_targets/objects/ref_year_table|8c4ba05438a44793|227f95fd4c610a8b|64955|rds|vector|||23.58||
+svy_anchor|stem|b50e55dd7797ea47|033a9616bb9dc89a|67bd0b4ffdb6571e|1534445716|_targets/objects/svy_anchor|b526e9189f93db79|a016fb85bae99afa|17033|rds|vector|||0.45|package data.table was built under R version 4.0.3|
 dsm_file|stem|ef19fccddabe821e|d8b253313bcb1bbd|6d7abf792d5f6e7d|1888080197|//w1wbgencifs01/pip/pip_ingestion_pipeline/dsm/deflated_svy_means.fst|d78f2e8fbff12ae5|fe82c4c166321c1f|49212|file|vector|||3.33||
+merge_nac_anchor|stem|35136a14a719c6a0|9f7e681a15d7d805|2bbfdfed92d4d6be|1727246138|_targets/objects/merge_nac_anchor|a48080c7e9c6f4aa|0973487f82066acd|24091|rds|vector|||1.03||
+lkup|stem|88bbdeff79072ac2|6de4aef452c6a6d5|15c55e82ffc22e9d|142526368|_targets/objects/lkup|fd29f7f5a8762c86|d0b17b73e443b2e5|407189|rds|vector|||0.86||
+closest_svy|stem|b6db9750edff229d|f0b9dbfd54d16a43|6095cfaf70744314|-1927946934|_targets/objects/closest_svy|c10d6a3e9b2dce01|5c0bad8f0e9b3079|191218|rds|vector|||5.73||
+lnup_svy|stem|86488061f9fde8e3|de3374eabe0c5376|26c3db6b0778e55a|-743163456|_targets/objects/lnup_svy|2a6be11c51791ce1|30c8a5cfb758992f|152833|rds|vector|||16.63||
+predicted_means|stem|921beaa8b21d42e1|c6cbadc87dc047aa|2ba1a7a9029a0485|231194058|_targets/objects/predicted_means|e9cdc7f5a6a83674|54b2dde616b23e73|195187|rds|vector|||2.5||
+ref_year_table|stem|e2140ab1badf039f|1a722930ccc5acbc|10cbb6e2ce4c33c1|-627612088|_targets/objects/ref_year_table|214bfccecbbe447f|227f95fd4c610a8b|64955|rds|vector|||0.14||
