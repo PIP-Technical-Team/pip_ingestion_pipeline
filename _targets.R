@@ -1,10 +1,8 @@
 # ==================================================
 # project:       PIP ingestion pipeline using Targets
-# Author:        Andres Castaneda
 # Dependencies:  The World Bank
 # ----------------------------------------------------
 # Creation Date:    2020-12-22
-# Modification Date: 
 # Script version:    01
 # References:
 # 
