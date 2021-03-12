@@ -11,7 +11,8 @@ library(tarchetypes)
 # remotes::install_github("PIP-Technical-Team/pipdm@development")
 ### defaults ---------
 
-PIP_DATA_DIR     <- '//w1wbgencifs01/pip/PIP-Data/_testing/pipdp_testing/' # Input dir 
+# Input dir 
+PIP_DATA_DIR     <- '//w1wbgencifs01/pip/PIP-Data/_testing/pipdp_testing/' 
 
 # '//w1wbgencifs01/pip/pip_ingestion_pipeline/' # Output dir
 PIP_PIPE_DIR     <- '//w1wbgencifs01/pip/PIP-Data/_testing/pip_ingestion_pipeline/' 
@@ -19,8 +20,14 @@ PIP_PIPE_DIR     <- '//w1wbgencifs01/pip/PIP-Data/_testing/pip_ingestion_pipelin
 # Cached survey data dir
 CACHE_SVY_DIR    <- paste0(PIP_PIPE_DIR, 'pc_data/cache/alt_clean_survey_data/') 
 
-OUT_SVY_DIR      <- paste0(PIP_PIPE_DIR, 'pc_data/survey_data/') # Final survey data output dir
-OUT_AUX_DIR      <- paste0(PIP_PIPE_DIR, 'pc_data/aux_data/') #  # Final aux data output dir 
+# Final survey data output dir
+OUT_SVY_DIR      <- paste0(PIP_PIPE_DIR, 'pc_data/survey_data/') 
+
+#  Estimations output dir
+OUT_EST_DIR      <- paste0(PIP_PIPE_DIR, 'pc_data/estimations_output/') 
+
+# aux data output dir
+OUT_AUX_DIR      <- paste0(PIP_PIPE_DIR, 'pc_data/aux_output/')  
 
 ### Max dates --------
 
@@ -393,68 +400,24 @@ list(
     pipdm::db_clean_aux(all_aux, aux_names, pip_years = PIP_YEARS),
     pattern = map(all_aux, aux_names), 
     iteration = "list"
-  )
+  ),
 
 ##  Save data ---- 
-#   
-  # Save survey data to drive (in .fst format)
-  # tar_target(
-  #   survey_files,
-  #   save_survey_data(
-  #     dl = dl_svy_data_w_mean,
-  #     output_dir = OUT_SVY_DIR,
-  #     cols = c('welfare', 'weight', 'area'),
-  #     compress = FST_COMP_LVL,
-  #     future_plan = 'multisession')
-  # ),
-#  
-#   # Save AUX data 
-#   tar_target(
-#     gdp_file,
-#     format = 'file',
-#     save_aux_data(
-#       gdp_clean,
-#       filename = 'gdp',
-#       outdir = OUT_AUX_DIR,
-#       compress = FST_COMP_LVL)
-#   ),
-#   tar_target(
-#     pce_file,
-#     format = 'file',
-#     save_aux_data(
-#       pce_clean,
-#       filename = 'pce',
-#       outdir = OUT_AUX_DIR,
-#       compress = FST_COMP_LVL)
-#   ),
-#   tar_target(
-#     cpi_file,
-#     format = 'file',
-#     save_aux_data(
-#       cpi_clean,
-#       filename = 'cpi',
-#       outdir = OUT_AUX_DIR,
-#       compress = FST_COMP_LVL)
-#   ),
-#   tar_target(
-#     ppp_file,
-#     format = 'file',
-#     save_aux_data(
-#       ppp_clean,
-#       filename = 'ppp',
-#       outdir = OUT_AUX_DIR,
-#       compress = FST_COMP_LVL)
-#   ),
-#   tar_target(
-#     pop_file,
-#     format = 'file',
-#     save_aux_data(
-#       pop_clean,
-#       filename = 'pop',
-#       outdir = OUT_AUX_DIR,
-#       compress = FST_COMP_LVL)
-#   ),
-# 
+
+## Save AUX data
+  tar_target(aux_out_files,
+             paste0(OUT_AUX_DIR, aux_names, ".fst"),
+             pattern   = map(aux_names)
+             ),
+
+  tar_files(aux_out_dir, aux_out_files),
+  tar_target(aux_out, 
+             fst::write_fst(x        = aux_clean,
+                            path     = aux_out_dir,
+                            compress =  FST_COMP_LVL), 
+             pattern = map(aux_clean, aux_out_dir), 
+             iteration = "list")
+
 #   # Save POP region table
 #   tar_target(
 #     pop_region_file,
@@ -465,7 +428,7 @@ list(
 #       outdir = OUT_AUX_DIR,
 #       compress = FST_COMP_LVL)
 #   ),
-#   
+# 
 #   # Save coverage table
 #   tar_target(
 #     coverage_file,
@@ -476,8 +439,8 @@ list(
 #       outdir = OUT_AUX_DIR,
 #       compress = FST_COMP_LVL)
 #   ),
-#   
-#   # Save Lorenz list 
+# #   
+#   # Save Lorenz list
 #   tar_target(
 #     lorenz_file,
 #     format = 'file',
