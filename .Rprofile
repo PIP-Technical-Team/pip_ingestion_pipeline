@@ -1,3 +1,4 @@
+source("renv/activate.R")
 # ---- RENV ---- 
 
 # source('renv/activate.R')
