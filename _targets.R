@@ -77,6 +77,8 @@ tar_option_set(
   packages = pkgs,
   imports  = c('pipdm','pipload', 'wbpip'))
 
+tar_renv()
+writeLines(readLines("_packages.R"))
 
 # Load pipeline helper functions 
 source('R/_common.R')
