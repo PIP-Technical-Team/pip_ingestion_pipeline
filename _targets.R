@@ -51,22 +51,8 @@ pkgs <-
     'cli',
     'progress',
     'glue',
-    'purrr',
-    'future',
-    'future.apply',
-    'future.callr'
+    'purrr'
   )
-
-pgks_to_load <- 
-  c('magrittr',
-    'data.table',
-    'cli',
-    'progress',
-    'glue', 
-    'fst'
-  )
-
-purrr::walk(pgks_to_load, library, character.only = TRUE)
 
   
 # Set targets options 
@@ -77,10 +63,10 @@ tar_option_set(
   packages = pkgs,
   imports  = c('pipdm','pipload', 'wbpip'))
 
-tar_renv()
-writeLines(readLines("_packages.R"))
+
 
 # Load pipeline helper functions 
+source('_packages.R')
 source('R/_common.R')
 
 # Set future plan (for targets::tar_make_future)
@@ -125,7 +111,7 @@ aux_indicators   <- gsub("(.*/)([^/]+)(\\.fst)", "\\2", aux_indicators)
 names(aux_files) <- aux_indicators
 
 
-aux_tb <- data.table::data.table(
+aux_tb <- data.table(
   auxname  = aux_indicators,
   auxfiles = aux_files
 )
@@ -133,30 +119,6 @@ aux_tb <- data.table::data.table(
 # filter 
 aux_tb <- aux_tb[auxname != "maddison"]
 
-
-aux_targ <- tar_map(
-  values = aux_tb, 
-  names  = "auxname", 
-  
-  # create dynamic name
-  tar_target(
-    aux_dir,
-    auxfiles, 
-    format = "file"
-  ), 
-  # load data using pipload
-  # tar_force(
-  #   aux,
-  #   pipload::pip_load_aux(file_to_load = aux_dir), 
-  #   force = runit
-  # )
-  tar_target(
-    aux,
-    pipload::pip_load_aux(file_to_load = aux_dir,
-                          apply_label = FALSE)
-  )
-  
-)
 
 # # Load PFW file
 pfw_glo <- pipload::pip_load_aux(
@@ -564,5 +526,4 @@ list(
 #   )
   
 )
-
 
