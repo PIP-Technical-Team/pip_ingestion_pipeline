@@ -404,7 +404,7 @@ list(
 
 ##  Save data ---- 
 
-## Save AUX data
+### Save Basic AUX data----
   tar_target(aux_out_files,
              paste0(OUT_AUX_DIR, aux_names, ".fst"),
              pattern   = map(aux_names)
@@ -416,77 +416,78 @@ list(
                             path     = aux_out_dir,
                             compress =  FST_COMP_LVL), 
              pattern = map(aux_clean, aux_out_dir), 
-             iteration = "list")
+             iteration = "list"),
 
-#   # Save POP region table
-#   tar_target(
-#     pop_region_file,
-#     format = 'file',
-#     save_aux_data(
-#       dt_pop_region,
-#       filename = 'pop-region',
-#       outdir = OUT_AUX_DIR,
-#       compress = FST_COMP_LVL)
-#   ),
-# 
-#   # Save coverage table
-#   tar_target(
-#     coverage_file,
-#     format = 'file',
-#     save_aux_data(
-#       dt_coverage,
-#       filename = 'coverage',
-#       outdir = OUT_AUX_DIR,
-#       compress = FST_COMP_LVL)
-#   ),
-# #   
-#   # Save Lorenz list
-#   tar_target(
-#     lorenz_file,
-#     format = 'file',
-#     save_aux_data(
-#       dl_lorenz,
-#       filename = 'lorenz',
-#       outdir = OUT_AUX_DIR,
-#       compress = TRUE,
-#       type = 'rds')
-#   ),
-#   
-#   # Save dist stats table
-#   tar_target(
-#     dist_file,
-#     format = 'file',
-#     save_aux_data(
-#       dt_dist_stats,
-#       filename = 'dist-stats',
-#       outdir = OUT_AUX_DIR,
-#       compress = FST_COMP_LVL,
-#       type = 'fst')
-#   ),
-#     
-#   # Save survey means table
-#   tar_target(
-#     survey_mean_file,
-#     format = 'file',
-#     save_aux_data(
-#       dt_svy_mean_ppp,
-#       filename = 'survey-mean',
-#       outdir = OUT_AUX_DIR,
-#       compress = FST_COMP_LVL,
-#       type = 'fst')
-#   ),
-#   
-#   # Save interpolated means table 
-#   tar_target(
-#     interpolated_mean_file,
-#     format = 'file',
-#     save_aux_data(
-#       dt_svy_mean_ppp,
-#       filename = 'interpolated-mean',
-#       outdir = OUT_AUX_DIR,
-#       compress = FST_COMP_LVL,
-#       type = 'fst')
-#   )
-  
+### Save additional aux files----
+  tar_target(
+    add_aux_files,
+    paste0(
+      OUT_AUX_DIR,
+      c("pop-region", "coverage"),".fst"
+    )
+  ),
+
+  tar_files(add_aux_dir, add_aux_files),
+
+  tar_target(add_aux,
+             list(dt_pop_region, dt_coverage), 
+             iteration = "list"
+             ),
+
+  tar_target(
+    add_aux_out,
+    save_aux_data(
+      add_aux,
+      add_aux_dir,
+      compress = FST_COMP_LVL
+      ), 
+    format = 'file',
+    pattern = map(add_aux, add_aux_dir)
+  ),
+
+### Save Lorenz list ----
+  tar_target(
+    lorenz_out,
+    save_aux_data(
+      lorenz,
+      paste0(OUT_AUX_DIR, "lorenz.rds"),
+      compress = TRUE
+      ),
+    format = 'file',
+    ),
+
+### Save dist stats table----
+  tar_target(
+    dist_file,
+    format = 'file', {
+      fst::write_fst(x        = dt_dist_stats,
+                     path     = paste0(OUT_EST_DIR, "dist-stats.fst"),
+                     compress =  FST_COMP_LVL)
+      paste0(OUT_EST_DIR, "dist-stats.fst")
+    }
+  ),
+
+### Save survey means table ----
+  tar_target(
+    survey_mean_file,
+    format = 'file', {
+      fst::write_fst(x        = svy_mean_ppp_table,
+                     path     = paste0(OUT_EST_DIR, "survey_mean.fst"),
+                     compress =  FST_COMP_LVL)
+      paste0(OUT_EST_DIR, "survey_mean.fst")
+    }
+  ),
+   
+### Save interpolated means table ----
+  tar_target(
+    interpolated_means_file,
+    format = 'file', {
+      fst::write_fst(x        = dt_ref_mean_pred,
+                     path     = paste0(OUT_EST_DIR, "interpolated-means.fst"),
+                     compress =  FST_COMP_LVL)
+      paste0(OUT_EST_DIR, "interpolated-means.fst")
+    }
+  )
+
 )
 

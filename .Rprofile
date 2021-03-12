@@ -1,8 +1,8 @@
 source("renv/activate.R")
 # ---- RENV ---- 
 
-# source('renv/activate.R')
-
+library(targets)
+library(tarchetypes)
 # ---- MISCELLANEOUS ---- 
 
 # Number of future() worker sessions
