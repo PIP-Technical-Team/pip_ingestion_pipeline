@@ -12,7 +12,7 @@ library(tarchetypes)
 ### defaults ---------
 
 # Input dir 
-PIP_DATA_DIR     <- '//w1wbgencifs01/pip/PIP-Data/_testing/pipdp_testing/' 
+PIP_DATA_DIR     <- '//w1wbgencifs01/pip/PIP-Data_QA/' 
 
 # '//w1wbgencifs01/pip/pip_ingestion_pipeline/' # Output dir
 PIP_PIPE_DIR     <- '//w1wbgencifs01/pip/PIP-Data/_testing/pip_ingestion_pipeline/' 
@@ -155,6 +155,9 @@ pipeline_inventory <-
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ##      Create cache files --------
+pipeline_inventory <- 
+  pipeline_inventory[cache_id == "PHL_2018_FIES_D1_CON_GPWG"]
+
 cache_info <- 
   cache_survey_data(
   pipeline_inventory = pipeline_inventory,
