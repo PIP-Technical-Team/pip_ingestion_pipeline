@@ -6,6 +6,10 @@
 library(targets)
 library(tarchetypes)
 
+# tar_option_set(debug = "cch_81c40652")
+# tar_cue(mode = "never")
+
+
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ##   Set initial parameters  --------
 # remotes::install_github("PIP-Technical-Team/pipdm@development")
