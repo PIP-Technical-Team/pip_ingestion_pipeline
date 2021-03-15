@@ -159,8 +159,8 @@ pipeline_inventory <-
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ##      Create cache files --------
-pipeline_inventory <- 
-  pipeline_inventory[cache_id == "PHL_2018_FIES_D1_CON_GPWG"]
+# pipeline_inventory <- 
+#   pipeline_inventory[cache_id == "PHL_2018_FIES_D1_CON_GPWG"]
 
 cache_info <- 
   cache_survey_data(
@@ -170,13 +170,6 @@ cache_info <-
   compress           = FST_COMP_LVL,
   verbose            = TRUE, 
   compendium         = FALSE)
-
-# correspondence inventory
-# cache_inventory <- cache_info$data_available
-# cache_inventory <- 
-#   cache_inventory[grepl("^(PRY|ARE)", survey_id)
-#                  ][gsub("([A-Z]+)_([0-9]+)_(.*)", "\\2", survey_id) > 2010
-#                    ]
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #            Step 3:   Run pipeline   ---------
@@ -218,9 +211,9 @@ list(
     x <- fst::read_fst(cache_inventory_dir, 
                   as.data.table = TRUE)
     # to filter temporarily
-    x <- x[grepl("^(PRY|ARE)", survey_id)
-           ][gsub("([A-Z]+)_([0-9]+)_(.*)", "\\2", survey_id) > 2010
-           ]
+    # x <- x[grepl("^(PRY|ARE)", survey_id)
+    #        ][gsub("([A-Z]+)_([0-9]+)_(.*)", "\\2", survey_id) > 2010
+    #        ]
     
     },
   ),
