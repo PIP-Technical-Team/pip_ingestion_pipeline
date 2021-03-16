@@ -6,7 +6,7 @@
 library(targets)
 library(tarchetypes)
 
-# tar_option_set(debug = "cch_81c40652")
+# tar_option_set(debug = "svy_mean_lcu_table")
 # tar_cue(mode = "never")
 
 
@@ -52,7 +52,7 @@ PIP_SAFE_WORKERS <- FALSE # Open/close workers after each future call
 
 pkgs <- 
   c('pipload', 
-    'pipdm',
+    # 'pipdm',
     'wbpip',
     'fst',
     'qs',
@@ -72,7 +72,10 @@ tar_option_set(
   memory = 'transient',
   format = 'qs', #'fst_dt',
   packages = pkgs,
-  imports  = c('pipdm','pipload', 'wbpip'))
+  imports  = c('pipload', 
+               # 'pipdm',
+               'wbpip')
+  )
 
 
 
@@ -148,7 +151,7 @@ pip_inventory <-
 
 # Create pipeline inventory
 pipeline_inventory <-
-  pipdm::db_filter_inventory(
+  db_filter_inventory(
     pip_inventory,
     pfw_table = pfw_glo)
 
@@ -251,7 +254,7 @@ list(
 
   tar_target(
     svy_mean_lcu,
-    pipdm::db_compute_survey_mean(cch, gd_means),
+    db_compute_survey_mean(cch, gd_means),
     pattern =  map(cch, gd_means), 
     iteration = "list"
      ),
@@ -280,7 +283,7 @@ list(
 # Calculate Lorenz curves (for microdata)  
   tar_target(
     lorenz_all,
-    pipdm::db_compute_lorenz(cch),
+    db_compute_lorenz(cch),
     pattern = map(cch), 
     iteration = "list"
   ), 
@@ -300,9 +303,9 @@ list(
 
 ### Calculate distributional statistics
   tar_target(
-    dl_dist_stats,
-    pipdm::db_compute_dist_stats(cch, dl_mean), 
-    map(cch, dl_mean), 
+    name      = dl_dist_stats,
+    command   = db_compute_dist_stats(cch, dl_mean), 
+    pattern   =  map(cch, dl_mean), 
     iteration = "list"
     ),
   
@@ -310,7 +313,7 @@ list(
 
   tar_target(
     svy_mean_lcu_table,
-    pipdm::db_create_lcu_table(
+    db_create_lcu_table(
      dl        = svy_mean_lcu,
      pop_table = aux_pop,
      pfw_table = aux_pfw)
@@ -320,7 +323,7 @@ list(
 ##  Create DSM table ---- 
 
   tar_target(svy_mean_ppp_table,
-             pipdm::db_create_dsm_table(
+             db_create_dsm_table(
                lcu_table = svy_mean_lcu_table,
                cpi_table = aux_cpi,
                ppp_table = aux_ppp)),
@@ -329,7 +332,7 @@ list(
 #   
 #   # Covert dist stat list to table
   tar_target(dt_dist_stats,
-             pipdm::db_create_dist_table(
+             db_create_dist_table(
                dl_dist_stats,
                survey_id = cache_inventory$survey_id,
                dsm_table = svy_mean_ppp_table)),
@@ -345,7 +348,7 @@ list(
 #   # PIP_PIPE_DIR/aux_data/.
 #   
   tar_target(dt_ref_mean_pred,
-             pipdm::db_create_ref_year_table(
+             db_create_ref_year_table(
                gdp_table = aux_gdp,
                pce_table = aux_pce,
                pop_table = aux_pop,
@@ -361,7 +364,7 @@ list(
 #  Create coverage table by region
   tar_target(
     dt_coverage,
-    pipdm::db_create_coverage_table(
+    db_create_coverage_table(
       ref_year_table    = dt_ref_mean_pred,
       pop_table         = aux_pop,
       ref_years         = PIP_REF_YEARS,
@@ -374,7 +377,7 @@ list(
   
   tar_target(
     dt_pop_region,
-    pipdm::db_create_reg_pop_table(
+    db_create_reg_pop_table(
       pop_table   = aux_pop,
       cl_table    = aux_country_list, 
       region_code = 'pcn_region_code',
@@ -397,7 +400,7 @@ list(
   
   tar_target(
     aux_clean,
-    pipdm::db_clean_aux(all_aux, aux_names, pip_years = PIP_YEARS),
+    db_clean_aux(all_aux, aux_names, pip_years = PIP_YEARS),
     pattern = map(all_aux, aux_names), 
     iteration = "list"
   ),
