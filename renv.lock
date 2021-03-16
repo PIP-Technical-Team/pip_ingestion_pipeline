@@ -694,6 +694,13 @@
       "Repository": "CRAN",
       "Hash": "97def703420c8ab10d8f0e6c72101e02"
     },
+    "pushoverr": {
+      "Package": "pushoverr",
+      "Version": "1.0.0",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "93493b5ba792b3ae472cd94aaa0fcec4"
+    },
     "qs": {
       "Package": "qs",
       "Version": "0.24.1",
