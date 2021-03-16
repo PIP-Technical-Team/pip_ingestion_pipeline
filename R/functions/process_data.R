@@ -21,21 +21,21 @@ process_data <- function(survey_id,
   
   #--------- Load data ---------
   
-  tryCatch(
+  df <- tryCatch(
     expr = {
       # Load data
-      df <- pipload::pip_load_data(
+      pipload::pip_load_data(
         survey_id = survey_id, 
         maindir = pip_data_dir, 
         noisy = FALSE)
     }, # end of expr section
     
     error = function(e) {
-      df <- NULL
+      NULL
     }, # end of error section
     
     warning = function(w) {
-      df <- NULL
+      NULL
     }
   ) # End of trycatch
   
@@ -48,18 +48,18 @@ process_data <- function(survey_id,
   
   #--------- Clean Data ---------
   
-  tryCatch(
+  df <- tryCatch(
     expr = {
       # Clean DAta
-      df <- pipdm::db_clean_data(df)
+      pipdm::db_clean_data(df)
     }, # end of expr section
     
     error = function(e) {
-      df <- NULL
+      NULL
     }, # end of error section
     
     warning = function(w) {
-      df <- NULL
+      NULL
     }
   ) # End of trycatch
   
@@ -71,7 +71,7 @@ process_data <- function(survey_id,
   }
   
   #--------- Saving data ---------
-  tryCatch(
+  df <- tryCatch(
     expr = {
       # Your code...
       if (!is.null(cols)) {
@@ -89,14 +89,15 @@ process_data <- function(survey_id,
       write_fst(x = df, 
                 path = svy_out_path, 
                 compress = compress)
+      TRUE
     }, # end of expr section
     
     error = function(e) {
-      df <- NULL
+      NULL
     }, # end of error section
     
     warning = function(w) {
-      df <- NULL
+      NULL
     }
   ) # End of trycatch
   

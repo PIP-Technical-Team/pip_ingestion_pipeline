@@ -6,13 +6,17 @@
 library(targets)
 library(tarchetypes)
 
+# tar_option_set(debug = "svy_mean_lcu_table")
+# tar_cue(mode = "never")
+
+
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ##   Set initial parameters  --------
 # remotes::install_github("PIP-Technical-Team/pipdm@development")
 ### defaults ---------
 
 # Input dir 
-PIP_DATA_DIR     <- '//w1wbgencifs01/pip/PIP-Data/_testing/pipdp_testing/' 
+PIP_DATA_DIR     <- '//w1wbgencifs01/pip/PIP-Data_QA/' 
 
 # '//w1wbgencifs01/pip/pip_ingestion_pipeline/' # Output dir
 PIP_PIPE_DIR     <- '//w1wbgencifs01/pip/PIP-Data/_testing/pip_ingestion_pipeline/' 
@@ -48,7 +52,7 @@ PIP_SAFE_WORKERS <- FALSE # Open/close workers after each future call
 
 pkgs <- 
   c('pipload', 
-    'pipdm',
+    # 'pipdm',
     'wbpip',
     'fst',
     'qs',
@@ -68,7 +72,10 @@ tar_option_set(
   memory = 'transient',
   format = 'qs', #'fst_dt',
   packages = pkgs,
-  imports  = c('pipdm','pipload', 'wbpip'))
+  imports  = c('pipload', 
+               # 'pipdm',
+               'wbpip')
+  )
 
 
 
@@ -144,7 +151,7 @@ pip_inventory <-
 
 # Create pipeline inventory
 pipeline_inventory <-
-  pipdm::db_filter_inventory(
+  db_filter_inventory(
     pip_inventory,
     pfw_table = pfw_glo)
 
@@ -155,6 +162,9 @@ pipeline_inventory <-
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ##      Create cache files --------
+# pipeline_inventory <- 
+#   pipeline_inventory[cache_id == "PHL_2018_FIES_D1_CON_GPWG"]
+
 cache_info <- 
   cache_survey_data(
   pipeline_inventory = pipeline_inventory,
@@ -163,13 +173,6 @@ cache_info <-
   compress           = FST_COMP_LVL,
   verbose            = TRUE, 
   compendium         = FALSE)
-
-# correspondence inventory
-# cache_inventory <- cache_info$data_available
-# cache_inventory <- 
-#   cache_inventory[grepl("^(PRY|ARE)", survey_id)
-#                  ][gsub("([A-Z]+)_([0-9]+)_(.*)", "\\2", survey_id) > 2010
-#                    ]
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #            Step 3:   Run pipeline   ---------
@@ -211,9 +214,9 @@ list(
     x <- fst::read_fst(cache_inventory_dir, 
                   as.data.table = TRUE)
     # to filter temporarily
-    x <- x[grepl("^(PRY|ARE)", survey_id)
-           ][gsub("([A-Z]+)_([0-9]+)_(.*)", "\\2", survey_id) > 2010
-           ]
+    # x <- x[grepl("^(PRY|ARE)", survey_id)
+    #        ][gsub("([A-Z]+)_([0-9]+)_(.*)", "\\2", survey_id) > 2010
+    #        ]
     
     },
   ),
@@ -251,7 +254,7 @@ list(
 
   tar_target(
     svy_mean_lcu,
-    pipdm::db_compute_survey_mean(cch, gd_means),
+    db_compute_survey_mean(cch, gd_means),
     pattern =  map(cch, gd_means), 
     iteration = "list"
      ),
@@ -280,7 +283,7 @@ list(
 # Calculate Lorenz curves (for microdata)  
   tar_target(
     lorenz_all,
-    pipdm::db_compute_lorenz(cch),
+    db_compute_lorenz(cch),
     pattern = map(cch), 
     iteration = "list"
   ), 
@@ -300,9 +303,9 @@ list(
 
 ### Calculate distributional statistics
   tar_target(
-    dl_dist_stats,
-    pipdm::db_compute_dist_stats(cch, dl_mean), 
-    map(cch, dl_mean), 
+    name      = dl_dist_stats,
+    command   = db_compute_dist_stats(cch, dl_mean), 
+    pattern   =  map(cch, dl_mean), 
     iteration = "list"
     ),
   
@@ -310,7 +313,7 @@ list(
 
   tar_target(
     svy_mean_lcu_table,
-    pipdm::db_create_lcu_table(
+    db_create_lcu_table(
      dl        = svy_mean_lcu,
      pop_table = aux_pop,
      pfw_table = aux_pfw)
@@ -320,7 +323,7 @@ list(
 ##  Create DSM table ---- 
 
   tar_target(svy_mean_ppp_table,
-             pipdm::db_create_dsm_table(
+             db_create_dsm_table(
                lcu_table = svy_mean_lcu_table,
                cpi_table = aux_cpi,
                ppp_table = aux_ppp)),
@@ -329,7 +332,7 @@ list(
 #   
 #   # Covert dist stat list to table
   tar_target(dt_dist_stats,
-             pipdm::db_create_dist_table(
+             db_create_dist_table(
                dl_dist_stats,
                survey_id = cache_inventory$survey_id,
                dsm_table = svy_mean_ppp_table)),
@@ -345,7 +348,7 @@ list(
 #   # PIP_PIPE_DIR/aux_data/.
 #   
   tar_target(dt_ref_mean_pred,
-             pipdm::db_create_ref_year_table(
+             db_create_ref_year_table(
                gdp_table = aux_gdp,
                pce_table = aux_pce,
                pop_table = aux_pop,
@@ -361,7 +364,7 @@ list(
 #  Create coverage table by region
   tar_target(
     dt_coverage,
-    pipdm::db_create_coverage_table(
+    db_create_coverage_table(
       ref_year_table    = dt_ref_mean_pred,
       pop_table         = aux_pop,
       ref_years         = PIP_REF_YEARS,
@@ -374,7 +377,7 @@ list(
   
   tar_target(
     dt_pop_region,
-    pipdm::db_create_reg_pop_table(
+    db_create_reg_pop_table(
       pop_table   = aux_pop,
       cl_table    = aux_country_list, 
       region_code = 'pcn_region_code',
@@ -397,14 +400,14 @@ list(
   
   tar_target(
     aux_clean,
-    pipdm::db_clean_aux(all_aux, aux_names, pip_years = PIP_YEARS),
+    db_clean_aux(all_aux, aux_names, pip_years = PIP_YEARS),
     pattern = map(all_aux, aux_names), 
     iteration = "list"
   ),
 
 ##  Save data ---- 
 
-## Save AUX data
+### Save Basic AUX data----
   tar_target(aux_out_files,
              paste0(OUT_AUX_DIR, aux_names, ".fst"),
              pattern   = map(aux_names)
@@ -416,77 +419,78 @@ list(
                             path     = aux_out_dir,
                             compress =  FST_COMP_LVL), 
              pattern = map(aux_clean, aux_out_dir), 
-             iteration = "list")
+             iteration = "list"),
 
-#   # Save POP region table
-#   tar_target(
-#     pop_region_file,
-#     format = 'file',
-#     save_aux_data(
-#       dt_pop_region,
-#       filename = 'pop-region',
-#       outdir = OUT_AUX_DIR,
-#       compress = FST_COMP_LVL)
-#   ),
-# 
-#   # Save coverage table
-#   tar_target(
-#     coverage_file,
-#     format = 'file',
-#     save_aux_data(
-#       dt_coverage,
-#       filename = 'coverage',
-#       outdir = OUT_AUX_DIR,
-#       compress = FST_COMP_LVL)
-#   ),
-# #   
-#   # Save Lorenz list
-#   tar_target(
-#     lorenz_file,
-#     format = 'file',
-#     save_aux_data(
-#       dl_lorenz,
-#       filename = 'lorenz',
-#       outdir = OUT_AUX_DIR,
-#       compress = TRUE,
-#       type = 'rds')
-#   ),
-#   
-#   # Save dist stats table
-#   tar_target(
-#     dist_file,
-#     format = 'file',
-#     save_aux_data(
-#       dt_dist_stats,
-#       filename = 'dist-stats',
-#       outdir = OUT_AUX_DIR,
-#       compress = FST_COMP_LVL,
-#       type = 'fst')
-#   ),
-#     
-#   # Save survey means table
-#   tar_target(
-#     survey_mean_file,
-#     format = 'file',
-#     save_aux_data(
-#       dt_svy_mean_ppp,
-#       filename = 'survey-mean',
-#       outdir = OUT_AUX_DIR,
-#       compress = FST_COMP_LVL,
-#       type = 'fst')
-#   ),
-#   
-#   # Save interpolated means table 
-#   tar_target(
-#     interpolated_mean_file,
-#     format = 'file',
-#     save_aux_data(
-#       dt_svy_mean_ppp,
-#       filename = 'interpolated-mean',
-#       outdir = OUT_AUX_DIR,
-#       compress = FST_COMP_LVL,
-#       type = 'fst')
-#   )
-  
+### Save additional aux files----
+  tar_target(
+    add_aux_files,
+    paste0(
+      OUT_AUX_DIR,
+      c("pop-region", "coverage"),".fst"
+    )
+  ),
+
+  tar_files(add_aux_dir, add_aux_files),
+
+  tar_target(add_aux,
+             list(dt_pop_region, dt_coverage), 
+             iteration = "list"
+             ),
+
+  tar_target(
+    add_aux_out,
+    save_aux_data(
+      add_aux,
+      add_aux_dir,
+      compress = FST_COMP_LVL
+      ), 
+    format = 'file',
+    pattern = map(add_aux, add_aux_dir)
+  ),
+
+### Save Lorenz list ----
+  tar_target(
+    lorenz_out,
+    save_aux_data(
+      lorenz,
+      paste0(OUT_AUX_DIR, "lorenz.rds"),
+      compress = TRUE
+      ),
+    format = 'file',
+    ),
+
+### Save dist stats table----
+  tar_target(
+    dist_file,
+    format = 'file', {
+      fst::write_fst(x        = dt_dist_stats,
+                     path     = paste0(OUT_EST_DIR, "dist-stats.fst"),
+                     compress =  FST_COMP_LVL)
+      paste0(OUT_EST_DIR, "dist-stats.fst")
+    }
+  ),
+
+### Save survey means table ----
+  tar_target(
+    survey_mean_file,
+    format = 'file', {
+      fst::write_fst(x        = svy_mean_ppp_table,
+                     path     = paste0(OUT_EST_DIR, "survey_mean.fst"),
+                     compress =  FST_COMP_LVL)
+      paste0(OUT_EST_DIR, "survey_mean.fst")
+    }
+  ),
+   
+### Save interpolated means table ----
+  tar_target(
+    interpolated_means_file,
+    format = 'file', {
+      fst::write_fst(x        = dt_ref_mean_pred,
+                     path     = paste0(OUT_EST_DIR, "interpolated-means.fst"),
+                     compress =  FST_COMP_LVL)
+      paste0(OUT_EST_DIR, "interpolated-means.fst")
+    }
+  )
+
 )
 

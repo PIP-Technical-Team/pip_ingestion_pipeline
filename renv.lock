@@ -1,6 +1,6 @@
 {
   "R": {
-    "Version": "4.0.4",
+    "Version": "4.0.3",
     "Repositories": [
       {
         "Name": "CRAN",
@@ -629,9 +629,9 @@
       "RemoteHost": "api.github.com",
       "RemoteRepo": "pipdm",
       "RemoteUsername": "PIP-Technical-Team",
-      "RemoteRef": "HEAD",
-      "RemoteSha": "35e83f0631cfe823bf1fe88ffd3175ed6f3cef2c",
-      "Hash": "68609237f6c5bd73c5ae278ce05a4339"
+      "RemoteRef": "development",
+      "RemoteSha": "4e80353b8ff84d702a5acc4d479963d10bd1f7af",
+      "Hash": "208d5d156846e391732fbb91c1f1bd49"
     },
     "pipload": {
       "Package": "pipload",
@@ -693,6 +693,13 @@
       "Source": "Repository",
       "Repository": "CRAN",
       "Hash": "97def703420c8ab10d8f0e6c72101e02"
+    },
+    "pushoverr": {
+      "Package": "pushoverr",
+      "Version": "1.0.0",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "93493b5ba792b3ae472cd94aaa0fcec4"
     },
     "qs": {
       "Package": "qs",
