@@ -407,6 +407,17 @@ list(
 
 ##  Save data ---- 
 
+### microdata for production ------
+  tar_target(
+    survey_files,
+    save_survey_data(
+      dl = dl_svy_data_w_mean,
+      output_dir = OUT_SVY_DIR,
+      cols = c('welfare', 'weight', 'area'),
+      compress = FST_COMP_LVL,
+      future_plan = 'multisession')
+  ),
+
 ### Save Basic AUX data----
   tar_target(aux_out_files,
              paste0(OUT_AUX_DIR, aux_names, ".fst"),
