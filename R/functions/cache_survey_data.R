@@ -8,14 +8,12 @@
 #' @param compress numeric: Compression level used in `fst::write_fst()`. 
 #' @param verbose boolean: If TRUE additional messages are printed to the 
 #' console. 
-#' @param compendium boolean: Should create compendium?
 #' 
 cache_survey_data <- function(pipeline_inventory,
                               pip_data_dir, 
                               cache_svy_dir,
                               compress   = 100,
-                              verbose    = TRUE, 
-                              compendium = TRUE) {
+                              verbose    = TRUE) {
   
   
   #--------- Parameters ---------
@@ -40,11 +38,17 @@ cache_survey_data <- function(pipeline_inventory,
   # Early return
   if (nrow(new_svy_ids) == 0) {
     
+    if (file.exists(crr_filename)) {
+      
     crr          <- fst::read_fst(crr_filename, 
                                   as.data.table = TRUE)
     
     return(invisible(list(processed_data = "No data processed",
                           data_available = crr)))
+    } else {
+      return(invisible(list(processed_data = "No data processed",
+                            data_available = "No correspondence file available")))
+    }
     
   }
   
@@ -85,32 +89,6 @@ cache_survey_data <- function(pipeline_inventory,
   # load correspondence file
   crr          <- fst::read_fst(crr_filename, 
                                 as.data.table = TRUE)
-  
-  #--------- compendium ---------
-  
-  if (compendium == TRUE ) {
-    
-    if (verbose) {
-      cli::cli_alert("Creating compendium...")
-    }
-    
-    dl_svy_data <- 
-      load_cached_survey_data(
-        survey_id     = NULL,
-        cache_svy_dir = cache_svy_dir)
-    
-    if (verbose) {
-      cli::cli_alert("Saving compendium...")
-    }
-    
-    qs::qsave(x    = dl_svy_data,  
-              file = glue::glue("{cache_svy_dir}_compendium/compendium.qs"))
-    
-    if (verbose) {
-      cli::cli_alert("Compendium saved...")
-    }
-  }
-  
   
   #--------- DONE ---------
   if (verbose) {

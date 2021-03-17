@@ -19,13 +19,13 @@ library(tarchetypes)
 PIP_DATA_DIR     <- '//w1wbgencifs01/pip/PIP-Data_QA/' 
 
 # '//w1wbgencifs01/pip/pip_ingestion_pipeline/' # Output dir
-PIP_PIPE_DIR     <- '//w1wbgencifs01/pip/PIP-Data/_testing/pip_ingestion_pipeline/' 
+PIP_PIPE_DIR     <- '//w1wbgencifs01/pip/pip_ingestion_pipeline/' 
 
 # Cached survey data dir
-CACHE_SVY_DIR    <- paste0(PIP_PIPE_DIR, 'pc_data/cache/alt_clean_survey_data/') 
+CACHE_SVY_DIR    <- paste0(PIP_PIPE_DIR, 'pc_data/cache/clean_survey_data/') 
 
 # Final survey data output dir
-OUT_SVY_DIR      <- paste0(PIP_PIPE_DIR, 'pc_data/survey_data/') 
+OUT_SVY_DIR      <- paste0(PIP_PIPE_DIR, 'pc_data/survey_data_out/') 
 
 #  Estimations output dir
 OUT_EST_DIR      <- paste0(PIP_PIPE_DIR, 'pc_data/estimations_output/') 
@@ -90,16 +90,16 @@ source('R/_common.R')
 #      Step 1: Define short useful functions   ---------
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-# compendium path
-compendium_path <- function(){
-  paste0(CACHE_SVY_DIR, "_compendium/compendium.qs")
-}
 cache_inventory_path <- function(){
   paste0(CACHE_SVY_DIR, "_crr_inventory/crr_inventory.fst")
 }
   
 get_cache_files <- function(x) {
   x$cache_file
+}
+
+get_cache_id <- function(x) {
+  x$cache_id
 }
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -171,8 +171,7 @@ cache_info <-
   pip_data_dir       = PIP_DATA_DIR,
   cache_svy_dir      = CACHE_SVY_DIR,
   compress           = FST_COMP_LVL,
-  verbose            = TRUE, 
-  compendium         = FALSE)
+  verbose            = TRUE)
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #            Step 3:   Run pipeline   ---------
@@ -223,6 +222,9 @@ list(
   
   tar_target(cache_files, 
              get_cache_files(cache_inventory)),
+  
+  tar_target(cache_ids, 
+             get_cache_id(cache_inventory)),
 
   tar_files(chh_dir, cache_files),
   tar_target(cch, 
@@ -411,11 +413,12 @@ list(
   tar_target(
     survey_files,
     save_survey_data(
-      dl = dl_svy_data_w_mean,
-      output_dir = OUT_SVY_DIR,
-      cols = c('welfare', 'weight', 'area'),
-      compress = FST_COMP_LVL,
-      future_plan = 'multisession')
+      dt           = cch,
+      chh_filename = cache_ids,
+      output_dir   = OUT_SVY_DIR,
+      cols         = c('welfare', 'weight', 'area'),
+      compress     = FST_COMP_LVL,), 
+    pattern = map(cch, cache_ids)
   ),
 
 ### Save Basic AUX data----
@@ -476,7 +479,7 @@ list(
     format = 'file', {
       fst::write_fst(x        = dt_dist_stats,
                      path     = paste0(OUT_EST_DIR, "dist-stats.fst"),
-                     compress =  FST_COMP_LVL)
+                     compress = FST_COMP_LVL)
       paste0(OUT_EST_DIR, "dist-stats.fst")
     }
   ),
@@ -487,7 +490,7 @@ list(
     format = 'file', {
       fst::write_fst(x        = svy_mean_ppp_table,
                      path     = paste0(OUT_EST_DIR, "survey_mean.fst"),
-                     compress =  FST_COMP_LVL)
+                     compress = FST_COMP_LVL)
       paste0(OUT_EST_DIR, "survey_mean.fst")
     }
   ),
@@ -498,7 +501,7 @@ list(
     format = 'file', {
       fst::write_fst(x        = dt_ref_mean_pred,
                      path     = paste0(OUT_EST_DIR, "interpolated-means.fst"),
-                     compress =  FST_COMP_LVL)
+                     compress = FST_COMP_LVL)
       paste0(OUT_EST_DIR, "interpolated-means.fst")
     }
   )
