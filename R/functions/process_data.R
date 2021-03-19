@@ -52,7 +52,14 @@ process_data <- function(survey_id,
     expr = {
       # Clean DAta
       pipdm::db_clean_data(df)
-    }, # end of expr section
+      
+      # make sure the right welfare type is in the microdata.
+      wt <- gsub("(.+_)([A-Z]{3})(_[A-Z\\-]+)(\\.fst)?$", "\\2", chh_filename)
+      wt <- fifelse(wt == "INC", "income", "consumption")
+      
+      df[,welfare_type := wt]
+      
+      }, # end of expr section
     
     error = function(e) {
       NULL

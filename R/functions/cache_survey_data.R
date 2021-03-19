@@ -38,17 +38,22 @@ cache_survey_data <- function(pipeline_inventory,
   # Early return
   if (nrow(new_svy_ids) == 0) {
     
-    if (file.exists(crr_filename)) {
+    
+    if ( !(file.exists(crr_filename)) ) {
       
-    crr          <- fst::read_fst(crr_filename, 
-                                  as.data.table = TRUE)
+      cli::cli_alert_warning("Correspondence inventory file not found. 
+                           It will be created", 
+                           wrap = TRUE)
+      
+      update_crr_inventory(pipeline_inventory,
+                           cache_svy_dir)
+    } 
+    
+    crr    <- fst::read_fst(crr_filename, 
+                            as.data.table = TRUE)
     
     return(invisible(list(processed_data = "No data processed",
                           data_available = crr)))
-    } else {
-      return(invisible(list(processed_data = "No data processed",
-                            data_available = "No correspondence file available")))
-    }
     
   }
   
@@ -58,7 +63,7 @@ cache_survey_data <- function(pipeline_inventory,
   }
   
   pb <- progress::progress_bar$new(format = ":what [:bar] :percent eta: :eta",
-                         clear = , total = nrow(new_svy_ids), width = 80)
+                                   clear = , total = nrow(new_svy_ids), width = 80)
   
   df <- purrr::map2_df(.x = new_svy_ids$svy_ids,
                        .y = new_svy_ids$cache_id,
@@ -83,7 +88,7 @@ cache_survey_data <- function(pipeline_inventory,
     
     cli::cli_alert_danger('Correspondence inventory file 
                           {.strong {col_red("NOT")}} saved', 
-                     wrap = TRUE)
+                          wrap = TRUE)
   }
   
   # load correspondence file
@@ -92,7 +97,7 @@ cache_survey_data <- function(pipeline_inventory,
   
   #--------- DONE ---------
   if (verbose) {
-   cli::cli_alert("Done!")
+    cli::cli_alert("Done!")
   }
   
   return(invisible(list(processed_data = df,
