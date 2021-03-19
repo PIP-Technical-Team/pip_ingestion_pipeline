@@ -19,7 +19,7 @@ save_survey_data <- function(dt,
   
   # Select columns
   if (!is.null(cols)) {
-    dt[, .SD, .SDcols = cols]
+    dt <- dt[, ..cols]
   }
   
   # Create paths
