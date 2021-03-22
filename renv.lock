@@ -933,12 +933,12 @@
       "Version": "0.0.0.9000",
       "Source": "GitHub",
       "RemoteType": "github",
-      "RemoteUsername": "PIP-Technical-Team",
-      "RemoteRepo": "wbpip",
-      "RemoteRef": "HEAD",
-      "RemoteSha": "01ad43eec3823d86aa87865c381bd883172b9d76",
       "RemoteHost": "api.github.com",
-      "Hash": "a12865989ec03bc28200be8470c23244"
+      "RemoteRepo": "wbpip",
+      "RemoteUsername": "PIP-Technical-Team",
+      "RemoteRef": "HEAD",
+      "RemoteSha": "99375b3d621c6771496e58f3d53bb9e209e11ee5",
+      "Hash": "4767a4de0d0ffdaff39e4b4116524796"
     },
     "wbstats": {
       "Package": "wbstats",
