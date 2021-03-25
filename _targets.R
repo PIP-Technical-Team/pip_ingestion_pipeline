@@ -25,13 +25,13 @@ PIP_PIPE_DIR     <- '//w1wbgencifs01/pip/pip_ingestion_pipeline/'
 CACHE_SVY_DIR    <- paste0(PIP_PIPE_DIR, 'pc_data/cache/clean_survey_data/') 
 
 # Final survey data output dir
-OUT_SVY_DIR      <- paste0(PIP_PIPE_DIR, 'pc_data/survey_data_out/') 
+OUT_SVY_DIR      <- paste0(PIP_PIPE_DIR, 'pc_data/out/survey_data/') 
 
 #  Estimations output dir
-OUT_EST_DIR      <- paste0(PIP_PIPE_DIR, 'pc_data/estimations_output/') 
+OUT_EST_DIR      <- paste0(PIP_PIPE_DIR, 'pc_data/out/estimations/') 
 
 # aux data output dir
-OUT_AUX_DIR      <- paste0(PIP_PIPE_DIR, 'pc_data/aux_output/')  
+OUT_AUX_DIR      <- paste0(PIP_PIPE_DIR, 'pc_data/out/aux/')  
 
 ### Max dates --------
 
