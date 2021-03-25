@@ -20,6 +20,11 @@ process_data <- function(survey_id,
   
   
   #--------- Load data ---------
+  chh_filename <- fifelse(!grepl("\\.fst$", chh_filename), 
+                          paste0(chh_filename, ".fst"), 
+                          chh_filename)
+  
+  cache_id     <- gsub("\\.fst", "", chh_filename)
   
   df <- tryCatch(
     expr = {
@@ -82,14 +87,12 @@ process_data <- function(survey_id,
     expr = {
       # Your code...
       if (!is.null(cols)) {
-        df <- df[, .SD, .SDcols = cols]
+        df <- df[, ..cols]
       }
       
-      # Create paths
+      df[, cache_id := (cache_id)]
       
-      chh_filename <- fifelse(!grepl("\\.fst$", chh_filename), 
-                              paste0(chh_filename, ".fst"), 
-                              chh_filename)
+      # Create paths
       
       svy_out_path <- paste(cache_svy_dir, chh_filename, sep = "/")
       
