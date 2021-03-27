@@ -6,10 +6,10 @@
 
 # Load pipeline functions 
 funs1 <- list.files('R/functions/', full.names = TRUE)
-funs2 <- list.files('R/pipdm/', full.names = TRUE)
-funs  <- c(funs1, funs2)
+# funs2 <- list.files('R/pipdm/', full.names = TRUE)
+funs  <- ls(pattern = "^funs[0-9]")
 
-purrr::walk(funs, source) 
+purrr::walk(get(funs), source) 
 rm(list = ls(pattern = "^funs"))
 
 # open_workers <- function() {
