@@ -623,15 +623,15 @@
     },
     "pipdm": {
       "Package": "pipdm",
-      "Version": "0.0.0.9000",
+      "Version": "0.0.0.9003",
       "Source": "GitHub",
       "RemoteType": "github",
       "RemoteHost": "api.github.com",
       "RemoteRepo": "pipdm",
       "RemoteUsername": "PIP-Technical-Team",
-      "RemoteRef": "development",
-      "RemoteSha": "4e80353b8ff84d702a5acc4d479963d10bd1f7af",
-      "Hash": "208d5d156846e391732fbb91c1f1bd49"
+      "RemoteRef": "HEAD",
+      "RemoteSha": "ef4018f7f51f728eff8d470e4741a8a730a6d426",
+      "Hash": "425ae964a56f7d2e752e619fcd316ad7"
     },
     "pipload": {
       "Package": "pipload",
@@ -902,10 +902,10 @@
     },
     "utf8": {
       "Package": "utf8",
-      "Version": "1.1.4",
+      "Version": "1.2.1",
       "Source": "Repository",
       "Repository": "CRAN",
-      "Hash": "4a5081acfb7b81a572e4384a7aaf2af1"
+      "Hash": "c3ad47dc6da0751f18ed53c4613e3ac7"
     },
     "vctrs": {
       "Package": "vctrs",

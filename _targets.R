@@ -12,7 +12,7 @@ library(tarchetypes)
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ##   Set initial parameters  --------
-# remotes::install_github("PIP-Technical-Team/pipdm@development")
+# remotes::install_github("PIP-Technical-Team/pipdm")
 ### defaults ---------
 
 # Input dir 
@@ -25,13 +25,13 @@ PIP_PIPE_DIR     <- '//w1wbgencifs01/pip/pip_ingestion_pipeline/'
 CACHE_SVY_DIR    <- paste0(PIP_PIPE_DIR, 'pc_data/cache/clean_survey_data/') 
 
 # Final survey data output dir
-OUT_SVY_DIR      <- paste0(PIP_PIPE_DIR, 'pc_data/out/survey_data/') 
+OUT_SVY_DIR      <- paste0(PIP_PIPE_DIR, 'pc_data/output/survey_data/') 
 
 #  Estimations output dir
-OUT_EST_DIR      <- paste0(PIP_PIPE_DIR, 'pc_data/out/estimations/') 
+OUT_EST_DIR      <- paste0(PIP_PIPE_DIR, 'pc_data/output/estimations/') 
 
 # aux data output dir
-OUT_AUX_DIR      <- paste0(PIP_PIPE_DIR, 'pc_data/out/aux/')  
+OUT_AUX_DIR      <- paste0(PIP_PIPE_DIR, 'pc_data/output/aux/')  
 
 ### Max dates --------
 
@@ -52,7 +52,7 @@ PIP_SAFE_WORKERS <- FALSE # Open/close workers after each future call
 
 pkgs <- 
   c('pipload', 
-    # 'pipdm',
+    'pipdm',
     'wbpip',
     'fst',
     'qs',
@@ -72,8 +72,8 @@ tar_option_set(
   memory = 'transient',
   format = 'qs', #'fst_dt',
   packages = pkgs,
-  imports  = c('pipload', 
-               # 'pipdm',
+  imports  = c('pipload',
+               'pipdm',
                'wbpip')
   )
 
@@ -151,7 +151,7 @@ pip_inventory <-
 
 # Create pipeline inventory
 pipeline_inventory <-
-  db_filter_inventory(
+  pipdm::db_filter_inventory(
     pip_inventory,
     pfw_table = pfw_glo)
 
@@ -336,8 +336,10 @@ list(
   tar_target(dt_dist_stats,
              db_create_dist_table(
                dl_dist_stats,
-               survey_id = cache_inventory$survey_id,
-               dsm_table = svy_mean_ppp_table)),
+               cache_id  = cache_inventory$cache_id,
+               dsm_table = svy_mean_ppp_table, 
+               crr_inv   = cache_inventory)
+             ),
 #   
 #   
 ##Create reference year table ------
