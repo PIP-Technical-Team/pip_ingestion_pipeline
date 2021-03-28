@@ -335,8 +335,7 @@ list(
 #   # Covert dist stat list to table
   tar_target(dt_dist_stats,
              db_create_dist_table(
-               dl_dist_stats,
-               cache_id  = cache_inventory$cache_id,
+               dl        = dl_dist_stats,
                dsm_table = svy_mean_ppp_table, 
                crr_inv   = cache_inventory)
              ),
