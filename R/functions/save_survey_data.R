@@ -8,12 +8,12 @@
 #' @param output_dir character: Output folder. 
 #' @param future_plan character: `future` plan to use. 
 #' @param compress numeric: Compression level used in `fst::write_fst()`.  
-#' @param chh_filename character: Vector with new names for microdata. 
+#' @param cache_filename character: Vector with new names for microdata. 
 #' 
 save_survey_data <- function(dt, 
                              cols = NULL, 
                              output_dir,
-                             chh_filename,
+                             cache_filename,
                              future_plan = c('sequential', 'multisession', 'callr'), 
                              compress) {
   
@@ -23,11 +23,11 @@ save_survey_data <- function(dt,
   }
   
   # Create paths
-  chh_filename <- fifelse(!grepl("\\.fst$", chh_filename), 
-                          paste0(chh_filename, ".fst"), 
-                          chh_filename)
+  cache_filename <- fifelse(!grepl("\\.fst$", cache_filename), 
+                          paste0(cache_filename, ".fst"), 
+                          cache_filename)
   
-  svy_out_path <- paste(output_dir, chh_filename, sep = "/")
+  svy_out_path <- paste(output_dir, cache_filename, sep = "/")
   
   fst_status <- 
     tryCatch(
