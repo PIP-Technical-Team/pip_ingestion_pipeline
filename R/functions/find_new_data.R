@@ -26,21 +26,25 @@ find_new_data <- function(pipeline_inventory,
   #--------- find data whose SVY id has changed ---------
   # load correspondence inventory
   crr_dir <- glue::glue("{cache_svy_dir}_crr_inventory/")
-  crr_inv <- fst::read_fst(glue::glue("{crr_dir}crr_inventory.fst"))
-  data.table::setDT(crr_inv)
   
-  chd_svy <- 
-    crr_inv[pipeline_inventory, 
-            on = "cache_id", 
-            filename_svy := i.filename
-    ][
-      filename_svy != filename
-    ][,
-      filename
-    ]
-  
-  if (length(chd_svy) > 0) {
-    new_svy_ids <- c(new_svy_ids, chd_svy)
+  if (file.exists(glue::glue("{crr_dir}crr_inventory.fst"))) {
+    
+    crr_inv <- fst::read_fst(glue::glue("{crr_dir}crr_inventory.fst"))
+    data.table::setDT(crr_inv)
+    
+    chd_svy <- 
+      crr_inv[pipeline_inventory, 
+              on = "cache_id", 
+              filename_svy := i.filename
+      ][
+        filename_svy != filename
+      ][,
+        filename
+      ]
+    
+    if (length(chd_svy) > 0) {
+      new_svy_ids <- c(new_svy_ids, chd_svy)
+    }
   }
   
   df <- pipeline_inventory[filename %chin% new_svy_ids

@@ -20,6 +20,11 @@ process_data <- function(survey_id,
   
   
   #--------- Load data ---------
+  chh_filename <- fifelse(!grepl("\\.fst$", chh_filename), 
+                          paste0(chh_filename, ".fst"), 
+                          chh_filename)
+  
+  cache_id     <- gsub("\\.fst", "", chh_filename)
   
   df <- tryCatch(
     expr = {
@@ -52,7 +57,14 @@ process_data <- function(survey_id,
     expr = {
       # Clean DAta
       pipdm::db_clean_data(df)
-    }, # end of expr section
+      
+      # make sure the right welfare type is in the microdata.
+      wt <- gsub("(.+_)([A-Z]{3})(_[A-Z\\-]+)(\\.fst)?$", "\\2", chh_filename)
+      wt <- fifelse(wt == "INC", "income", "consumption")
+      
+      df[,welfare_type := wt]
+      
+      }, # end of expr section
     
     error = function(e) {
       NULL
@@ -75,14 +87,12 @@ process_data <- function(survey_id,
     expr = {
       # Your code...
       if (!is.null(cols)) {
-        df <- df[, .SD, .SDcols = cols]
+        df <- df[, ..cols]
       }
       
-      # Create paths
+      df[, cache_id := (cache_id)]
       
-      chh_filename <- fifelse(!grepl("\\.fst$", chh_filename), 
-                              paste0(chh_filename, ".fst"), 
-                              chh_filename)
+      # Create paths
       
       svy_out_path <- paste(cache_svy_dir, chh_filename, sep = "/")
       

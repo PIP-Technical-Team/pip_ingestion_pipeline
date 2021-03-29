@@ -12,26 +12,26 @@ library(tarchetypes)
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ##   Set initial parameters  --------
-# remotes::install_github("PIP-Technical-Team/pipdm@development")
+# remotes::install_github("PIP-Technical-Team/pipdm")
 ### defaults ---------
 
 # Input dir 
 PIP_DATA_DIR     <- '//w1wbgencifs01/pip/PIP-Data_QA/' 
 
 # '//w1wbgencifs01/pip/pip_ingestion_pipeline/' # Output dir
-PIP_PIPE_DIR     <- '//w1wbgencifs01/pip/PIP-Data/_testing/pip_ingestion_pipeline/' 
+PIP_PIPE_DIR     <- '//w1wbgencifs01/pip/pip_ingestion_pipeline/' 
 
 # Cached survey data dir
-CACHE_SVY_DIR    <- paste0(PIP_PIPE_DIR, 'pc_data/cache/alt_clean_survey_data/') 
+CACHE_SVY_DIR    <- paste0(PIP_PIPE_DIR, 'pc_data/cache/clean_survey_data/') 
 
 # Final survey data output dir
-OUT_SVY_DIR      <- paste0(PIP_PIPE_DIR, 'pc_data/survey_data/') 
+OUT_SVY_DIR      <- paste0(PIP_PIPE_DIR, 'pc_data/output/survey_data/') 
 
 #  Estimations output dir
-OUT_EST_DIR      <- paste0(PIP_PIPE_DIR, 'pc_data/estimations_output/') 
+OUT_EST_DIR      <- paste0(PIP_PIPE_DIR, 'pc_data/output/estimations/') 
 
 # aux data output dir
-OUT_AUX_DIR      <- paste0(PIP_PIPE_DIR, 'pc_data/aux_output/')  
+OUT_AUX_DIR      <- paste0(PIP_PIPE_DIR, 'pc_data/output/aux/')  
 
 ### Max dates --------
 
@@ -52,7 +52,7 @@ PIP_SAFE_WORKERS <- FALSE # Open/close workers after each future call
 
 pkgs <- 
   c('pipload', 
-    # 'pipdm',
+    'pipdm',
     'wbpip',
     'fst',
     'qs',
@@ -72,8 +72,8 @@ tar_option_set(
   memory = 'transient',
   format = 'qs', #'fst_dt',
   packages = pkgs,
-  imports  = c('pipload', 
-               # 'pipdm',
+  imports  = c('pipload',
+               'pipdm',
                'wbpip')
   )
 
@@ -90,10 +90,6 @@ source('R/_common.R')
 #      Step 1: Define short useful functions   ---------
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-# compendium path
-compendium_path <- function(){
-  paste0(CACHE_SVY_DIR, "_compendium/compendium.qs")
-}
 cache_inventory_path <- function(){
   paste0(CACHE_SVY_DIR, "_crr_inventory/crr_inventory.fst")
 }
@@ -101,6 +97,16 @@ cache_inventory_path <- function(){
 get_cache_files <- function(x) {
   x$cache_file
 }
+
+get_cache_id <- function(x) {
+  x$cache_id
+}
+
+
+aux_out_files_fun <- function(OUT_AUX_DIR, aux_names) {
+  purrr::map_chr(aux_names, ~ paste0(OUT_AUX_DIR, .x, ".fst"))
+}
+
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #       Step 2: Prepare data                     ---------
@@ -131,7 +137,7 @@ aux_tb <- data.table(
 )
 
 # filter 
-aux_tb <- aux_tb[auxname != "maddison"]
+aux_tb <- aux_tb[!(auxname %chin% c("weo", "maddison"))]
 
 
 # # Load PFW file
@@ -151,7 +157,7 @@ pip_inventory <-
 
 # Create pipeline inventory
 pipeline_inventory <-
-  db_filter_inventory(
+  pipdm::db_filter_inventory(
     pip_inventory,
     pfw_table = pfw_glo)
 
@@ -171,8 +177,7 @@ cache_info <-
   pip_data_dir       = PIP_DATA_DIR,
   cache_svy_dir      = CACHE_SVY_DIR,
   compress           = FST_COMP_LVL,
-  verbose            = TRUE, 
-  compendium         = FALSE)
+  verbose            = TRUE)
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #            Step 3:   Run pipeline   ---------
@@ -223,12 +228,15 @@ list(
   
   tar_target(cache_files, 
              get_cache_files(cache_inventory)),
+  
+  tar_target(cache_ids, 
+             get_cache_id(cache_inventory)),
 
-  tar_files(chh_dir, cache_files),
-  tar_target(cch, 
-             fst::read_fst(path = chh_dir, 
+  tar_files(cache_dir, cache_files),
+  tar_target(cache, 
+             fst::read_fst(path = cache_dir, 
                            as.data.table = TRUE), 
-             pattern = map(chh_dir), 
+             pattern = map(cache_dir), 
              iteration = "list"),
 
 #~~~~~~~~~~~~~~~~~~~~~~~
@@ -254,8 +262,8 @@ list(
 
   tar_target(
     svy_mean_lcu,
-    db_compute_survey_mean(cch, gd_means),
-    pattern =  map(cch, gd_means), 
+    db_compute_survey_mean(cache, gd_means),
+    pattern =  map(cache, gd_means), 
     iteration = "list"
      ),
 #   
@@ -283,8 +291,8 @@ list(
 # Calculate Lorenz curves (for microdata)  
   tar_target(
     lorenz_all,
-    db_compute_lorenz(cch),
-    pattern = map(cch), 
+    db_compute_lorenz(cache),
+    pattern = map(cache), 
     iteration = "list"
   ), 
 # clean Group Data obs
@@ -304,8 +312,8 @@ list(
 ### Calculate distributional statistics
   tar_target(
     name      = dl_dist_stats,
-    command   = db_compute_dist_stats(cch, dl_mean), 
-    pattern   =  map(cch, dl_mean), 
+    command   = db_compute_dist_stats(cache, dl_mean), 
+    pattern   =  map(cache, dl_mean), 
     iteration = "list"
     ),
   
@@ -333,9 +341,10 @@ list(
 #   # Covert dist stat list to table
   tar_target(dt_dist_stats,
              db_create_dist_table(
-               dl_dist_stats,
-               survey_id = cache_inventory$survey_id,
-               dsm_table = svy_mean_ppp_table)),
+               dl        = dl_dist_stats,
+               dsm_table = svy_mean_ppp_table, 
+               crr_inv   = cache_inventory)
+             ),
 #   
 #   
 ##Create reference year table ------
@@ -358,7 +367,14 @@ list(
                pip_years = PIP_YEARS,
                region_code = 'pcn_region_code')),
 
-# 
+## Create All-estimations table
+  tar_target(dt_prod_estimation_all,
+             db_create_estimation_table(
+               ref_year_table = dt_ref_mean_pred, 
+               dist_table     = dt_dist_stats)
+             ),
+ 
+ 
 ## Create coverage table -------
 
 #  Create coverage table by region
@@ -407,10 +423,21 @@ list(
 
 ##  Save data ---- 
 
+### Save microdata for production ------
+  tar_target(
+    survey_files,
+    save_survey_data(
+      dt              = cache,
+      cache_filename  = cache_ids,
+      output_dir      = OUT_SVY_DIR,
+      cols            = c('welfare', 'weight', 'area'),
+      compress        = FST_COMP_LVL,), 
+    pattern = map(cache, cache_ids)
+  ),
+
 ### Save Basic AUX data----
   tar_target(aux_out_files,
-             paste0(OUT_AUX_DIR, aux_names, ".fst"),
-             pattern   = map(aux_names)
+             aux_out_files_fun(OUT_AUX_DIR, aux_names)
              ),
 
   tar_files(aux_out_dir, aux_out_files),
@@ -422,31 +449,50 @@ list(
              iteration = "list"),
 
 ### Save additional aux files----
+  # tar_target(
+  #   add_aux_files,
+  #   paste0(
+  #     OUT_AUX_DIR,
+  #     c("pop-region", "coverage"),".fst"
+  #   )
+  # ),
+  # 
+  # tar_files(add_aux_dir, add_aux_files),
+  # 
+  # tar_target(add_aux,
+  #            list(dt_pop_region, dt_coverage), 
+  #            iteration = "list"
+  #            ),
   tar_target(
-    add_aux_files,
-    paste0(
-      OUT_AUX_DIR,
-      c("pop-region", "coverage"),".fst"
-    )
-  ),
-
-  tar_files(add_aux_dir, add_aux_files),
-
-  tar_target(add_aux,
-             list(dt_pop_region, dt_coverage), 
-             iteration = "list"
-             ),
-
-  tar_target(
-    add_aux_out,
+    pop_region_out,
     save_aux_data(
-      add_aux,
-      add_aux_dir,
-      compress = FST_COMP_LVL
-      ), 
+      dt_pop_region,
+      paste0(OUT_AUX_DIR, "coverage.fst"),
+      compress = TRUE
+    ),
     format = 'file',
-    pattern = map(add_aux, add_aux_dir)
   ),
+  
+  tar_target(
+    coverage_out,
+    save_aux_data(
+      dt_coverage,
+      paste0(OUT_AUX_DIR, "pop-region.fst"),
+      compress = TRUE
+    ),
+    format = 'file',
+  ),
+
+  # tar_target(
+  #   add_aux_out,
+  #   save_aux_data(
+  #     add_aux,
+  #     add_aux_dir,
+  #     compress = FST_COMP_LVL
+  #     ), 
+  #   format = 'file',
+  #   pattern = map(add_aux, add_aux_dir)
+  # ),
 
 ### Save Lorenz list ----
   tar_target(
@@ -459,13 +505,28 @@ list(
     format = 'file',
     ),
 
+### Save table with mean and dist stats -------
+  tar_target(
+    prod_estimation_file,
+    format = 'file', {
+      
+      fst::write_fst(
+        dt_prod_estimation_all,
+        paste0(OUT_EST_DIR, "prod-estimation-all.fst"),
+        compress = FST_COMP_LVL
+        )
+      
+      paste0(OUT_EST_DIR, "prod-estimation-all.fst")
+    }
+  ),
+
 ### Save dist stats table----
   tar_target(
     dist_file,
     format = 'file', {
       fst::write_fst(x        = dt_dist_stats,
                      path     = paste0(OUT_EST_DIR, "dist-stats.fst"),
-                     compress =  FST_COMP_LVL)
+                     compress = FST_COMP_LVL)
       paste0(OUT_EST_DIR, "dist-stats.fst")
     }
   ),
@@ -475,9 +536,9 @@ list(
     survey_mean_file,
     format = 'file', {
       fst::write_fst(x        = svy_mean_ppp_table,
-                     path     = paste0(OUT_EST_DIR, "survey_mean.fst"),
-                     compress =  FST_COMP_LVL)
-      paste0(OUT_EST_DIR, "survey_mean.fst")
+                     path     = paste0(OUT_EST_DIR, "survey_means.fst"),
+                     compress = FST_COMP_LVL)
+      paste0(OUT_EST_DIR, "survey_means.fst")
     }
   ),
    
@@ -487,7 +548,7 @@ list(
     format = 'file', {
       fst::write_fst(x        = dt_ref_mean_pred,
                      path     = paste0(OUT_EST_DIR, "interpolated-means.fst"),
-                     compress =  FST_COMP_LVL)
+                     compress = FST_COMP_LVL)
       paste0(OUT_EST_DIR, "interpolated-means.fst")
     }
   )

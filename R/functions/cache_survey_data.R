@@ -8,14 +8,12 @@
 #' @param compress numeric: Compression level used in `fst::write_fst()`. 
 #' @param verbose boolean: If TRUE additional messages are printed to the 
 #' console. 
-#' @param compendium boolean: Should create compendium?
 #' 
 cache_survey_data <- function(pipeline_inventory,
                               pip_data_dir, 
                               cache_svy_dir,
                               compress   = 100,
-                              verbose    = TRUE, 
-                              compendium = TRUE) {
+                              verbose    = TRUE) {
   
   
   #--------- Parameters ---------
@@ -40,8 +38,19 @@ cache_survey_data <- function(pipeline_inventory,
   # Early return
   if (nrow(new_svy_ids) == 0) {
     
-    crr          <- fst::read_fst(crr_filename, 
-                                  as.data.table = TRUE)
+    
+    if ( !(file.exists(crr_filename)) ) {
+      
+      cli::cli_alert_warning("Correspondence inventory file not found. 
+                           It will be created", 
+                           wrap = TRUE)
+      
+      update_crr_inventory(pipeline_inventory,
+                           cache_svy_dir)
+    } 
+    
+    crr    <- fst::read_fst(crr_filename, 
+                            as.data.table = TRUE)
     
     return(invisible(list(processed_data = "No data processed",
                           data_available = crr)))
@@ -54,7 +63,7 @@ cache_survey_data <- function(pipeline_inventory,
   }
   
   pb <- progress::progress_bar$new(format = ":what [:bar] :percent eta: :eta",
-                         clear = , total = nrow(new_svy_ids), width = 80)
+                                   clear = , total = nrow(new_svy_ids), width = 80)
   
   df <- purrr::map2_df(.x = new_svy_ids$svy_ids,
                        .y = new_svy_ids$cache_id,
@@ -79,42 +88,16 @@ cache_survey_data <- function(pipeline_inventory,
     
     cli::cli_alert_danger('Correspondence inventory file 
                           {.strong {col_red("NOT")}} saved', 
-                     wrap = TRUE)
+                          wrap = TRUE)
   }
   
   # load correspondence file
   crr          <- fst::read_fst(crr_filename, 
                                 as.data.table = TRUE)
   
-  #--------- compendium ---------
-  
-  if (compendium == TRUE ) {
-    
-    if (verbose) {
-      cli::cli_alert("Creating compendium...")
-    }
-    
-    dl_svy_data <- 
-      load_cached_survey_data(
-        survey_id     = NULL,
-        cache_svy_dir = cache_svy_dir)
-    
-    if (verbose) {
-      cli::cli_alert("Saving compendium...")
-    }
-    
-    qs::qsave(x    = dl_svy_data,  
-              file = glue::glue("{cache_svy_dir}_compendium/compendium.qs"))
-    
-    if (verbose) {
-      cli::cli_alert("Compendium saved...")
-    }
-  }
-  
-  
   #--------- DONE ---------
   if (verbose) {
-   cli::cli_alert("Done!")
+    cli::cli_alert("Done!")
   }
   
   return(invisible(list(processed_data = df,
