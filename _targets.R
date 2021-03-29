@@ -33,6 +33,8 @@ OUT_EST_DIR      <- paste0(PIP_PIPE_DIR, 'pc_data/output/estimations/')
 # aux data output dir
 OUT_AUX_DIR      <- paste0(PIP_PIPE_DIR, 'pc_data/output/aux/')  
 
+time             <- format(Sys.time(), "%Y%m%d%H%M%S") 
+
 ### Max dates --------
 
 c_month  <- as.integer(format(Sys.Date(), "%m"))
@@ -107,6 +109,24 @@ aux_out_files_fun <- function(OUT_AUX_DIR, aux_names) {
   purrr::map_chr(aux_names, ~ paste0(OUT_AUX_DIR, .x, ".fst"))
 }
 
+temp_cleaning_ref_table <- function(dt) {
+  
+  dt <- dt[!(is.null(survey_mean_ppp) | is.na(survey_mean_ppp))]
+  dt <- dt[!(is.null(predicted_mean_ppp) | is.na(predicted_mean_ppp))]
+  
+}
+
+save_estimations <- function(dt, dir, name, time, compress) {
+  
+  fst::write_fst(x        = dt,
+                 path     = paste0(dir, name, ".fst"),
+                 compress = compress)
+  
+  fst::write_fst(x        = dt,
+                 path     = paste0(dir,"_vintage/", name, "_", time, ".fst"),
+                 compress = compress)
+  return(paste0(dir, name, ".fst"))
+}
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #       Step 2: Prepare data                     ---------
@@ -356,7 +376,7 @@ list(
 #   # saved as interpolated-means.qs in 
 #   # PIP_PIPE_DIR/aux_data/.
 #   
-  tar_target(dt_ref_mean_pred,
+  tar_target(dt_ref_mean_pred_tmp,
              db_create_ref_year_table(
                gdp_table = aux_gdp,
                pce_table = aux_pce,
@@ -366,6 +386,12 @@ list(
                ref_years = PIP_REF_YEARS,
                pip_years = PIP_YEARS,
                region_code = 'pcn_region_code')),
+  
+  tar_target(dt_ref_mean_pred, 
+             temp_cleaning_ref_table(
+               dt_ref_mean_pred_tmp
+             )),
+
 
 ## Create All-estimations table
   tar_target(dt_prod_estimation_all,
@@ -508,49 +534,45 @@ list(
 ### Save table with mean and dist stats -------
   tar_target(
     prod_estimation_file,
-    format = 'file', {
-      
-      fst::write_fst(
-        dt_prod_estimation_all,
-        paste0(OUT_EST_DIR, "prod-estimation-all.fst"),
-        compress = FST_COMP_LVL
-        )
-      
-      paste0(OUT_EST_DIR, "prod-estimation-all.fst")
-    }
+    format = 'file', 
+    save_estimations(dt       = dt_prod_estimation_all, 
+                     dir      = OUT_EST_DIR, 
+                     name     = "prod_estimation_all", 
+                     time     = time, 
+                     compress = FST_COMP_LVL)
   ),
 
 ### Save dist stats table----
   tar_target(
     dist_file,
-    format = 'file', {
-      fst::write_fst(x        = dt_dist_stats,
-                     path     = paste0(OUT_EST_DIR, "dist-stats.fst"),
+    format = 'file',
+    save_estimations(dt       = dt_dist_stats, 
+                     dir      = OUT_EST_DIR, 
+                     name     = "dist_stats", 
+                     time     = time, 
                      compress = FST_COMP_LVL)
-      paste0(OUT_EST_DIR, "dist-stats.fst")
-    }
   ),
 
 ### Save survey means table ----
   tar_target(
     survey_mean_file,
-    format = 'file', {
-      fst::write_fst(x        = svy_mean_ppp_table,
-                     path     = paste0(OUT_EST_DIR, "survey_means.fst"),
+    format = 'file', 
+    save_estimations(dt       = svy_mean_ppp_table, 
+                     dir      = OUT_EST_DIR, 
+                     name     = "survey_means", 
+                     time     = time, 
                      compress = FST_COMP_LVL)
-      paste0(OUT_EST_DIR, "survey_means.fst")
-    }
   ),
    
 ### Save interpolated means table ----
   tar_target(
     interpolated_means_file,
-    format = 'file', {
-      fst::write_fst(x        = dt_ref_mean_pred,
-                     path     = paste0(OUT_EST_DIR, "interpolated-means.fst"),
+    format = 'file', 
+    save_estimations(dt       = dt_ref_mean_pred, 
+                     dir      = OUT_EST_DIR, 
+                     name     = "interpolated_means", 
+                     time     = time, 
                      compress = FST_COMP_LVL)
-      paste0(OUT_EST_DIR, "interpolated-means.fst")
-    }
   )
 
 )
