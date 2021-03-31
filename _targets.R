@@ -85,6 +85,7 @@ tar_option_set(
 source('_packages.R')
 source('R/_common.R')
 
+options(joyn.verbose = FALSE) # make sure joyn does not display messages
 # Set future plan (for targets::tar_make_future)
 # plan(multisession)
 
