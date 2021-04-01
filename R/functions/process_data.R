@@ -56,7 +56,7 @@ process_data <- function(survey_id,
   df <- tryCatch(
     expr = {
       # Clean DAta
-      pipdm::db_clean_data(df)
+      df <- pipdm::db_clean_data(df)
       
       # make sure the right welfare type is in the microdata.
       wt <- gsub("(.+_)([A-Z]{3})(_[A-Z\\-]+)(\\.fst)?$", "\\2", chh_filename)
