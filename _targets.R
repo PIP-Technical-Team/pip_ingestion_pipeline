@@ -13,6 +13,10 @@ library(tarchetypes)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ##   Set initial parameters  --------
 # remotes::install_github("PIP-Technical-Team/pipdm")
+# remotes::install_github("PIP-Technical-Team/pipload")
+# remotes::install_github("PIP-Technical-Team/wbpip@ineq_using_synth")
+# remotes::install_github("PIP-Technical-Team/pipdm@development")
+# remotes::install_github("randrescastaneda/joyn")
 ### defaults ---------
 
 # Input dir 
@@ -127,6 +131,12 @@ save_estimations <- function(dt, dir, name, time, compress) {
   fst::write_fst(x        = dt,
                  path     = paste0(dir,"_vintage/", name, "_", time, ".fst"),
                  compress = compress)
+  
+  haven::write_dta(data     = dt,
+                   path     = paste0(dir, name, ".dta"))
+  
+  haven::write_dta(data     = dt,
+                   path     = paste0(dir,"_vintage/", name, "_", time, ".dta"))
   return(paste0(dir, name, ".fst"))
 }
 
@@ -199,7 +209,8 @@ cache_info <-
   pip_data_dir       = PIP_DATA_DIR,
   cache_svy_dir      = CACHE_SVY_DIR,
   compress           = FST_COMP_LVL,
-  verbose            = TRUE)
+  # force              = TRUE,
+  verbose            = TRUE) 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #            Step 3:   Run pipeline   ---------
@@ -325,7 +336,7 @@ list(
 
 # get mean 
   tar_target(
-    dl_mean,
+    dl_mean, # name vectors. 
     svy_mean_lcu$survey_mean_lcu,
     pattern = map(svy_mean_lcu),
     iteration = "list"
@@ -334,7 +345,7 @@ list(
 ### Calculate distributional statistics
   tar_target(
     name      = dl_dist_stats,
-    command   = db_compute_dist_stats(cache, dl_mean), 
+    command   = db_compute_dist_stats(cache, dl_mean, aux_pop), 
     pattern   =  map(cache, dl_mean), 
     iteration = "list"
     ),
