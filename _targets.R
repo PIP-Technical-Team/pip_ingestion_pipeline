@@ -140,6 +140,12 @@ save_estimations <- function(dt, dir, name, time, compress) {
   return(paste0(dir, name, ".fst"))
 }
 
+named_mean <- function(dt) {
+  mvec        <- dt[, survey_mean_lcu]
+  names(mvec) <- dt[, pop_data_level]
+  return(mvec)
+}
+
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #       Step 2: Prepare data                     ---------
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
