@@ -99,8 +99,8 @@ cache_survey_data <- function(pipeline_inventory,
                        })
   
   #--------- Save correspondence file ---------
-  crr_status <- update_crr_inventory(pipeline_inventory,
-                                     cache_svy_dir)
+  crr_status <- pipdm::pip_update_cache_inventory(pipeline_inventory,
+                                                  cache_svy_dir)
   if (verbose && crr_status) {
     
     cli::cli_alert_success('Correspondence inventory file saved')
