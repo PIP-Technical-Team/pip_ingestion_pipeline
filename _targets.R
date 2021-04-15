@@ -13,7 +13,7 @@ library(tarchetypes)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ##   Set initial parameters  --------
 # remotes::install_github("PIP-Technical-Team/pipdm")
-# remotes::install_github("PIP-Technical-Team/pipload")
+# remotes::install_github("PIP-Technical-Team/pipload@development")
 # remotes::install_github("PIP-Technical-Team/wbpip@ineq_using_synth")
 # remotes::install_github("PIP-Technical-Team/pipdm@development")
 # remotes::install_github("randrescastaneda/joyn")
@@ -206,8 +206,8 @@ pipeline_inventory <-
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ##      Create cache files --------
-# pipeline_inventory <- 
-#   pipeline_inventory[cache_id == "PHL_2018_FIES_D1_CON_GPWG"]
+# pipeline_inventory <-
+#   pipeline_inventory[cache_id == "MEX_1984_ENIGH_D1_CON_HIST"]
 
 cache_info <- 
   cache_survey_data(
@@ -343,7 +343,7 @@ list(
 # get mean 
   tar_target(
     dl_mean, # name vectors. 
-    svy_mean_lcu$survey_mean_lcu,
+    named_mean(svy_mean_lcu),
     pattern = map(svy_mean_lcu),
     iteration = "list"
   ),
@@ -351,7 +351,10 @@ list(
 ### Calculate distributional statistics
   tar_target(
     name      = dl_dist_stats,
-    command   = db_compute_dist_stats(cache, dl_mean, aux_pop), 
+    command   = db_compute_dist_stats(dt       = cache, 
+                                      mean     = dl_mean, 
+                                      pop      = aux_pop, 
+                                      cache_id = cache_ids), 
     pattern   =  map(cache, dl_mean), 
     iteration = "list"
     ),
