@@ -66,8 +66,8 @@ cache_survey_data <- function(pipeline_inventory,
                            It will be created", 
                            wrap = TRUE)
       
-      update_crr_inventory(pipeline_inventory,
-                           cache_svy_dir)
+      pipdm::pip_update_cache_inventory(pipeline_inventory,
+                                        cache_svy_dir)
     } 
     
     crr    <- fst::read_fst(crr_filename, 
