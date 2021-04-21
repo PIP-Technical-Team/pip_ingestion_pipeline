@@ -355,7 +355,7 @@ list(
                                       mean     = dl_mean, 
                                       pop      = aux_pop, 
                                       cache_id = cache_ids), 
-    pattern   =  map(cache, dl_mean), 
+    pattern   =  map(cache, dl_mean, cache_ids), 
     iteration = "list"
     ),
   
@@ -526,7 +526,7 @@ list(
     pop_region_out,
     save_aux_data(
       dt_pop_region,
-      paste0(OUT_AUX_DIR, "coverage.fst"),
+      paste0(OUT_AUX_DIR, "pop-region.fst"),
       compress = TRUE
     ),
     format = 'file',
@@ -536,7 +536,7 @@ list(
     coverage_out,
     save_aux_data(
       dt_coverage,
-      paste0(OUT_AUX_DIR, "pop-region.fst"),
+      paste0(OUT_AUX_DIR, "coverage.fst"),
       compress = TRUE
     ),
     format = 'file',
