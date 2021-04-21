@@ -13,6 +13,10 @@ library(tarchetypes)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ##   Set initial parameters  --------
 # remotes::install_github("PIP-Technical-Team/pipdm")
+# remotes::install_github("PIP-Technical-Team/pipload@development")
+# remotes::install_github("PIP-Technical-Team/wbpip@ineq_using_synth")
+# remotes::install_github("PIP-Technical-Team/pipdm@development")
+# remotes::install_github("randrescastaneda/joyn")
 ### defaults ---------
 
 # Input dir 
@@ -127,7 +131,19 @@ save_estimations <- function(dt, dir, name, time, compress) {
   fst::write_fst(x        = dt,
                  path     = paste0(dir,"_vintage/", name, "_", time, ".fst"),
                  compress = compress)
+  
+  haven::write_dta(data     = dt,
+                   path     = paste0(dir, name, ".dta"))
+  
+  haven::write_dta(data     = dt,
+                   path     = paste0(dir,"_vintage/", name, "_", time, ".dta"))
   return(paste0(dir, name, ".fst"))
+}
+
+named_mean <- function(dt) {
+  mvec        <- dt[, survey_mean_lcu]
+  names(mvec) <- dt[, pop_data_level]
+  return(mvec)
 }
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -190,8 +206,8 @@ pipeline_inventory <-
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ##      Create cache files --------
-# pipeline_inventory <- 
-#   pipeline_inventory[cache_id == "PHL_2018_FIES_D1_CON_GPWG"]
+# pipeline_inventory <-
+#   pipeline_inventory[cache_id == "MEX_1984_ENIGH_D1_CON_HIST"]
 
 cache_info <- 
   cache_survey_data(
@@ -199,7 +215,8 @@ cache_info <-
   pip_data_dir       = PIP_DATA_DIR,
   cache_svy_dir      = CACHE_SVY_DIR,
   compress           = FST_COMP_LVL,
-  verbose            = TRUE)
+  # force              = TRUE,
+  verbose            = TRUE) 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #            Step 3:   Run pipeline   ---------
@@ -325,8 +342,8 @@ list(
 
 # get mean 
   tar_target(
-    dl_mean,
-    svy_mean_lcu$survey_mean_lcu,
+    dl_mean, # name vectors. 
+    named_mean(svy_mean_lcu),
     pattern = map(svy_mean_lcu),
     iteration = "list"
   ),
@@ -334,8 +351,11 @@ list(
 ### Calculate distributional statistics
   tar_target(
     name      = dl_dist_stats,
-    command   = db_compute_dist_stats(cache, dl_mean), 
-    pattern   =  map(cache, dl_mean), 
+    command   = db_compute_dist_stats(dt       = cache, 
+                                      mean     = dl_mean, 
+                                      pop      = aux_pop, 
+                                      cache_id = cache_ids), 
+    pattern   =  map(cache, dl_mean, cache_ids), 
     iteration = "list"
     ),
   
@@ -506,7 +526,7 @@ list(
     pop_region_out,
     save_aux_data(
       dt_pop_region,
-      paste0(OUT_AUX_DIR, "coverage.fst"),
+      paste0(OUT_AUX_DIR, "pop-region.fst"),
       compress = TRUE
     ),
     format = 'file',
@@ -516,7 +536,7 @@ list(
     coverage_out,
     save_aux_data(
       dt_coverage,
-      paste0(OUT_AUX_DIR, "pop-region.fst"),
+      paste0(OUT_AUX_DIR, "coverage.fst"),
       compress = TRUE
     ),
     format = 'file',

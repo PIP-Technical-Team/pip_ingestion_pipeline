@@ -8,12 +8,14 @@
 #' @param compress numeric: Compression level used in `fst::write_fst()`. 
 #' @param verbose boolean: If TRUE additional messages are printed to the 
 #' console. 
+#' @param force logical: if TRUE, all files will be generates again.
 #' 
 cache_survey_data <- function(pipeline_inventory,
                               pip_data_dir, 
                               cache_svy_dir,
                               compress   = 100,
-                              verbose    = TRUE) {
+                              verbose    = TRUE, 
+                              force      = FALSE) {
   
   
   #--------- Parameters ---------
@@ -28,12 +30,31 @@ cache_survey_data <- function(pipeline_inventory,
   }
   
   #--------- Identify new Surveys ---------
+  
+  # real new files
+  if (isFALSE(force)) {
+    
   new_svy_ids <- find_new_data(pipeline_inventory, 
                                cache_svy_dir)
-  
   if (verbose) {
     cli::cli_alert("Found {.field {nrow(new_svy_ids)}} new survey(s)...")
   }
+  
+  } else { # if force is TRUE
+    
+    new_svy_ids <- 
+      pipeline_inventory[, 
+                         .(filename, cache_id)
+                         ][,
+                           svy_ids := gsub('(.+)(\\.dta)', '\\1', filename)
+                           ] 
+    if (verbose) {
+      cli::cli_alert("Since {.code force = TRUE}, {.field {nrow(new_svy_ids)}} 
+                     cache files will be recreated.", wrap = TRUE)
+    }
+    
+  }
+  
   
   # Early return
   if (nrow(new_svy_ids) == 0) {
@@ -45,8 +66,8 @@ cache_survey_data <- function(pipeline_inventory,
                            It will be created", 
                            wrap = TRUE)
       
-      update_crr_inventory(pipeline_inventory,
-                           cache_svy_dir)
+      pipdm::pip_update_cache_inventory(pipeline_inventory,
+                                        cache_svy_dir)
     } 
     
     crr    <- fst::read_fst(crr_filename, 
@@ -78,8 +99,8 @@ cache_survey_data <- function(pipeline_inventory,
                        })
   
   #--------- Save correspondence file ---------
-  crr_status <- update_crr_inventory(pipeline_inventory,
-                                     cache_svy_dir)
+  crr_status <- pipdm::pip_update_cache_inventory(pipeline_inventory,
+                                                  cache_svy_dir)
   if (verbose && crr_status) {
     
     cli::cli_alert_success('Correspondence inventory file saved')

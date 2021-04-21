@@ -480,15 +480,15 @@
     },
     "joyn": {
       "Package": "joyn",
-      "Version": "0.1.0",
+      "Version": "0.1.0.9001",
       "Source": "GitHub",
       "RemoteType": "github",
       "RemoteHost": "api.github.com",
       "RemoteRepo": "joyn",
       "RemoteUsername": "randrescastaneda",
-      "RemoteRef": "HEAD",
-      "RemoteSha": "556b17db570eefb56a942f6fef1e8d88bfd4530c",
-      "Hash": "cad8e55cbb532fb8525d4033de09462b"
+      "RemoteRef": "dev",
+      "RemoteSha": "ebeae76a3ed94144dd30bd41dc538728fbfadb53",
+      "Hash": "83a4d6db4fe2cd81d24ea164a46f0c24"
     },
     "jquerylib": {
       "Package": "jquerylib",
@@ -635,15 +635,15 @@
     },
     "pipdm": {
       "Package": "pipdm",
-      "Version": "0.0.0.9007",
+      "Version": "0.0.0.9008",
       "Source": "GitHub",
       "RemoteType": "github",
       "RemoteHost": "api.github.com",
       "RemoteRepo": "pipdm",
       "RemoteUsername": "PIP-Technical-Team",
-      "RemoteRef": "HEAD",
-      "RemoteSha": "ff996c4b247137ba9e4f67229891bf6354b47c70",
-      "Hash": "956bed060791bb50e8ecf380a355b645"
+      "RemoteRef": "development",
+      "RemoteSha": "51c5b005acf8b412e7f68f17ea6c727c52848e18",
+      "Hash": "829d0e785058c9cdbd8f345065a0798b"
     },
     "pipload": {
       "Package": "pipload",
