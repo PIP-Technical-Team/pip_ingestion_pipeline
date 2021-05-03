@@ -13,9 +13,9 @@ library(tarchetypes)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ##   Set initial parameters  --------
 # remotes::install_github("PIP-Technical-Team/pipdm")
-# remotes::install_github("PIP-Technical-Team/pipload@development")
-# remotes::install_github("PIP-Technical-Team/wbpip@ineq_using_synth")
 # remotes::install_github("PIP-Technical-Team/pipdm@development")
+# remotes::install_github("PIP-Technical-Team/pipload@development")
+# remotes::install_github("PIP-Technical-Team/wbpip@halfmedian_spl")
 # remotes::install_github("randrescastaneda/joyn")
 ### defaults ---------
 
@@ -109,6 +109,10 @@ get_cache_id <- function(x) {
   x$cache_id
 }
 
+get_survey_id <- function(x) {
+  x$survey_id
+}
+
 
 aux_out_files_fun <- function(OUT_AUX_DIR, aux_names) {
   purrr::map_chr(aux_names, ~ paste0(OUT_AUX_DIR, .x, ".fst"))
@@ -187,19 +191,19 @@ pfw_glo <- pipload::pip_load_aux(
 ##        Inventories        --------
 
 # Load PIP inventory
-pip_inventory <-
-  pipload::pip_find_data(
-    inv_file = paste0(PIP_DATA_DIR, '_inventory/inventory.fst'),
-    filter_to_pc = TRUE,
-    maindir = PIP_DATA_DIR)
-
-# Create pipeline inventory
-pipeline_inventory <-
-  pipdm::db_filter_inventory(
-    pip_inventory,
-    pfw_table = pfw_glo)
-
-# Ad hoc filtering for testing purposes
+# pip_inventory <-
+#   pipload::pip_find_data(
+#     inv_file = paste0(PIP_DATA_DIR, '_inventory/inventory.fst'),
+#     filter_to_pc = TRUE,
+#     maindir = PIP_DATA_DIR)
+# 
+# # Create pipeline inventory
+# pipeline_inventory <-
+#   pipdm::db_filter_inventory(
+#     pip_inventory,
+#     pfw_table = pfw_glo)
+# 
+# # Ad hoc filtering for testing purposes
 # pipeline_inventory <-
 #   pipeline_inventory[country_code == 'ZMB'
 #                      & surveyid_year == 1996]
@@ -209,14 +213,14 @@ pipeline_inventory <-
 # pipeline_inventory <-
 #   pipeline_inventory[cache_id == "MEX_1984_ENIGH_D1_CON_HIST"]
 
-cache_info <- 
-  cache_survey_data(
-  pipeline_inventory = pipeline_inventory,
-  pip_data_dir       = PIP_DATA_DIR,
-  cache_svy_dir      = CACHE_SVY_DIR,
-  compress           = FST_COMP_LVL,
-  # force              = TRUE,
-  verbose            = TRUE) 
+# cache_info <- 
+#   pipdm::create_cache_file(
+#   pipeline_inventory = pipeline_inventory,
+#   pip_data_dir       = PIP_DATA_DIR,
+#   cache_svy_dir      = CACHE_SVY_DIR,
+#   compress           = FST_COMP_LVL,
+#   force              = TRUE,
+#   verbose            = TRUE) 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #            Step 3:   Run pipeline   ---------
@@ -245,6 +249,39 @@ list(
   ),
 
 #~~~~~~~~~~~~~~~~~~~~~~~
+  
+# Load PIP inventory
+tar_target(pip_inventory, 
+           pipload::pip_find_data(
+             inv_file = paste0(PIP_DATA_DIR, '_inventory/inventory.fst'),
+             filter_to_pc = TRUE,
+             maindir = PIP_DATA_DIR)),
+  
+  # Create pipeline inventory
+  tar_target(pipeline_inventory, {
+             x <- pipdm::db_filter_inventory(
+                        dt = pip_inventory,
+                        pfw_table = aux_pfw)
+             
+             # Uncomment for specific countries
+             # x <- x[country_code == 'ZMB'
+             #    & surveyid_year == 1996]
+             }
+             ),
+
+  tar_target(cache_files, 
+             pipdm::create_cache_file(
+               pipeline_inventory = pipeline_inventory,
+               pip_data_dir       = PIP_DATA_DIR,
+               tool               = "PC",
+               cache_svy_dir      = CACHE_SVY_DIR,
+               compress           = FST_COMP_LVL,
+               force              = TRUE,
+               verbose            = FALSE,
+               cpi_dt             = aux_cpi,
+               ppp_dt             = aux_ppp)$data_available
+             ),
+
 ## Cache inventory file ----
   tar_target(
     cache_inventory_dir, 
@@ -265,12 +302,16 @@ list(
     },
   ),
   
-  tar_target(cache_files, 
-             get_cache_files(cache_inventory)),
   
   tar_target(cache_ids, 
              get_cache_id(cache_inventory)),
-
+  
+  tar_target(survey_ids, 
+             get_survey_id(cache_inventory)),
+  
+  # tar_target(cache_files, 
+  #            get_cache_files(cache_inventory)),
+  
   tar_files(cache_dir, cache_files),
   tar_target(cache, 
              fst::read_fst(path = cache_dir, 
