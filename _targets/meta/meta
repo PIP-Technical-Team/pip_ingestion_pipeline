@@ -18640,6 +18640,7 @@ prod_estimation_file|stem|bbde2cd5fb3bf62c|2948a96fadee25dc|96504feb3808ee45|-10
 cache_inventory_dir|stem|2b4f0e410202339b|3f22819333b491b5|32662f0d95723922|-1238874050|//w1wbgencifs01/pip/pip_ingestion_pipeline/pc_data/cache/clean_survey_data/_crr_inventory/crr_inventory.fst|t18750.7266988226s|bed0aac7451b76e2|75677|file|vector|||0||
 cache_inventory|stem|a90bca1bc3165935|729f3bc5c1e4f6eb|f21682c512edc840|-1162243421||t18750.8099104406s|18c4cdb069fb3109|14343|qs|vector|||0.01||
 aux_dir_pfw|stem|4348271f30b9341f|454a83197786e14f|ef46db3751d8e999|1789721668|//w1wbgencifs01/pip/PIP-Data_QA/_aux/pfw/pfw.fst|6482bfe418a4ea21|4715397998b17e5c|227809|file|vector|||0||
+aux_dir_cpi|stem|e56b5416f51b2fcc|b338af3e3b19f14e|ef46db3751d8e999|-1021583223|//w1wbgencifs01/pip/PIP-Data_QA/_aux/cpi/cpi.fst|9eeedf0eb799d64e|d97e31a815cf985a|137972|file|vector|||0||
 create_cond|function|a5d11feb5242d297||||||||||||||
 md_compute_poverty_stats|function|6d826f309168063c||||||||||||||
 empty_gd_compute_pip_stats_response|object|27d3ca8e811e5efa||||||||||||||
@@ -18662,7 +18663,7 @@ use_lq_for_distributional|function|e6771bac155d31df||||||||||||||
 md_compute_quantiles|function|7d2a7b5cb395a295||||||||||||||
 compute_median_md|function|e4bddfda4d0839b3||||||||||||||
 get_dt_info|function|0c2244e4b69a8b1b||||||||||||||
-time|object|27d61ccdb80f4686||||||||||||||
+time|object|f0a366cd7c73a165||||||||||||||
 funcD|function|ae0f01dcff1fc5db||||||||||||||
 rtNewt|function|590e60d14ba252c1||||||||||||||
 pip_pipedir|object|626a59457708af0e||||||||||||||
@@ -18697,7 +18698,7 @@ PIP_REF_YEARS|object|0812adfb700954d1||||||||||||||
 check_inputs_db_class|function|fefc4090dd2ca8d9||||||||||||||
 select_lineup_survey|function|12b7f777aee76023||||||||||||||
 md_infer_poverty_line|function|ca6e176ac0fcf994||||||||||||||
-.Random.seed|object|bc95a2a192390f85||||||||||||||
+.Random.seed|object|73eb06698a658ec3||||||||||||||
 pipid_class|object|9d86454d926b8b50||||||||||||||
 PIP_UPDATE_AUX|object|3139974ca770b82a||||||||||||||
 compute_median|function|41c102572eca1ce7||||||||||||||
@@ -18913,11 +18914,10 @@ compute_dist_stats|function|be64a31efdea0fe3||||||||||||||
 prod_compute_pip_stats|function|3cd0313bb8c87024||||||||||||||
 compute_pip_stats|function|57889272f8caf31e||||||||||||||
 db_compute_dist_stats|function|c5f56cfef4906bee||||||||||||||
-aux_dir_cpi|stem|e56b5416f51b2fcc|b338af3e3b19f14e|ef46db3751d8e999|-1021583223|//w1wbgencifs01/pip/PIP-Data_QA/_aux/cpi/cpi.fst|9eeedf0eb799d64e|d97e31a815cf985a|137972|file|vector|||0||
 aux_dir_ppp|stem|788c02f72942065a|bd97c83456cf6b9d|ef46db3751d8e999|-227569029|//w1wbgencifs01/pip/PIP-Data_QA/_aux/ppp/ppp.fst|e3ab623b73ad788f|8a251736504f0cc4|30385|file|vector|||0||
 pip_inventory|stem|72c9a01d1c4909c2|5012346fa2da82db|8f2a500ffa7cdeab|2026555739|_targets/objects/pip_inventory|e9497ce4e75bf478|852cb9a644d3c93b|40931|qs|vector|||0.6||
 aux_pfw|stem|608f62760edd85b8|b79c9375c4b78d20|140293e00d786228|1832855790|_targets/objects/aux_pfw|4da0cf9193808768|05ed8f5bc5c0cd2f|37477|qs|vector|||0.05||
 aux_cpi|stem|2c485b77c16e272e|07acbe4db9555425|c322b0adcd1fb447|-1021492615|_targets/objects/aux_cpi|5e6096a630a34c29|916ed6ec4490f7a5|34799|qs|vector|||0.04||
 aux_ppp|stem|5673f43d170aaf24|7f70175a03bad5b2|39f82d00baf6b424|-228080034|_targets/objects/aux_ppp|5fcfb9e5303bd551|f91e289211f9c3e2|9161|qs|vector|||0.04||
-pipeline_inventory|stem|ea6794adf6b5211d|fb8e46b916ef9233|d68087ecafac1d48|1494766567|_targets/objects/pipeline_inventory|78344663ae5ed6c4|ff284399e7562ce5|464|qs|vector|||0.05||
-cache_files|stem|ecbcbbc8b69ee2a4|29bb9f8d3230b9af|8653ab8a4d7a3bd7|1063104871|_targets/objects/cache_files|235f0f762c0c779f|e51ae97ffd2cd15d|14352|qs|vector|||3.54||
+pipeline_inventory|stem|53b2574ead53b4f4|4091d6f2c7ea7467|a3503b5e9113da5b|1494766567|_targets/objects/pipeline_inventory|0d014c1b6e833350|c202d1993498d4ad|927|qs|vector|||0.06||
+cache_files|stem|e90166994b804dc7|29bb9f8d3230b9af|fc443badf208c8ab|1063104871|_targets/objects/cache_files|430ff4a53af236dd|a570e6aba19f6614|14748|qs|vector|||149.71||

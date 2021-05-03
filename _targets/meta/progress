@@ -1,7 +1,5 @@
 name|type|parent|branches|progress
-aux_cpi|stem|aux_cpi|0|started
-aux_cpi|stem|aux_cpi|0|built
-aux_ppp|stem|aux_ppp|0|started
-aux_ppp|stem|aux_ppp|0|built
+pipeline_inventory|stem|pipeline_inventory|0|started
+pipeline_inventory|stem|pipeline_inventory|0|built
 cache_files|stem|cache_files|0|started
 cache_files|stem|cache_files|0|built

@@ -264,12 +264,11 @@ tar_target(pip_inventory,
                         pfw_table = aux_pfw)
              
              # Uncomment for specific countries
-             # x <- x[country_code == 'ZMB'
-             #    & surveyid_year == 1996]
+             x <- x[country_code == 'PRY']
              }
              ),
 
-  tar_target(cache_files, 
+  tar_target(status_cache_files_creation, 
              pipdm::create_cache_file(
                pipeline_inventory = pipeline_inventory,
                pip_data_dir       = PIP_DATA_DIR,
@@ -279,7 +278,7 @@ tar_target(pip_inventory,
                force              = TRUE,
                verbose            = FALSE,
                cpi_dt             = aux_cpi,
-               ppp_dt             = aux_ppp)$data_available
+               ppp_dt             = aux_ppp)
              ),
 
 ## Cache inventory file ----
@@ -309,8 +308,8 @@ tar_target(pip_inventory,
   tar_target(survey_ids, 
              get_survey_id(cache_inventory)),
   
-  # tar_target(cache_files, 
-  #            get_cache_files(cache_inventory)),
+  tar_target(cache_files,
+             get_cache_files(cache_inventory)),
   
   tar_files(cache_dir, cache_files),
   tar_target(cache, 
