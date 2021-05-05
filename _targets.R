@@ -74,7 +74,8 @@ tar_option_set(
                'cli',
                'progress',
                'glue',
-               'purrr'
+               'purrr',
+               'joyn'
   ),
   imports  = c('pipload',
                'pipdm',
@@ -185,40 +186,6 @@ pfw_glo <- pipload::pip_load_aux(
     file_to_load = aux_files['pfw'],
     apply_label = FALSE)
 
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-##        Inventories        --------
-
-# Load PIP inventory
-# pip_inventory <-
-#   pipload::pip_find_data(
-#     inv_file = paste0(PIP_DATA_DIR, '_inventory/inventory.fst'),
-#     filter_to_pc = TRUE,
-#     maindir = PIP_DATA_DIR)
-# 
-# # Create pipeline inventory
-# pipeline_inventory <-
-#   pipdm::db_filter_inventory(
-#     pip_inventory,
-#     pfw_table = pfw_glo)
-# 
-# # Ad hoc filtering for testing purposes
-# pipeline_inventory <-
-#   pipeline_inventory[country_code == 'ZMB'
-#                      & surveyid_year == 1996]
-
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-##      Create cache files --------
-# pipeline_inventory <-
-#   pipeline_inventory[cache_id == "MEX_1984_ENIGH_D1_CON_HIST"]
-
-# cache_info <- 
-#   pipdm::create_cache_file(
-#   pipeline_inventory = pipeline_inventory,
-#   pip_data_dir       = PIP_DATA_DIR,
-#   cache_svy_dir      = CACHE_SVY_DIR,
-#   compress           = FST_COMP_LVL,
-#   force              = TRUE,
-#   verbose            = TRUE) 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #            Step 3:   Run pipeline   ---------
