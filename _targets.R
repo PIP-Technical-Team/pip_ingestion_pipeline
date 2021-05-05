@@ -303,22 +303,53 @@ tar_target(pip_inventory,
     pattern =  map(cache, gd_means), 
     iteration = "list"
      ),
-#   
-###  Remove surveys where the mean calculation failed ----
-  # tar_target(
-  #   svy_mean_lcu_clean,
-  #   svy_mean_lcu %>%
-  #     filter(!is.na(survey_mean_lcu)), 
-  #   iteration = "list"
-  # ),
 
-### Remove survey data where the LCU mean calculation failed
-  # tar_target(
-  #   dl_svy_data_w_mean,
-  #   dl_svy_data[
-  #     names(dl_svy_data) %in%
-  #       names(dl_svy_mean_lcu_w_mean)]
-  # ),
+# get mean 
+  tar_target(
+    dl_mean, # name vectors. 
+    named_mean(svy_mean_lcu),
+    pattern = map(svy_mean_lcu),
+    iteration = "list"
+  ),
+
+## Create LCU table ------
+  tar_target(
+    svy_mean_lcu_table,
+    db_create_lcu_table(
+     dl        = svy_mean_lcu,
+     pop_table = aux_pop,
+     pfw_table = aux_pfw)
+    ),
+
+#~~~~~~~~~~~~~~~~~~~~~~~~
+##  Create DSM table ---- 
+
+tar_target(svy_mean_ppp_table,
+           db_create_dsm_table(
+             lcu_table = svy_mean_lcu_table,
+             cpi_table = aux_cpi,
+             ppp_table = aux_ppp)),
+
+## Create reference year table ------
+#   
+#   # Create a reference year table with predicted means 
+#   # for each year in PIP_REF_YEARS. 
+#   # 
+#   # Due to a change in naming convention this table is 
+#   # saved as interpolated-means.qs in 
+#   # PIP_PIPE_DIR/aux_data/.
+#   
+tar_target(dt_ref_mean_pred,
+           db_create_ref_year_table(
+             gdp_table = aux_gdp,
+             pce_table = aux_pce,
+             pop_table = aux_pop,
+             pfw_table = aux_pfw,
+             dsm_table = svy_mean_ppp_table,
+             ref_years = PIP_REF_YEARS,
+             pip_years = PIP_YEARS,
+             region_code = 'pcn_region_code')),
+
 
 #~~~~~~~~~~~~~~~~~~~~~~~
 ## Dist  stats ---- 
@@ -338,13 +369,6 @@ tar_target(pip_inventory,
     purrr::keep(lorenz_all, ~!is.null(.x))
   ),
 
-# get mean 
-  tar_target(
-    dl_mean, # name vectors. 
-    named_mean(svy_mean_lcu),
-    pattern = map(svy_mean_lcu),
-    iteration = "list"
-  ),
 
 ### Calculate distributional statistics
   tar_target(
@@ -356,25 +380,6 @@ tar_target(pip_inventory,
     pattern   =  map(cache, dl_mean, cache_ids), 
     iteration = "list"
     ),
-  
-## Create LCU table ------
-
-  tar_target(
-    svy_mean_lcu_table,
-    db_create_lcu_table(
-     dl        = svy_mean_lcu,
-     pop_table = aux_pop,
-     pfw_table = aux_pfw)
-    ),
-
-#~~~~~~~~~~~~~~~~~~~~~~~~
-##  Create DSM table ---- 
-
-  tar_target(svy_mean_ppp_table,
-             db_create_dsm_table(
-               lcu_table = svy_mean_lcu_table,
-               cpi_table = aux_cpi,
-               ppp_table = aux_ppp)),
    
 ## Create dist stat table ------
 #   
@@ -387,42 +392,9 @@ tar_target(pip_inventory,
              ),
 #   
 #   
-##Create reference year table ------
-#   
-#   # Create a reference year table with predicted means 
-#   # for each year in PIP_REF_YEARS. 
-#   # 
-#   # Due to a change in naming convention this table is 
-#   # saved as interpolated-means.qs in 
-#   # PIP_PIPE_DIR/aux_data/.
-#   
-  tar_target(dt_ref_mean_pred,
-             db_create_ref_year_table(
-               gdp_table = aux_gdp,
-               pce_table = aux_pce,
-               pop_table = aux_pop,
-               pfw_table = aux_pfw,
-               dsm_table = svy_mean_ppp_table,
-               ref_years = PIP_REF_YEARS,
-               pip_years = PIP_YEARS,
-               region_code = 'pcn_region_code')),
   
-  # tar_target(dt_ref_mean_pred_tmp,
-  #            db_create_ref_year_table(
-  #              gdp_table = aux_gdp,
-  #              pce_table = aux_pce,
-  #              pop_table = aux_pop,
-  #              pfw_table = aux_pfw,
-  #              dsm_table = svy_mean_ppp_table,
-  #              ref_years = PIP_REF_YEARS,
-  #              pip_years = PIP_YEARS,
-  #              region_code = 'pcn_region_code')),
-  # 
-  # tar_target(dt_ref_mean_pred, 
-  #            temp_cleaning_ref_table(
-  #              dt_ref_mean_pred_tmp
-  #            )),
-
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+## Output tables --------
 
 ## Create All-estimations table
   tar_target(dt_prod_estimation_all,
