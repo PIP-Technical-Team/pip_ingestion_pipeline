@@ -206,9 +206,11 @@ list(
     
   ),
 
-#~~~~~~~~~~~~~~~~~~~~~~~
-  
-# Load PIP inventory
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+## Inventory and cache files --------
+
+### Load PIP inventory -----
 tar_target(pip_inventory, 
            pipload::pip_find_data(
              inv_file = paste0(PIP_DATA_DIR, '_inventory/inventory.fst'),
@@ -226,6 +228,7 @@ tar_target(pip_inventory,
              }
              ),
 
+### Create cache files ---------
   tar_target(status_cache_files_creation, 
              pipdm::create_cache_file(
                pipeline_inventory = pipeline_inventory,
@@ -239,7 +242,7 @@ tar_target(pip_inventory,
                ppp_dt             = aux_ppp)
              ),
 
-## Cache inventory file ----
+### Cache inventory file ----
   tar_target(
     cache_inventory_dir, 
     cache_inventory_path(),
@@ -259,7 +262,7 @@ tar_target(pip_inventory,
     },
   ),
   
-  
+### identifiers ---------
   tar_target(cache_ids, 
              get_cache_id(cache_inventory)),
   
@@ -330,7 +333,7 @@ tar_target(svy_mean_ppp_table,
              cpi_table = aux_cpi,
              ppp_table = aux_ppp)),
 
-## Create reference year table ------
+### Create reference year table ------
 #   
 #   # Create a reference year table with predicted means 
 #   # for each year in PIP_REF_YEARS. 
@@ -370,7 +373,7 @@ tar_target(dt_ref_mean_pred,
   ),
 
 
-### Calculate distributional statistics
+### Calculate distributional statistics ----
   tar_target(
     name      = dl_dist_stats,
     command   = db_compute_dist_stats(dt       = cache, 
@@ -381,7 +384,7 @@ tar_target(dt_ref_mean_pred,
     iteration = "list"
     ),
    
-## Create dist stat table ------
+### Create dist stat table ------
 #   
 #   # Covert dist stat list to table
   tar_target(dt_dist_stats,
@@ -404,7 +407,7 @@ tar_target(dt_ref_mean_pred,
              ),
  
  
-## Create coverage table -------
+### Create coverage table -------
 
 #  Create coverage table by region
   tar_target(
@@ -418,7 +421,7 @@ tar_target(dt_ref_mean_pred,
       )
     ),
    
-## Create aggregated POP table ----
+### Create aggregated POP table ----
   
   tar_target(
     dt_pop_region,
@@ -428,6 +431,7 @@ tar_target(dt_ref_mean_pred,
       region_code = 'pcn_region_code',
       pip_years   = PIP_YEARS)),
 
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ##  Clean AUX data ------
    
 # Clean and transform the AUX tables to the format
@@ -450,6 +454,7 @@ tar_target(dt_ref_mean_pred,
     iteration = "list"
   ),
 
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ##  Save data ---- 
 
 ### Save microdata for production ------
@@ -478,20 +483,6 @@ tar_target(dt_ref_mean_pred,
              iteration = "list"),
 
 ### Save additional aux files----
-  # tar_target(
-  #   add_aux_files,
-  #   paste0(
-  #     OUT_AUX_DIR,
-  #     c("pop-region", "coverage"),".fst"
-  #   )
-  # ),
-  # 
-  # tar_files(add_aux_dir, add_aux_files),
-  # 
-  # tar_target(add_aux,
-  #            list(dt_pop_region, dt_coverage), 
-  #            iteration = "list"
-  #            ),
   tar_target(
     pop_region_out,
     save_aux_data(
@@ -511,17 +502,6 @@ tar_target(dt_ref_mean_pred,
     ),
     format = 'file',
   ),
-
-  # tar_target(
-  #   add_aux_out,
-  #   save_aux_data(
-  #     add_aux,
-  #     add_aux_dir,
-  #     compress = FST_COMP_LVL
-  #     ), 
-  #   format = 'file',
-  #   pattern = map(add_aux, add_aux_dir)
-  # ),
 
 ### Save Lorenz list ----
   tar_target(
