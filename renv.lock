@@ -1,6 +1,6 @@
 {
   "R": {
-    "Version": "4.0.3",
+    "Version": "4.0.5",
     "Repositories": [
       {
         "Name": "CRAN",
@@ -144,10 +144,10 @@
     },
     "callr": {
       "Package": "callr",
-      "Version": "3.5.1",
+      "Version": "3.4.3",
       "Source": "Repository",
       "Repository": "CRAN",
-      "Hash": "b7d7f1e926dfcd57c74ce93f5c048e80"
+      "Hash": "643163a00cb536454c624883a10ae0bc"
     },
     "cellranger": {
       "Package": "cellranger",
@@ -263,17 +263,17 @@
     },
     "dplyr": {
       "Package": "dplyr",
-      "Version": "1.0.5",
+      "Version": "1.0.4",
       "Source": "Repository",
       "Repository": "CRAN",
-      "Hash": "d0d76c11ec807eb3f000eba4e3eb0f68"
+      "Hash": "01c82e3b053eb7660a8ace8d932265b8"
     },
     "ellipsis": {
       "Package": "ellipsis",
-      "Version": "0.3.1",
+      "Version": "0.3.2",
       "Source": "Repository",
       "Repository": "CRAN",
-      "Hash": "fd2844b3a43ae2d27e70ece2df1b4e2a"
+      "Hash": "bb0eec2fe32e88d9e2836c2f73ea2077"
     },
     "fansi": {
       "Package": "fansi",
@@ -438,10 +438,10 @@
     },
     "httpuv": {
       "Package": "httpuv",
-      "Version": "1.5.5",
+      "Version": "1.6.0",
       "Source": "Repository",
       "Repository": "CRAN",
-      "Hash": "b9d5d39be2150cf86538b8488334b8f8"
+      "Hash": "781248b864d00c390830504937fe5c29"
     },
     "httr": {
       "Package": "httr",
@@ -478,29 +478,12 @@
       "Repository": "CRAN",
       "Hash": "6de84a8c67fb247e721166049c84695f"
     },
-    "joyn": {
-      "Package": "joyn",
-      "Version": "0.1.0.9001",
-      "Source": "GitHub",
-      "RemoteType": "github",
-      "RemoteHost": "api.github.com",
-      "RemoteRepo": "joyn",
-      "RemoteUsername": "randrescastaneda",
-      "RemoteRef": "dev",
-      "RemoteSha": "ebeae76a3ed94144dd30bd41dc538728fbfadb53",
-      "Hash": "83a4d6db4fe2cd81d24ea164a46f0c24"
-    },
     "jquerylib": {
       "Package": "jquerylib",
-      "Version": "0.1.3",
-      "Source": "GitHub",
-      "RemoteType": "github",
-      "RemoteUsername": "rstudio",
-      "RemoteRepo": "jquerylib",
-      "RemoteRef": "HEAD",
-      "RemoteSha": "94b1a3bdec571b533634cc837bb28960604e8fa2",
-      "RemoteHost": "api.github.com",
-      "Hash": "0188ad7c5f2196a5c94cd5ec3e9abea2"
+      "Version": "0.1.4",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "5aab57a3bd297eee1c1d862735972182"
     },
     "jsonlite": {
       "Package": "jsonlite",
@@ -518,10 +501,10 @@
     },
     "later": {
       "Package": "later",
-      "Version": "1.1.0.1",
+      "Version": "1.2.0",
       "Source": "Repository",
       "Repository": "CRAN",
-      "Hash": "d0a62b247165aabf397fded504660d8a"
+      "Hash": "b61890ae77fea19fc8acadd25db70aa4"
     },
     "lattice": {
       "Package": "lattice",
@@ -635,15 +618,15 @@
     },
     "pipdm": {
       "Package": "pipdm",
-      "Version": "0.0.0.9008",
+      "Version": "0.0.0.9000",
       "Source": "GitHub",
       "RemoteType": "github",
       "RemoteHost": "api.github.com",
       "RemoteRepo": "pipdm",
       "RemoteUsername": "PIP-Technical-Team",
       "RemoteRef": "development",
-      "RemoteSha": "51c5b005acf8b412e7f68f17ea6c727c52848e18",
-      "Hash": "829d0e785058c9cdbd8f345065a0798b"
+      "RemoteSha": "4e80353b8ff84d702a5acc4d479963d10bd1f7af",
+      "Hash": "2904a116e3a3d5aeb05dbd450b4567e5"
     },
     "pipload": {
       "Package": "pipload",
@@ -743,21 +726,17 @@
     },
     "renv": {
       "Package": "renv",
-      "Version": "0.13.2-31",
-      "Source": "GitHub",
-      "RemoteType": "github",
-      "RemoteHost": "api.github.com",
-      "RemoteUsername": "rstudio",
-      "RemoteRepo": "renv",
-      "RemoteRef": "0.13.2-31",
-      "RemoteSha": "ae4c03078c5bbf5a798ac9bd7c88783d5c86c132"
+      "Version": "0.13.2",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "079cb1f03ff972b30401ed05623cbe92"
     },
     "rlang": {
       "Package": "rlang",
-      "Version": "0.4.10",
+      "Version": "0.4.11",
       "Source": "Repository",
       "Repository": "CRAN",
-      "Hash": "599df23c40a4fce9c7b4764f28c37857"
+      "Hash": "515f341d3affe0de9e4a7f762efb0456"
     },
     "rprojroot": {
       "Package": "rprojroot",
@@ -911,17 +890,17 @@
     },
     "utf8": {
       "Package": "utf8",
-      "Version": "1.2.1",
+      "Version": "1.1.4",
       "Source": "Repository",
       "Repository": "CRAN",
-      "Hash": "c3ad47dc6da0751f18ed53c4613e3ac7"
+      "Hash": "4a5081acfb7b81a572e4384a7aaf2af1"
     },
     "vctrs": {
       "Package": "vctrs",
-      "Version": "0.3.6",
+      "Version": "0.3.8",
       "Source": "Repository",
       "Repository": "CRAN",
-      "Hash": "5cf1957f93076c19fdc81d01409d240b"
+      "Hash": "ecf749a1b39ea72bd9b51b76292261f1"
     },
     "viridisLite": {
       "Package": "viridisLite",
@@ -946,8 +925,8 @@
       "RemoteRepo": "wbpip",
       "RemoteUsername": "PIP-Technical-Team",
       "RemoteRef": "HEAD",
-      "RemoteSha": "4f101fdac7f9e0d920e092a16e0b066253bf6d18",
-      "Hash": "8f09dd18f03eee9f89f61e23fae4e5e5"
+      "RemoteSha": "6e1c778b2eb78070573cbbd5bf525d421a240b74",
+      "Hash": "61f10977bd06d580c6752947b65b26ff"
     },
     "wbstats": {
       "Package": "wbstats",
@@ -965,10 +944,10 @@
     },
     "withr": {
       "Package": "withr",
-      "Version": "2.4.1",
+      "Version": "2.4.2",
       "Source": "Repository",
       "Repository": "CRAN",
-      "Hash": "caf4781c674ffa549a4676d2d77b13cc"
+      "Hash": "ad03909b44677f930fa156d47d7a3aeb"
     },
     "xtable": {
       "Package": "xtable",

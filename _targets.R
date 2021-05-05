@@ -1,6 +1,6 @@
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#               Step 0: Start up   ---------
+#               Start up   ---------
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 library(targets)
@@ -56,20 +56,6 @@ PIP_SAFE_WORKERS <- FALSE # Open/close workers after each future call
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ##           Packages --------
 
-pkgs <- 
-  c('pipload', 
-    'pipdm',
-    'wbpip',
-    'fst',
-    'qs',
-    'magrittr',
-    'data.table',
-    'dplyr',
-    'cli',
-    'progress',
-    'glue',
-    'purrr'
-  )
 
   
 # Set targets options 
@@ -77,7 +63,19 @@ tar_option_set(
   garbage_collection = TRUE,
   memory = 'transient',
   format = 'qs', #'fst_dt',
-  packages = pkgs,
+  packages = c('pipload', 
+               'pipdm',
+               'wbpip',
+               'fst',
+               'qs',
+               'magrittr',
+               'data.table',
+               'dplyr',
+               'cli',
+               'progress',
+               'glue',
+               'purrr'
+  ),
   imports  = c('pipload',
                'pipdm',
                'wbpip')
