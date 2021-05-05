@@ -180,13 +180,6 @@ aux_tb <- data.table(
 # filter 
 aux_tb <- aux_tb[!(auxname %chin% c("weo", "maddison"))]
 
-
-# # Load PFW file
-pfw_glo <- pipload::pip_load_aux(
-    file_to_load = aux_files['pfw'],
-    apply_label = FALSE)
-
-
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #            Step 3:   Run pipeline   ---------
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
