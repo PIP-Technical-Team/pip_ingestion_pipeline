@@ -264,7 +264,7 @@ tar_target(pip_inventory,
                         pfw_table = aux_pfw)
              
              # Uncomment for specific countries
-             x <- x[country_code == 'PRY']
+             # x <- x[country_code == 'IDN' & surveyid_year == 2015]
              }
              ),
 
