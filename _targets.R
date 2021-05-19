@@ -50,8 +50,6 @@ PIP_YEARS        <- 1977:(max_year+1) # Years used in PIP
 PIP_REF_YEARS    <- 1981:max_year # Years used in the interpolated means table
 
 FST_COMP_LVL     <- 100 # Compression level for .fst output files
-APPLY_GC         <- TRUE # Apply garbage collection 
-PIP_SAFE_WORKERS <- FALSE # Open/close workers after each future call
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ##           Packages --------
