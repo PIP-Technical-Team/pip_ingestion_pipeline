@@ -239,7 +239,7 @@ tar_target(pip_inventory,
                tool               = "PC",
                cache_svy_dir      = CACHE_SVY_DIR,
                compress           = FST_COMP_LVL,
-               force              = TRUE,
+               force              = FALSE,
                verbose            = FALSE,
                cpi_dt             = aux_cpi,
                ppp_dt             = aux_ppp)
