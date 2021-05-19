@@ -51,11 +51,16 @@ PIP_REF_YEARS    <- 1981:max_year # Years used in the interpolated means table
 
 FST_COMP_LVL     <- 100 # Compression level for .fst output files
 
+# Check that the correct _targets store is used 
+if (identical(
+  tar_config_get('store'),
+  paste0(PIP_PIPE_DIR, 'pc_data/_targets/'))) {
+  stop('The store specified in _targets.yaml doesn\'t match with the pipeline directory')
+}
+
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ##           Packages --------
 
-
-  
 # Set targets options 
 tar_option_set(
   garbage_collection = TRUE,
