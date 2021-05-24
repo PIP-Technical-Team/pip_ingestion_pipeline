@@ -602,15 +602,15 @@
     },
     "pipdm": {
       "Package": "pipdm",
-      "Version": "0.0.1.9014",
+      "Version": "0.0.1.9015",
       "Source": "GitHub",
       "RemoteType": "github",
       "RemoteHost": "api.github.com",
       "RemoteRepo": "pipdm",
       "RemoteUsername": "PIP-Technical-Team",
       "RemoteRef": "master",
-      "RemoteSha": "164d354f9007cc8fc8940c003e9d06a2097dc518",
-      "Hash": "5375fb9cafd0e6a0b86ae2a4abf2ce17"
+      "RemoteSha": "a60d2948405bbcac0631bacb3b351ce7ba7bbe54",
+      "Hash": "b3b8de9a2e339caa26ba57bf888e2395"
     },
     "pipload": {
       "Package": "pipload",

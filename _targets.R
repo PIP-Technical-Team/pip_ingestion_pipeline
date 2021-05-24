@@ -402,13 +402,25 @@ tar_target(dt_ref_mean_pred,
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ## Output tables --------
 
-## Create All-estimations table
+## Create estimations table
   tar_target(dt_prod_estimation_all,
-             db_create_estimation_table(
+             db_create_ref_estimation_table(
                ref_year_table = dt_ref_mean_pred, 
                dist_table     = dt_dist_stats)
              ),
- 
+
+  tar_target(dt_prod_ref_estimation,
+             db_create_ref_estimation_table(
+               ref_year_table = dt_ref_mean_pred, 
+               dist_table     = dt_dist_stats)
+  ),
+
+  tar_target(dt_prod_svy_estimation,
+             db_create_svy_estimation_table(
+               dsm_table = svy_mean_ppp_table, 
+               dist_table     = dt_dist_stats)
+  ),
+   
  
 ### Create coverage table -------
 
@@ -449,7 +461,6 @@ tar_target(dt_ref_mean_pred,
              c("cpi", "gdp", "pop", "ppp", "pce"),
              iteration = "list"),
 
-  
   tar_target(
     aux_clean,
     db_clean_aux(all_aux, aux_names, pip_years = PIP_YEARS),
@@ -527,6 +538,27 @@ tar_target(dt_ref_mean_pred,
                      time     = time, 
                      compress = FST_COMP_LVL)
   ),
+
+  tar_target(
+    prod_ref_estimation_file,
+    format = 'file', 
+    save_estimations(dt       = dt_prod_ref_estimation, 
+                     dir      = OUT_EST_DIR, 
+                     name     = "prod_ref_estimation", 
+                     time     = time, 
+                     compress = FST_COMP_LVL)
+  ),
+
+  tar_target(
+    prod_svy_estimation_file,
+    format = 'file', 
+    save_estimations(dt       = dt_prod_svy_estimation, 
+                     dir      = OUT_EST_DIR, 
+                     name     = "prod_svy_estimation", 
+                     time     = time, 
+                     compress = FST_COMP_LVL)
+  ),
+
 
 ### Save dist stats table----
   tar_target(
