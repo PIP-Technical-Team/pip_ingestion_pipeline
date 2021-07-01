@@ -50,14 +50,17 @@ PIP_YEARS        <- 1977:(max_year+1) # Years used in PIP
 PIP_REF_YEARS    <- 1981:max_year # Years used in the interpolated means table
 
 FST_COMP_LVL     <- 100 # Compression level for .fst output files
-APPLY_GC         <- TRUE # Apply garbage collection 
-PIP_SAFE_WORKERS <- FALSE # Open/close workers after each future call
+
+# Check that the correct _targets store is used 
+if (identical(
+  tar_config_get('store'),
+  paste0(PIP_PIPE_DIR, 'pc_data/_targets/'))) {
+  stop('The store specified in _targets.yaml doesn\'t match with the pipeline directory')
+}
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ##           Packages --------
 
-
-  
 # Set targets options 
 tar_option_set(
   garbage_collection = TRUE,
@@ -236,7 +239,7 @@ tar_target(pip_inventory,
                tool               = "PC",
                cache_svy_dir      = CACHE_SVY_DIR,
                compress           = FST_COMP_LVL,
-               force              = TRUE,
+               force              = FALSE,
                verbose            = FALSE,
                cpi_dt             = aux_cpi,
                ppp_dt             = aux_ppp)
@@ -399,13 +402,25 @@ tar_target(dt_ref_mean_pred,
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ## Output tables --------
 
-## Create All-estimations table
+## Create estimations table
   tar_target(dt_prod_estimation_all,
-             db_create_estimation_table(
+             db_create_ref_estimation_table(
                ref_year_table = dt_ref_mean_pred, 
                dist_table     = dt_dist_stats)
              ),
- 
+
+  tar_target(dt_prod_ref_estimation,
+             db_create_ref_estimation_table(
+               ref_year_table = dt_ref_mean_pred, 
+               dist_table     = dt_dist_stats)
+  ),
+
+  tar_target(dt_prod_svy_estimation,
+             db_create_svy_estimation_table(
+               dsm_table = svy_mean_ppp_table, 
+               dist_table     = dt_dist_stats)
+  ),
+   
  
 ### Create coverage table -------
 
@@ -446,7 +461,6 @@ tar_target(dt_ref_mean_pred,
              c("cpi", "gdp", "pop", "ppp", "pce"),
              iteration = "list"),
 
-  
   tar_target(
     aux_clean,
     db_clean_aux(all_aux, aux_names, pip_years = PIP_YEARS),
@@ -524,6 +538,27 @@ tar_target(dt_ref_mean_pred,
                      time     = time, 
                      compress = FST_COMP_LVL)
   ),
+
+  tar_target(
+    prod_ref_estimation_file,
+    format = 'file', 
+    save_estimations(dt       = dt_prod_ref_estimation, 
+                     dir      = OUT_EST_DIR, 
+                     name     = "prod_ref_estimation", 
+                     time     = time, 
+                     compress = FST_COMP_LVL)
+  ),
+
+  tar_target(
+    prod_svy_estimation_file,
+    format = 'file', 
+    save_estimations(dt       = dt_prod_svy_estimation, 
+                     dir      = OUT_EST_DIR, 
+                     name     = "prod_svy_estimation", 
+                     time     = time, 
+                     compress = FST_COMP_LVL)
+  ),
+
 
 ### Save dist stats table----
   tar_target(

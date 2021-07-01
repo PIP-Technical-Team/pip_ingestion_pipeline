@@ -42,5 +42,5 @@ vignettes/*.pdf
 tmp/
 
 # Targets folder
-_targets/
+_targets/* 
 /R/_testing.R
