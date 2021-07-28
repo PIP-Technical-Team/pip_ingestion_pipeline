@@ -1,6 +1,6 @@
 {
   "R": {
-    "Version": "4.0.3",
+    "Version": "4.0.2",
     "Repositories": [
       {
         "Name": "CRAN",
@@ -60,10 +60,10 @@
     },
     "Rcpp": {
       "Package": "Rcpp",
-      "Version": "1.0.6",
+      "Version": "1.0.7",
       "Source": "Repository",
       "Repository": "CRAN",
-      "Hash": "dbb5e436998a7eba5a9d682060533338"
+      "Hash": "dab19adae4440ae55aa8a9d238b246bb"
     },
     "RcppParallel": {
       "Package": "RcppParallel",
@@ -596,9 +596,9 @@
       "RemoteHost": "api.github.com",
       "RemoteRepo": "pipaux",
       "RemoteUsername": "PIP-Technical-Team",
-      "RemoteRef": "master",
+      "RemoteRef": "HEAD",
       "RemoteSha": "cd7738f98ec5373db8333c3573700b4991776c8d",
-      "Hash": "0dc532b38df9413212ad6188eae9d2a6"
+      "Hash": "8265ba80c2326eacd051e359e20e7c33"
     },
     "pipdm": {
       "Package": "pipdm",
@@ -610,7 +610,7 @@
       "RemoteUsername": "PIP-Technical-Team",
       "RemoteRef": "master",
       "RemoteSha": "a60d2948405bbcac0631bacb3b351ce7ba7bbe54",
-      "Hash": "b3b8de9a2e339caa26ba57bf888e2395"
+      "Hash": "c793eaa293eeaae306c6299a5a850a77"
     },
     "pipload": {
       "Package": "pipload",
@@ -620,9 +620,9 @@
       "RemoteHost": "api.github.com",
       "RemoteRepo": "pipload",
       "RemoteUsername": "PIP-Technical-Team",
-      "RemoteRef": "master",
+      "RemoteRef": "HEAD",
       "RemoteSha": "9ad9e1d2c7b3ddfc4060bf88db81ca439521861c",
-      "Hash": "39c9908b723907b6f019df2e4a5f4ebd"
+      "Hash": "4bdd2676241e325ae07170b68f801968"
     },
     "pkgconfig": {
       "Package": "pkgconfig",
@@ -822,10 +822,10 @@
     },
     "targets": {
       "Package": "targets",
-      "Version": "0.4.2",
+      "Version": "0.6.0",
       "Source": "Repository",
       "Repository": "CRAN",
-      "Hash": "a46df8ab3d40fd1627deeca2783df151"
+      "Hash": "0249d89393821026c36e640b08c761ce"
     },
     "tibble": {
       "Package": "tibble",
@@ -900,7 +900,7 @@
       "RemoteUsername": "PIP-Technical-Team",
       "RemoteRef": "master",
       "RemoteSha": "0412f9c79e3885b63a48d60fb26e3f03d77b8666",
-      "Hash": "facc020598e87a41e7a9c0db337ae75e"
+      "Hash": "e1c256472f77d1cf4a8ac58fdfcac43b"
     },
     "wbstats": {
       "Package": "wbstats",
