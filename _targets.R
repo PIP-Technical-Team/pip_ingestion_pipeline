@@ -46,7 +46,7 @@ max_year <- ifelse(c_month >= 8,  # August
                    as.integer(format(Sys.Date(), "%Y")) - 1, # After august
                    as.integer(format(Sys.Date(), "%Y")) - 2) # Before August
 
-PIP_YEARS        <- 1977:(max_year+1) # Years used in PIP 
+PIP_YEARS        <- 1977:(max_year + 1) # Years used in PIP 
 PIP_REF_YEARS    <- 1981:max_year # Years used in the interpolated means table
 
 FST_COMP_LVL     <- 100 # Compression level for .fst output files
