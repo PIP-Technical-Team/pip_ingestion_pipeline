@@ -156,6 +156,13 @@ named_mean <- function(dt) {
 #       Step 2: Prepare data                     ---------
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+# Load PIP inventory 
+pip_inventory <- 
+  pipload::pip_find_data(
+    inv_file = paste0(PIP_DATA_DIR, '_inventory/inventory.fst'),
+    filter_to_pc = TRUE,
+    maindir = PIP_DATA_DIR)
+
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ##  Create list of AUX files  -------
 
@@ -214,11 +221,11 @@ list(
 ## Inventory and cache files --------
 
 ### Load PIP inventory -----
-tar_target(pip_inventory, 
-           pipload::pip_find_data(
-             inv_file = paste0(PIP_DATA_DIR, '_inventory/inventory.fst'),
-             filter_to_pc = TRUE,
-             maindir = PIP_DATA_DIR)),
+# tar_target(pip_inventory, 
+#            pipload::pip_find_data(
+#              inv_file = paste0(PIP_DATA_DIR, '_inventory/inventory.fst'),
+#              filter_to_pc = TRUE,
+#              maindir = PIP_DATA_DIR)),
   
   # Create pipeline inventory
   tar_target(pipeline_inventory, {
