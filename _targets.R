@@ -19,38 +19,6 @@ library(tarchetypes)
 # remotes::install_github("randrescastaneda/joyn")
 ### defaults ---------
 
-# Input dir 
-PIP_DATA_DIR     <- '//w1wbgencifs01/pip/PIP-Data_QA/' 
-
-# '//w1wbgencifs01/pip/pip_ingestion_pipeline/' # Output dir
-PIP_PIPE_DIR     <- '//w1wbgencifs01/pip/pip_ingestion_pipeline/' 
-
-# Cached survey data dir
-CACHE_SVY_DIR    <- paste0(PIP_PIPE_DIR, 'pc_data/cache/clean_survey_data/') 
-
-# Final survey data output dir
-OUT_SVY_DIR      <- paste0(PIP_PIPE_DIR, 'pc_data/output/survey_data/') 
-
-#  Estimations output dir
-OUT_EST_DIR      <- paste0(PIP_PIPE_DIR, 'pc_data/output/estimations/') 
-
-# aux data output dir
-OUT_AUX_DIR      <- paste0(PIP_PIPE_DIR, 'pc_data/output/aux/')  
-
-time             <- format(Sys.time(), "%Y%m%d%H%M%S") 
-
-### Max dates --------
-
-c_month  <- as.integer(format(Sys.Date(), "%m"))
-max_year <- ifelse(c_month >= 8,  # August
-                   as.integer(format(Sys.Date(), "%Y")) - 1, # After august
-                   as.integer(format(Sys.Date(), "%Y")) - 2) # Before August
-
-PIP_YEARS        <- 1977:(max_year + 1) # Years used in PIP 
-PIP_REF_YEARS    <- 1981:max_year # Years used in the interpolated means table
-
-FST_COMP_LVL     <- 100 # Compression level for .fst output files
-
 # Check that the correct _targets store is used 
 if (identical(
   tar_config_get('store'),
@@ -126,24 +94,6 @@ temp_cleaning_ref_table <- function(dt) {
   dt <- dt[!(is.null(predicted_mean_ppp) | is.na(predicted_mean_ppp))]
   return(dt)
   
-}
-
-save_estimations <- function(dt, dir, name, time, compress) {
-  
-  fst::write_fst(x        = dt,
-                 path     = paste0(dir, name, ".fst"),
-                 compress = compress)
-  
-  fst::write_fst(x        = dt,
-                 path     = paste0(dir,"_vintage/", name, "_", time, ".fst"),
-                 compress = compress)
-  
-  haven::write_dta(data     = dt,
-                   path     = paste0(dir, name, ".dta"))
-  
-  haven::write_dta(data     = dt,
-                   path     = paste0(dir,"_vintage/", name, "_", time, ".dta"))
-  return(paste0(dir, name, ".fst"))
 }
 
 named_mean <- function(dt) {
