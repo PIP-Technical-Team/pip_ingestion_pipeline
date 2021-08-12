@@ -1,10 +1,14 @@
-
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #               Start up   ---------
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+## Load packages ----
+source("./_packages.R")
 
-library(targets)
-library(tarchetypes)
+## Load R files ----
+lapply(list.files("./R", full.names = TRUE, pattern = "\\.R$"), source)
+
+## Set-up global variables
+globals <- create_globals(root_dir = '//w1wbgencifs01/pip')
 
 # tar_option_set(debug = "svy_mean_lcu_table")
 # tar_cue(mode = "never")
