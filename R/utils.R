@@ -66,3 +66,67 @@ check_missing_input_files <- function(dir) {
     rlang::abort('NAS special_2021-01-14.xlsx file not found.')
   
 }
+
+cache_inventory_path <- function(CACHE_SVY_DIR){
+  paste0(CACHE_SVY_DIR, "_crr_inventory/crr_inventory.fst")
+}
+
+get_cache_files <- function(x) {
+  x$cache_file
+}
+
+get_cache_id <- function(x) {
+  x$cache_id
+}
+
+get_survey_id <- function(x) {
+  x$survey_id
+}
+
+
+aux_out_files_fun <- function(OUT_AUX_DIR, aux_names) {
+  purrr::map_chr(aux_names, ~ paste0(OUT_AUX_DIR, .x, ".fst"))
+}
+
+temp_cleaning_ref_table <- function(dt) {
+  
+  dt <- dt[!(is.null(survey_mean_ppp) | is.na(survey_mean_ppp))]
+  dt <- dt[!(is.null(predicted_mean_ppp) | is.na(predicted_mean_ppp))]
+  return(dt)
+  
+}
+
+named_mean <- function(dt) {
+  mvec        <- dt[, survey_mean_lcu]
+  names(mvec) <- dt[, pop_data_level]
+  return(mvec)
+}
+
+prep_aux_data <- function(PIP_DATA_DIR) {
+  
+  auxdir <- paste0(PIP_DATA_DIR, "_aux/")
+  
+  aux_files <- list.files(auxdir,
+                          pattern    = "[a-z]+\\.fst",
+                          recursive  = TRUE,
+                          full.names = TRUE)
+  
+  # remove double // in the middle of path
+  aux_files        <- gsub("(.+)//(.+)", "\\1/\\2", aux_files)
+  
+  aux_indicators   <- gsub(auxdir, "", aux_files)
+  aux_indicators   <- gsub("(.*/)([^/]+)(\\.fst)", "\\2", aux_indicators)
+  
+  names(aux_files) <- aux_indicators
+  
+  
+  aux_tb <- data.table(
+    auxname  = aux_indicators,
+    auxfiles = aux_files
+  )
+  
+  # filter 
+  aux_tb <- aux_tb[!(auxname %chin% c("weo", "maddison"))]
+  
+  return(aux_tb)
+}

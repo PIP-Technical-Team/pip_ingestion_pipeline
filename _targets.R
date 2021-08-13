@@ -1,6 +1,15 @@
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Set initial parameters  --------
+# remotes::install_github("PIP-Technical-Team/pipdm")
+# remotes::install_github("PIP-Technical-Team/pipdm@development")
+# remotes::install_github("PIP-Technical-Team/pipload@development")
+# remotes::install_github("PIP-Technical-Team/wbpip@halfmedian_spl")
+# remotes::install_github("randrescastaneda/joyn")
+
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#               Start up   ---------
+
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Start up   ---------
 ## Load packages ----
 source("./_packages.R")
 options(joyn.verbose = FALSE) # make sure joyn does not display messages
@@ -8,21 +17,8 @@ options(joyn.verbose = FALSE) # make sure joyn does not display messages
 ## Load R files ----
 lapply(list.files("./R", full.names = TRUE, pattern = "\\.R$"), source)
 
-## Set-up global variables
+## Set-up global variables ----
 globals <- create_globals(root_dir = '//w1wbgencifs01/pip')
-
-# tar_option_set(debug = "svy_mean_lcu_table")
-# tar_cue(mode = "never")
-
-
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-##   Set initial parameters  --------
-# remotes::install_github("PIP-Technical-Team/pipdm")
-# remotes::install_github("PIP-Technical-Team/pipdm@development")
-# remotes::install_github("PIP-Technical-Team/pipload@development")
-# remotes::install_github("PIP-Technical-Team/wbpip@halfmedian_spl")
-# remotes::install_github("randrescastaneda/joyn")
-### defaults ---------
 
 # Check that the correct _targets store is used 
 if (identical(
@@ -31,117 +27,33 @@ if (identical(
   stop('The store specified in _targets.yaml doesn\'t match with the pipeline directory')
 }
 
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-##           Packages --------
-
 # Set targets options 
 tar_option_set(
   garbage_collection = TRUE,
   memory = 'transient',
   format = 'qs', #'fst_dt',
-  packages = c('pipload', 
-               'pipdm',
-               'wbpip',
-               'fst',
-               'qs',
-               'magrittr',
-               'data.table',
-               'dplyr',
-               'cli',
-               'progress',
-               'glue',
-               'purrr',
-               'joyn'
-  ),
   imports  = c('pipload',
                'pipdm',
                'wbpip')
   )
 
-
 # Set future plan (for targets::tar_make_future)
 # plan(multisession)
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#      Step 1: Define short useful functions   ---------
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-cache_inventory_path <- function(){
-  paste0(globals$CACHE_SVY_DIR, "_crr_inventory/crr_inventory.fst")
-}
-  
-get_cache_files <- function(x) {
-  x$cache_file
-}
-
-get_cache_id <- function(x) {
-  x$cache_id
-}
-
-get_survey_id <- function(x) {
-  x$survey_id
-}
-
-
-aux_out_files_fun <- function(OUT_AUX_DIR, aux_names) {
-  purrr::map_chr(aux_names, ~ paste0(OUT_AUX_DIR, .x, ".fst"))
-}
-
-temp_cleaning_ref_table <- function(dt) {
-  
-  dt <- dt[!(is.null(survey_mean_ppp) | is.na(survey_mean_ppp))]
-  dt <- dt[!(is.null(predicted_mean_ppp) | is.na(predicted_mean_ppp))]
-  return(dt)
-  
-}
-
-named_mean <- function(dt) {
-  mvec        <- dt[, survey_mean_lcu]
-  names(mvec) <- dt[, pop_data_level]
-  return(mvec)
-}
-
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#       Step 2: Prepare data                     ---------
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-# Load PIP inventory 
+# Step 1: Prepare data ---------
+## Load PIP inventory 
 pip_inventory <- 
   pipload::pip_find_data(
     inv_file = paste0(globals$PIP_DATA_DIR, '_inventory/inventory.fst'),
     filter_to_pc = TRUE,
     maindir = globals$PIP_DATA_DIR)
-
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-##  Create list of AUX files  -------
-
-auxdir <- paste0(globals$PIP_DATA_DIR, "_aux/")
-
-aux_files <- list.files(auxdir,
-                        pattern    = "[a-z]+\\.fst",
-                        recursive  = TRUE,
-                        full.names = TRUE)
-
-# remove double // in the middle of path
-aux_files        <- gsub("(.+)//(.+)", "\\1/\\2", aux_files)
-
-aux_indicators   <- gsub(auxdir, "", aux_files)
-aux_indicators   <- gsub("(.*/)([^/]+)(\\.fst)", "\\2", aux_indicators)
-
-names(aux_files) <- aux_indicators
-
-
-aux_tb <- data.table(
-  auxname  = aux_indicators,
-  auxfiles = aux_files
-)
-
-# filter 
-aux_tb <- aux_tb[!(auxname %chin% c("weo", "maddison"))]
+## Create list of AUX files  -------
+aux_tb <- prep_aux_data(globals$PIP_DATA_DIR)
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#            Step 3:   Run pipeline   ---------
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Step 2: Run pipeline ---------
 
 list(
 
@@ -204,7 +116,7 @@ list(
 ### Cache inventory file ----
   tar_target(
     cache_inventory_dir, 
-    cache_inventory_path(),
+    cache_inventory_path(globals$CACHE_SVY_DIR),
     format = "file"
   ),
 
