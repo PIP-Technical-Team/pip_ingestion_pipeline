@@ -56,8 +56,6 @@ aux_tb <- prep_aux_data(globals$PIP_DATA_DIR)
 # Step 2: Run pipeline ---------
 
 list(
-
-#~~~~~~~~~~~~~~~~~~~~~~~
 ##  Load AUX data ---- 
   tar_map(
     values = aux_tb, 
@@ -331,7 +329,7 @@ tar_target(dt_ref_mean_pred,
 
   tar_target(
     aux_clean,
-    db_clean_aux(all_aux, aux_names, pip_years = PIP_YEARS),
+    db_clean_aux(all_aux, aux_names, pip_years = globals$PIP_YEARS),
     pattern = map(all_aux, aux_names), 
     iteration = "list"
   ),
