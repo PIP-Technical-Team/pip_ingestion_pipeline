@@ -367,7 +367,7 @@ tar_target(dt_ref_mean_pred,
     pop_region_out,
     save_aux_data(
       dt_pop_region,
-      paste0(globals$OUT_AUX_DIR, "pop-region.fst"),
+      paste0(globals$OUT_AUX_DIR, "pop_region.fst"),
       compress = TRUE
     ),
     format = 'file',
