@@ -19,7 +19,7 @@ create_globals <- function(root_dir = '//w1wbgencifs01/pip') {
   # aux data output dir
   glbs$OUT_AUX_DIR      <- paste0(glbs$PIP_PIPE_DIR, 'pc_data/output/aux/')  
   
-  time             <- format(Sys.time(), "%Y%m%d%H%M%S") 
+  glbs$TIME             <- format(Sys.time(), "%Y%m%d%H%M%S") 
   
   ### Max dates --------
   

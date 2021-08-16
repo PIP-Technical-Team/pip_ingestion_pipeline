@@ -401,7 +401,7 @@ tar_target(dt_ref_mean_pred,
     save_estimations(dt       = dt_prod_estimation_all, 
                      dir      = globals$OUT_EST_DIR, 
                      name     = "prod_estimation_all", 
-                     time     = time, 
+                     time     = globals$TIME, 
                      compress = globals$FST_COMP_LVL)
   ),
 
@@ -411,7 +411,7 @@ tar_target(dt_ref_mean_pred,
     save_estimations(dt       = dt_prod_ref_estimation, 
                      dir      = globals$OUT_EST_DIR, 
                      name     = "prod_ref_estimation", 
-                     time     = time, 
+                     time     = globals$TIME, 
                      compress = globals$FST_COMP_LVL)
   ),
 
@@ -421,7 +421,7 @@ tar_target(dt_ref_mean_pred,
     save_estimations(dt       = dt_prod_svy_estimation, 
                      dir      = globals$OUT_EST_DIR, 
                      name     = "prod_svy_estimation", 
-                     time     = time, 
+                     time     = globals$TIME, 
                      compress = globals$FST_COMP_LVL)
   ),
 
@@ -433,7 +433,7 @@ tar_target(dt_ref_mean_pred,
     save_estimations(dt       = dt_dist_stats, 
                      dir      = globals$OUT_EST_DIR, 
                      name     = "dist_stats", 
-                     time     = time, 
+                     time     = globals$TIME, 
                      compress = globals$FST_COMP_LVL)
   ),
 
@@ -444,7 +444,7 @@ tar_target(dt_ref_mean_pred,
     save_estimations(dt       = svy_mean_ppp_table, 
                      dir      = globals$OUT_EST_DIR, 
                      name     = "survey_means", 
-                     time     = time, 
+                     time     = globals$TIME, 
                      compress = globals$FST_COMP_LVL)
   ),
    
@@ -455,7 +455,7 @@ tar_target(dt_ref_mean_pred,
     save_estimations(dt       = dt_ref_mean_pred, 
                      dir      = globals$OUT_EST_DIR, 
                      name     = "interpolated_means", 
-                     time     = time, 
+                     time     = globals$TIME, 
                      compress = globals$FST_COMP_LVL)
   )
 

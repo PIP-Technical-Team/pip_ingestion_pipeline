@@ -1,5 +1,5 @@
 # Uncomment to run targets sequentially on your local machine.
-targets::tar_make()
+targets::tar_make()#_future()
 targets::tar_visnetwork(targets_only = TRUE)
 
 pushover("Done running targets")
