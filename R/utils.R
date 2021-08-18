@@ -104,10 +104,12 @@ named_mean <- function(dt) {
 
 prep_aux_data <- function(PIP_DATA_DIR) {
   
+  PIP_DATA_DIR = globals$PIP_DATA_DIR
+  
   auxdir <- paste0(PIP_DATA_DIR, "_aux/")
   
   aux_files <- list.files(auxdir,
-                          pattern    = "[a-z]+\\.fst",
+                          pattern    = "[a-z]+\\.(rds|fst)",
                           recursive  = TRUE,
                           full.names = TRUE)
   
@@ -115,18 +117,17 @@ prep_aux_data <- function(PIP_DATA_DIR) {
   aux_files        <- gsub("(.+)//(.+)", "\\1/\\2", aux_files)
   
   aux_indicators   <- gsub(auxdir, "", aux_files)
-  aux_indicators   <- gsub("(.*/)([^/]+)(\\.fst)", "\\2", aux_indicators)
-  
+  aux_indicators   <- gsub(".*[/]|([.].*)", "", aux_indicators)
   names(aux_files) <- aux_indicators
   
-  
-  aux_tb <- data.table(
+  aux_tb <- data.table::data.table(
     auxname  = aux_indicators,
     auxfiles = aux_files
   )
   
   # filter 
-  aux_tb <- aux_tb[!(auxname %chin% c("weo", "maddison"))]
+  aux_tb <- aux_tb[!(auxname %chin% 
+                       c("weo", "maddison", "cpicpi_vintage"))]
   
   return(aux_tb)
 }

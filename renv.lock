@@ -366,6 +366,13 @@
       "Repository": "CRAN",
       "Hash": "38c2580abbda249bd6afeec00d14f531"
     },
+    "git2r": {
+      "Package": "git2r",
+      "Version": "0.28.0",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "f64fd34026f6025de71a4354800e6d79"
+    },
     "gitcreds": {
       "Package": "gitcreds",
       "Version": "0.1.1",
@@ -639,27 +646,27 @@
     },
     "pipaux": {
       "Package": "pipaux",
-      "Version": "0.0.0.9000",
+      "Version": "0.0.0.9001",
       "Source": "GitHub",
       "RemoteType": "github",
       "RemoteHost": "api.github.com",
       "RemoteRepo": "pipaux",
       "RemoteUsername": "PIP-Technical-Team",
       "RemoteRef": "master",
-      "RemoteSha": "cd7738f98ec5373db8333c3573700b4991776c8d",
-      "Hash": "0dc532b38df9413212ad6188eae9d2a6"
+      "RemoteSha": "df3217d571e8a3555f5b851a4067203a6ce83cbb",
+      "Hash": "cf3df193248701b594d85ae8cc04e471"
     },
     "pipdm": {
       "Package": "pipdm",
-      "Version": "0.0.1.9016",
+      "Version": "0.0.1.9017",
       "Source": "GitHub",
       "RemoteType": "github",
       "RemoteHost": "api.github.com",
       "RemoteRepo": "pipdm",
       "RemoteUsername": "PIP-Technical-Team",
-      "RemoteRef": "master",
-      "RemoteSha": "24af9a4c66234358a4f9452d23185bd73ddc0698",
-      "Hash": "6bd7a0ed6932e76cf1a97617054b25c5"
+      "RemoteRef": "HEAD",
+      "RemoteSha": "cd6a8e53662b0b7761f17e700ec7122a02bfe1cf",
+      "Hash": "0f994232303d9363e9b93227f4af8bf1"
     },
     "pipload": {
       "Package": "pipload",
