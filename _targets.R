@@ -1,26 +1,22 @@
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Set initial parameters  --------
+# ---- Install packages ----
+
 # remotes::install_github("PIP-Technical-Team/pipaux@master")
 # remotes::install_github("PIP-Technical-Team/pipload@master")
 # remotes::install_github("PIP-Technical-Team/pipdm@master")
 # remotes::install_github("PIP-Technical-Team/wbpip@master")
 # remotes::install_github("randrescastaneda/joyn@master")
 
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# ---- Start up ----
 
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-# Start up   ---------
-
-## Load packages ----
+# Load packages
 source("./_packages.R")
 options(joyn.verbose = FALSE) # make sure joyn does not display messages
 
-## Load R files ----
+# Load R files
 lapply(list.files("./R", full.names = TRUE,
                   pattern = "\\.R$"), source)
 
-## Set-up global variables ----
+# Set-up global variables
 globals <- create_globals(root_dir = '//w1wbgencifs01/pip')
 
 # Check that the correct _targets store is used 
@@ -43,10 +39,7 @@ tar_option_set(
 # Set future plan (for targets::tar_make_future)
 # plan(multisession)
 
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-# Step 1: Prepare data ---------
+# ---- Step 1: Prepare data ----
 
 ## Load PIP inventory 
 pip_inventory <- 
@@ -54,8 +47,6 @@ pip_inventory <-
     inv_file = paste0(globals$PIP_DATA_DIR, '_inventory/inventory.fst'),
     filter_to_pc = TRUE,
     maindir = globals$PIP_DATA_DIR)
-
-## Create list of AUX files  -------
 
 # Load AUX data
 aux_tb <- prep_aux_data(globals$PIP_DATA_DIR)
@@ -65,26 +56,26 @@ dl_aux <- lapply(aux_tb$auxname, function(x) {
 })
 names(dl_aux) <- aux_tb$auxname                
 
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Step 2: Run pipeline ---------
+
+# ---- Step 2: Run pipeline -----
 
 list(
   
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  ## Inventory and cache files --------
+  ## Inventory and cache files ----
   
-  # Create pipeline inventory
+  ### Create pipeline inventory ----
+  
   tar_target(pipeline_inventory, {
     x <- pipdm::db_filter_inventory(
       dt = pip_inventory,
       pfw_table = dl_aux$pfw)
-    
     # Uncomment for specific countries
     # x <- x[country_code == 'IDN' & surveyid_year == 2015]
   }
   ),
   
-  ### Create cache files ---------
+  ### Create cache files ----
+  
   tar_target(status_cache_files_creation, 
              pipdm::create_cache_file(
                pipeline_inventory = pipeline_inventory,
@@ -99,12 +90,12 @@ list(
   ),
   
   ### Cache inventory file ----
+  
   tar_target(
     cache_inventory_dir, 
     cache_inventory_path(globals$CACHE_SVY_DIR),
     format = "file"
   ),
-  
   tar_target(
     cache_inventory, 
     {
@@ -118,16 +109,14 @@ list(
     },
   ),
   
-  ### identifiers ---------
+  ### Identifiers -----
+  
   tar_target(cache_ids, 
              get_cache_id(cache_inventory)),
-  
   tar_target(survey_ids, 
              get_survey_id(cache_inventory)),
-  
   tar_target(cache_files,
              get_cache_files(cache_inventory)),
-  
   tar_files(cache_dir, cache_files),
   tar_target(cache, 
              fst::read_fst(path = cache_dir, 
@@ -135,8 +124,7 @@ list(
              pattern = map(cache_dir), 
              iteration = "list"),
   
-  #~~~~~~~~~~~~~~~~~~~~~~~
-  ##  LCU survey means ---- 
+  ## LCU survey means ---- 
   
   ### Fetch GD survey means and convert them to daily values ----
   tar_target(
@@ -145,7 +133,7 @@ list(
       cache_inventory[dl_aux$gdm,
                       on = "survey_id",
                       # Convert to daily values (PCN is in monthly) 
-                      survey_mean_lcu := i.survey_mean_lcu* (12/365) 
+                      survey_mean_lcu := i.survey_mean_lcu * (12/365) 
       ][,
         survey_mean_lcu
       ]
@@ -163,7 +151,7 @@ list(
     iteration = "list"
   ),
   
-  # get mean 
+  # Get mean 
   tar_target(
     dl_mean, # name vectors. 
     named_mean(svy_mean_lcu),
@@ -180,7 +168,6 @@ list(
       pfw_table = dl_aux$pfw)
   ),
   
-  #~~~~~~~~~~~~~~~~~~~~~~~~
   ##  Create DSM table ---- 
   
   tar_target(svy_mean_ppp_table,
@@ -189,15 +176,8 @@ list(
                cpi_table = dl_aux$cpi,
                ppp_table = dl_aux$ppp)),
   
-  ### Create reference year table ------
-  #   
-  #   # Create a reference year table with predicted means 
-  #   # for each year in PIP_REF_YEARS. 
-  #   # 
-  #   # Due to a change in naming convention this table is 
-  #   # saved as interpolated-means.qs in 
-  #   # PIP_PIPE_DIR/aux/.
-  #   
+  ## Create reference year table ------
+  
   tar_target(dt_ref_mean_pred,
              db_create_ref_year_table(
                gdp_table = dl_aux$gdp,
@@ -209,11 +189,9 @@ list(
                pip_years = globals$PIP_YEARS,
                region_code = 'pcn_region_code')),
   
-  
-  #~~~~~~~~~~~~~~~~~~~~~~~
   ## Distributional stats ---- 
   
-  ###  Lorenz curves -----
+  ### Lorenz curves -----
   
   # Calculate Lorenz curves (for microdata)  
   tar_target(
@@ -222,13 +200,15 @@ list(
     pattern = map(cache), 
     iteration = "list"
   ), 
-  # Clean Group Data obs
+  
+  # Clean group data 
   tar_target(
     lorenz, 
     purrr::keep(lorenz_all, ~!is.null(.x))
   ),
   
   ### Calculate distributional statistics ----
+  
   tar_target(
     name      = dl_dist_stats,
     command   = db_compute_dist_stats(dt       = cache, 
@@ -240,27 +220,18 @@ list(
   ),
   
   ### Create dist stat table ------
-  #   
-  #   # Covert dist stat list to table
+
+  # Covert dist stat list to table
   tar_target(dt_dist_stats,
              db_create_dist_table(
                dl        = dl_dist_stats,
                dsm_table = svy_mean_ppp_table, 
                crr_inv   = cache_inventory)
   ),
-  #   
-  #   
-  
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
   ## Output tables --------
   
-  ## Create estimations table(s)
-  
-  tar_target(dt_prod_estimation_all,
-             db_create_ref_estimation_table(
-               ref_year_table = dt_ref_mean_pred, 
-               dist_table     = dt_dist_stats)
-  ),
+  ### Create estimations tables ----
   
   tar_target(dt_prod_ref_estimation,
              db_create_ref_estimation_table(
@@ -271,12 +242,14 @@ list(
   tar_target(dt_prod_svy_estimation,
              db_create_svy_estimation_table(
                dsm_table = svy_mean_ppp_table, 
-               dist_table     = dt_dist_stats)
+               dist_table = dt_dist_stats,
+               gdp_table = dl_aux$gdp,
+               pce_table = dl_aux$pce)
   ),
   
   ### Create coverage table -------
   
-  #  Create coverage table by region
+  # Create coverage table by region
   tar_target(
     dt_coverage,
     db_create_coverage_table(
@@ -288,7 +261,7 @@ list(
     )
   ),
   
-  ### Create aggregated POP table ----
+  ### Create regional population table ----
   
   tar_target(
     dt_pop_region,
@@ -298,7 +271,12 @@ list(
       region_code = 'pcn_region_code',
       pip_years   = globals$PIP_YEARS)),
   
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  ### Create decomposition table ----
+  
+  tar_target(
+    dt_decomposition,
+    db_create_decomposition_table(
+      dsm_table = svy_mean_ppp_table)),
   
   ##  Clean AUX data ------
   
@@ -321,10 +299,10 @@ list(
     iteration = "list"
   ),
   
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  ##  Save data ---- 
+  ## Save data ---- 
   
-  ### Save microdata for production ------
+  ### Save survey data ------
+  
   tar_target(
     survey_files,
     save_survey_data(
@@ -336,7 +314,8 @@ list(
     pattern = map(cache, cache_ids)
   ),
   
-  ### Save Basic AUX data----
+  ### Save basic AUX data ----
+  
   tar_target(aux_out_files,
              aux_out_files_fun(globals$OUT_AUX_DIR, aux_names)
   ),
@@ -348,18 +327,21 @@ list(
              pattern = map(aux_clean, aux_out_dir), 
              iteration = "list"),
   
-  ### Save additional aux files----
+  ### Save additional AUX files ----
   
+  # Countries
   tar_target(
     countries_out,
     save_aux_data(
-      dl_aux$countries,
+      dl_aux$countries %>% 
+        data.table::setnames('pcn_region_code', 'region_code'),
       paste0(globals$OUT_AUX_DIR, "countries.fst"),
       compress = TRUE
     ),
     format = 'file',
   ),
   
+  # Regions
   tar_target(
     regions_out,
     save_aux_data(
@@ -370,6 +352,7 @@ list(
     format = 'file',
   ),
   
+  # Country profiles 
   tar_target(
     country_profiles_out,
     save_aux_data(
@@ -380,6 +363,7 @@ list(
     format = 'file',
   ),
   
+  # Poverty lines
   tar_target(
     poverty_lines_out,
     save_aux_data(
@@ -390,6 +374,7 @@ list(
     format = 'file',
   ),
   
+  # Survey metadata (for Data Sources page)
   tar_target(
     survey_metadata_out,
     save_aux_data(
@@ -400,6 +385,7 @@ list(
     format = 'file',
   ),
   
+  # Indicators master
   tar_target(
     indicators_out,
     save_aux_data(
@@ -410,6 +396,7 @@ list(
     format = 'file',
   ),
   
+  # Regional population
   tar_target(
     pop_region_out,
     save_aux_data(
@@ -420,6 +407,7 @@ list(
     format = 'file',
   ),
   
+  # Coverage 
   tar_target(
     coverage_out,
     save_aux_data(
@@ -430,27 +418,18 @@ list(
     format = 'file',
   ),
   
-  ### Save Lorenz list ----
+  # Decomposition master
   tar_target(
-    lorenz_out,
+    decomposition_out,
     save_aux_data(
-      lorenz,
-      paste0(globals$OUT_AUX_DIR, "lorenz.rds"),
+      dt_decomposition,
+      paste0(globals$OUT_AUX_DIR, "decomposition.fst"),
       compress = TRUE
     ),
     format = 'file',
   ),
   
-  ### Save table with mean and dist stats -------
-  tar_target(
-    prod_estimation_file,
-    format = 'file', 
-    save_estimations(dt       = dt_prod_estimation_all, 
-                     dir      = globals$OUT_EST_DIR, 
-                     name     = "prod_estimation_all", 
-                     time     = globals$TIME, 
-                     compress = globals$FST_COMP_LVL)
-  ),
+  ### Save estimation tables -------
   
   tar_target(
     prod_ref_estimation_file,
@@ -472,8 +451,20 @@ list(
                      compress = globals$FST_COMP_LVL)
   ),
   
+  ### Save Lorenz list ----
+  
+  tar_target(
+    lorenz_out,
+    save_aux_data(
+      lorenz,
+      paste0(globals$OUT_AUX_DIR, "lorenz.rds"),
+      compress = TRUE
+    ),
+    format = 'file',
+  ),
   
   ### Save dist stats table ----
+  
   tar_target(
     dist_file,
     format = 'file',
@@ -485,6 +476,7 @@ list(
   ),
   
   ### Save survey means table ----
+  
   tar_target(
     survey_mean_file,
     format = 'file', 
@@ -496,6 +488,7 @@ list(
   ),
   
   ### Save interpolated means table ----
+  
   tar_target(
     interpolated_means_file,
     format = 'file', 
