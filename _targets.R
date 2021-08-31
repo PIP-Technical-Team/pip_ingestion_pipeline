@@ -17,7 +17,7 @@ lapply(list.files("./R", full.names = TRUE,
                   pattern = "\\.R$"), source)
 
 # Set-up global variables
-globals <- create_globals(root_dir = '//w1wbgencifs01/pip')
+globals <- pipload::pip_create_globals(root_dir = '//w1wbgencifs01/pip')
 
 # Check that the correct _targets store is used 
 if (identical(
@@ -81,7 +81,7 @@ list(
                pipeline_inventory = pipeline_inventory,
                pip_data_dir       = globals$PIP_DATA_DIR,
                tool               = "PC",
-               cache_svy_dir      = globals$CACHE_SVY_DIR,
+               cache_svy_dir      = globals$CACHE_SVY_DIR_PC,
                compress           = globals$FST_COMP_LVL,
                force              = FALSE,
                verbose            = FALSE,
@@ -93,7 +93,7 @@ list(
   
   tar_target(
     cache_inventory_dir, 
-    cache_inventory_path(globals$CACHE_SVY_DIR),
+    cache_inventory_path(globals$CACHE_SVY_DIR_PC),
     format = "file"
   ),
   tar_target(
@@ -308,7 +308,7 @@ list(
     save_survey_data(
       dt              = cache,
       cache_filename  = cache_ids,
-      output_dir      = globals$OUT_SVY_DIR,
+      output_dir      = globals$OUT_SVY_DIR_PC,
       cols            = c('welfare', 'weight', 'area'),
       compress        = globals$FST_COMP_LVL,), 
     pattern = map(cache, cache_ids)
@@ -317,7 +317,7 @@ list(
   ### Save basic AUX data ----
   
   tar_target(aux_out_files,
-             aux_out_files_fun(globals$OUT_AUX_DIR, aux_names)
+             aux_out_files_fun(globals$OUT_AUX_DIR_PC, aux_names)
   ),
   tar_files(aux_out_dir, aux_out_files),
   tar_target(aux_out, 
@@ -335,7 +335,7 @@ list(
     save_aux_data(
       dl_aux$countries %>% 
         data.table::setnames('pcn_region_code', 'region_code'),
-      paste0(globals$OUT_AUX_DIR, "countries.fst"),
+      paste0(globals$OUT_AUX_DIR_PC, "countries.fst"),
       compress = TRUE
     ),
     format = 'file',
@@ -346,7 +346,7 @@ list(
     regions_out,
     save_aux_data(
       dl_aux$regions,
-      paste0(globals$OUT_AUX_DIR, "regions.fst"),
+      paste0(globals$OUT_AUX_DIR_PC, "regions.fst"),
       compress = TRUE
     ),
     format = 'file',
@@ -357,7 +357,7 @@ list(
     country_profiles_out,
     save_aux_data(
       dl_aux$cp,
-      paste0(globals$OUT_AUX_DIR, "country_profiles.rds"),
+      paste0(globals$OUT_AUX_DIR_PC, "country_profiles.rds"),
       compress = TRUE
     ),
     format = 'file',
@@ -368,7 +368,7 @@ list(
     poverty_lines_out,
     save_aux_data(
       dl_aux$pl,
-      paste0(globals$OUT_AUX_DIR, "poverty_lines.fst"),
+      paste0(globals$OUT_AUX_DIR_PC, "poverty_lines.fst"),
       compress = TRUE
     ),
     format = 'file',
@@ -379,7 +379,7 @@ list(
     survey_metadata_out,
     save_aux_data(
       dl_aux$metadata,
-      paste0(globals$OUT_AUX_DIR, "survey_metadata.fst"),
+      paste0(globals$OUT_AUX_DIR_PC, "survey_metadata.fst"),
       compress = TRUE
     ),
     format = 'file',
@@ -390,7 +390,7 @@ list(
     indicators_out,
     save_aux_data(
       dl_aux$indicators,
-      paste0(globals$OUT_AUX_DIR, "indicators.fst"),
+      paste0(globals$OUT_AUX_DIR_PC, "indicators.fst"),
       compress = TRUE
     ),
     format = 'file',
@@ -401,7 +401,7 @@ list(
     pop_region_out,
     save_aux_data(
       dt_pop_region,
-      paste0(globals$OUT_AUX_DIR, "pop_region.fst"),
+      paste0(globals$OUT_AUX_DIR_PC, "pop_region.fst"),
       compress = TRUE
     ),
     format = 'file',
@@ -412,7 +412,7 @@ list(
     coverage_out,
     save_aux_data(
       dt_coverage,
-      paste0(globals$OUT_AUX_DIR, "coverage.fst"),
+      paste0(globals$OUT_AUX_DIR_PC, "coverage.fst"),
       compress = TRUE
     ),
     format = 'file',
@@ -423,7 +423,7 @@ list(
     decomposition_out,
     save_aux_data(
       dt_decomposition,
-      paste0(globals$OUT_AUX_DIR, "decomposition.fst"),
+      paste0(globals$OUT_AUX_DIR_PC, "decomposition.fst"),
       compress = TRUE
     ),
     format = 'file',
@@ -435,7 +435,7 @@ list(
     prod_ref_estimation_file,
     format = 'file', 
     save_estimations(dt       = dt_prod_ref_estimation, 
-                     dir      = globals$OUT_EST_DIR, 
+                     dir      = globals$OUT_EST_DIR_PC, 
                      name     = "prod_ref_estimation", 
                      time     = globals$TIME, 
                      compress = globals$FST_COMP_LVL)
@@ -445,7 +445,7 @@ list(
     prod_svy_estimation_file,
     format = 'file', 
     save_estimations(dt       = dt_prod_svy_estimation, 
-                     dir      = globals$OUT_EST_DIR, 
+                     dir      = globals$OUT_EST_DIR_PC, 
                      name     = "prod_svy_estimation", 
                      time     = globals$TIME, 
                      compress = globals$FST_COMP_LVL)
@@ -457,7 +457,7 @@ list(
     lorenz_out,
     save_aux_data(
       lorenz,
-      paste0(globals$OUT_AUX_DIR, "lorenz.rds"),
+      paste0(globals$OUT_AUX_DIR_PC, "lorenz.rds"),
       compress = TRUE
     ),
     format = 'file',
@@ -469,7 +469,7 @@ list(
     dist_file,
     format = 'file',
     save_estimations(dt       = dt_dist_stats, 
-                     dir      = globals$OUT_EST_DIR, 
+                     dir      = globals$OUT_EST_DIR_PC, 
                      name     = "dist_stats", 
                      time     = globals$TIME, 
                      compress = globals$FST_COMP_LVL)
@@ -481,7 +481,7 @@ list(
     survey_mean_file,
     format = 'file', 
     save_estimations(dt       = svy_mean_ppp_table, 
-                     dir      = globals$OUT_EST_DIR, 
+                     dir      = globals$OUT_EST_DIR_PC, 
                      name     = "survey_means", 
                      time     = globals$TIME, 
                      compress = globals$FST_COMP_LVL)
@@ -493,7 +493,7 @@ list(
     interpolated_means_file,
     format = 'file', 
     save_estimations(dt       = dt_ref_mean_pred, 
-                     dir      = globals$OUT_EST_DIR, 
+                     dir      = globals$OUT_EST_DIR_PC, 
                      name     = "interpolated_means", 
                      time     = globals$TIME, 
                      compress = globals$FST_COMP_LVL)
