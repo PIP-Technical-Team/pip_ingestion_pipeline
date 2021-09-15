@@ -324,7 +324,7 @@ list(
              fst::write_fst(x        = aux_clean,
                             path     = aux_out_dir,
                             compress = globals$FST_COMP_LVL), 
-             pattern = map(aux_clean, aux_out_dir), 
+             pattern   = map(aux_clean, aux_out_dir), 
              iteration = "list"),
   
   ### Save additional AUX files ----

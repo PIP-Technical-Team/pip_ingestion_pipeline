@@ -23,14 +23,9 @@ save_survey_data <- function(dt,
   }
   
   # optimize size
-  vers_l <- c(paste0("v0", 1:9), paste0("v1", 0:9))
-  
-  
   dt[,
-     `:=`(
-         area    = factor(area, levels = c("rural", "urban")),
-         vermast = factor(vermast, levels = vers_l) 
-       )]
+      area := factor(area, levels = c("rural", "urban"))
+      ]
   
   # Create paths
   cache_filename <- fifelse(!grepl("\\.fst$", cache_filename), 
