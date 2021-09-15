@@ -1,10 +1,10 @@
 # ---- Install packages ----
 
-# remotes::install_github("PIP-Technical-Team/pipaux@master")
 # remotes::install_github("PIP-Technical-Team/pipload@master")
+# remotes::install_github("PIP-Technical-Team/pipaux@master")
 # remotes::install_github("PIP-Technical-Team/pipdm@master")
 # remotes::install_github("PIP-Technical-Team/wbpip@master")
-# remotes::install_github("randrescastaneda/joyn@master")
+
 
 # ---- Start up ----
 
@@ -17,12 +17,12 @@ lapply(list.files("./R", full.names = TRUE,
                   pattern = "\\.R$"), source)
 
 # Set-up global variables
-globals <- pipload::pip_create_globals(root_dir = '//w1wbgencifs01/pip')
+pipload::add_gls_to_env()
 
 # Check that the correct _targets store is used 
 if (identical(
   tar_config_get('store'),
-  paste0(globals$PIP_PIPE_DIR, 'pc_data/_targets/'))) {
+  paste0(gls$PIP_PIPE_DIR, 'pc_data/_targets/'))) {
   stop('The store specified in _targets.yaml doesn\'t match with the pipeline directory')
 }
 
@@ -44,15 +44,15 @@ tar_option_set(
 ## Load PIP inventory 
 pip_inventory <- 
   pipload::pip_find_data(
-    inv_file = paste0(globals$PIP_DATA_DIR, '_inventory/inventory.fst'),
+    inv_file = paste0(gls$PIP_DATA_DIR, '_inventory/inventory.fst'),
     filter_to_pc = TRUE,
-    maindir = globals$PIP_DATA_DIR)
+    maindir = gls$PIP_DATA_DIR)
 
 # Load AUX data
-aux_tb <- prep_aux_data(globals$PIP_DATA_DIR)
+aux_tb <- prep_aux_data(gls$PIP_DATA_DIR)
 dl_aux <- lapply(aux_tb$auxname, function(x) {
   pipaux::load_aux(x, apply_label = FALSE,
-                   maindir = globals$PIP_DATA_DIR)
+                   maindir = gls$PIP_DATA_DIR)
 })
 names(dl_aux) <- aux_tb$auxname                
 
@@ -79,10 +79,10 @@ list(
   tar_target(status_cache_files_creation, 
              pipdm::create_cache_file(
                pipeline_inventory = pipeline_inventory,
-               pip_data_dir       = globals$PIP_DATA_DIR,
+               pip_data_dir       = gls$PIP_DATA_DIR,
                tool               = "PC",
-               cache_svy_dir      = globals$CACHE_SVY_DIR_PC,
-               compress           = globals$FST_COMP_LVL,
+               cache_svy_dir      = gls$CACHE_SVY_DIR_PC,
+               compress           = gls$FST_COMP_LVL,
                force              = FALSE,
                verbose            = FALSE,
                cpi_dt             = dl_aux$cpi,
@@ -93,7 +93,7 @@ list(
   
   tar_target(
     cache_inventory_dir, 
-    cache_inventory_path(globals$CACHE_SVY_DIR_PC),
+    cache_inventory_path(gls$CACHE_SVY_DIR_PC),
     format = "file"
   ),
   tar_target(
@@ -185,8 +185,8 @@ list(
                pop_table = dl_aux$pop,
                pfw_table = dl_aux$pfw,
                dsm_table = svy_mean_ppp_table,
-               ref_years = globals$PIP_REF_YEARS,
-               pip_years = globals$PIP_YEARS,
+               ref_years = gls$PIP_REF_YEARS,
+               pip_years = gls$PIP_YEARS,
                region_code = 'pcn_region_code')),
   
   ## Distributional stats ---- 
@@ -255,7 +255,7 @@ list(
     db_create_coverage_table(
       ref_year_table    = dt_ref_mean_pred,
       pop_table         = dl_aux$pop,
-      ref_years         = globals$PIP_REF_YEARS,
+      ref_years         = gls$PIP_REF_YEARS,
       special_countries = c("ARG", "CHN", "IDN", "IND"),
       digits            = 2
     )
@@ -269,7 +269,7 @@ list(
       pop_table   = dl_aux$pop,
       cl_table    = dl_aux$country_list, 
       region_code = 'pcn_region_code',
-      pip_years   = globals$PIP_YEARS)),
+      pip_years   = gls$PIP_YEARS)),
   
   ### Create decomposition table ----
   
@@ -294,7 +294,7 @@ list(
   
   tar_target(
     aux_clean,
-    db_clean_aux(all_aux, aux_names, pip_years = globals$PIP_YEARS),
+    db_clean_aux(all_aux, aux_names, pip_years = gls$PIP_YEARS),
     pattern = map(all_aux, aux_names), 
     iteration = "list"
   ),
@@ -308,22 +308,22 @@ list(
     save_survey_data(
       dt              = cache,
       cache_filename  = cache_ids,
-      output_dir      = globals$OUT_SVY_DIR_PC,
+      output_dir      = gls$OUT_SVY_DIR_PC,
       cols            = c('welfare', 'weight', 'area'),
-      compress        = globals$FST_COMP_LVL,), 
+      compress        = gls$FST_COMP_LVL,), 
     pattern = map(cache, cache_ids)
   ),
   
   ### Save basic AUX data ----
   
   tar_target(aux_out_files,
-             aux_out_files_fun(globals$OUT_AUX_DIR_PC, aux_names)
+             aux_out_files_fun(gls$OUT_AUX_DIR_PC, aux_names)
   ),
   tar_files(aux_out_dir, aux_out_files),
   tar_target(aux_out, 
              fst::write_fst(x        = aux_clean,
                             path     = aux_out_dir,
-                            compress = globals$FST_COMP_LVL), 
+                            compress = gls$FST_COMP_LVL), 
              pattern   = map(aux_clean, aux_out_dir), 
              iteration = "list"),
   
@@ -335,7 +335,7 @@ list(
     save_aux_data(
       dl_aux$countries %>% 
         data.table::setnames('pcn_region_code', 'region_code'),
-      paste0(globals$OUT_AUX_DIR_PC, "countries.fst"),
+      paste0(gls$OUT_AUX_DIR_PC, "countries.fst"),
       compress = TRUE
     ),
     format = 'file',
@@ -346,7 +346,7 @@ list(
     regions_out,
     save_aux_data(
       dl_aux$regions,
-      paste0(globals$OUT_AUX_DIR_PC, "regions.fst"),
+      paste0(gls$OUT_AUX_DIR_PC, "regions.fst"),
       compress = TRUE
     ),
     format = 'file',
@@ -357,7 +357,7 @@ list(
     country_profiles_out,
     save_aux_data(
       dl_aux$cp,
-      paste0(globals$OUT_AUX_DIR_PC, "country_profiles.rds"),
+      paste0(gls$OUT_AUX_DIR_PC, "country_profiles.rds"),
       compress = TRUE
     ),
     format = 'file',
@@ -368,7 +368,7 @@ list(
     poverty_lines_out,
     save_aux_data(
       dl_aux$pl,
-      paste0(globals$OUT_AUX_DIR_PC, "poverty_lines.fst"),
+      paste0(gls$OUT_AUX_DIR_PC, "poverty_lines.fst"),
       compress = TRUE
     ),
     format = 'file',
@@ -379,7 +379,7 @@ list(
     survey_metadata_out,
     save_aux_data(
       dl_aux$metadata,
-      paste0(globals$OUT_AUX_DIR_PC, "survey_metadata.fst"),
+      paste0(gls$OUT_AUX_DIR_PC, "survey_metadata.fst"),
       compress = TRUE
     ),
     format = 'file',
@@ -390,7 +390,7 @@ list(
     indicators_out,
     save_aux_data(
       dl_aux$indicators,
-      paste0(globals$OUT_AUX_DIR_PC, "indicators.fst"),
+      paste0(gls$OUT_AUX_DIR_PC, "indicators.fst"),
       compress = TRUE
     ),
     format = 'file',
@@ -401,7 +401,7 @@ list(
     pop_region_out,
     save_aux_data(
       dt_pop_region,
-      paste0(globals$OUT_AUX_DIR_PC, "pop_region.fst"),
+      paste0(gls$OUT_AUX_DIR_PC, "pop_region.fst"),
       compress = TRUE
     ),
     format = 'file',
@@ -412,7 +412,7 @@ list(
     coverage_out,
     save_aux_data(
       dt_coverage,
-      paste0(globals$OUT_AUX_DIR_PC, "coverage.fst"),
+      paste0(gls$OUT_AUX_DIR_PC, "coverage.fst"),
       compress = TRUE
     ),
     format = 'file',
@@ -423,7 +423,7 @@ list(
     decomposition_out,
     save_aux_data(
       dt_decomposition,
-      paste0(globals$OUT_AUX_DIR_PC, "decomposition.fst"),
+      paste0(gls$OUT_AUX_DIR_PC, "decomposition.fst"),
       compress = TRUE
     ),
     format = 'file',
@@ -435,20 +435,20 @@ list(
     prod_ref_estimation_file,
     format = 'file', 
     save_estimations(dt       = dt_prod_ref_estimation, 
-                     dir      = globals$OUT_EST_DIR_PC, 
+                     dir      = gls$OUT_EST_DIR_PC, 
                      name     = "prod_ref_estimation", 
-                     time     = globals$TIME, 
-                     compress = globals$FST_COMP_LVL)
+                     time     = gls$TIME, 
+                     compress = gls$FST_COMP_LVL)
   ),
   
   tar_target(
     prod_svy_estimation_file,
     format = 'file', 
     save_estimations(dt       = dt_prod_svy_estimation, 
-                     dir      = globals$OUT_EST_DIR_PC, 
+                     dir      = gls$OUT_EST_DIR_PC, 
                      name     = "prod_svy_estimation", 
-                     time     = globals$TIME, 
-                     compress = globals$FST_COMP_LVL)
+                     time     = gls$TIME, 
+                     compress = gls$FST_COMP_LVL)
   ),
   
   ### Save Lorenz list ----
@@ -457,7 +457,7 @@ list(
     lorenz_out,
     save_aux_data(
       lorenz,
-      paste0(globals$OUT_AUX_DIR_PC, "lorenz.rds"),
+      paste0(gls$OUT_AUX_DIR_PC, "lorenz.rds"),
       compress = TRUE
     ),
     format = 'file',
@@ -469,10 +469,10 @@ list(
     dist_file,
     format = 'file',
     save_estimations(dt       = dt_dist_stats, 
-                     dir      = globals$OUT_EST_DIR_PC, 
+                     dir      = gls$OUT_EST_DIR_PC, 
                      name     = "dist_stats", 
-                     time     = globals$TIME, 
-                     compress = globals$FST_COMP_LVL)
+                     time     = gls$TIME, 
+                     compress = gls$FST_COMP_LVL)
   ),
   
   ### Save survey means table ----
@@ -481,10 +481,10 @@ list(
     survey_mean_file,
     format = 'file', 
     save_estimations(dt       = svy_mean_ppp_table, 
-                     dir      = globals$OUT_EST_DIR_PC, 
+                     dir      = gls$OUT_EST_DIR_PC, 
                      name     = "survey_means", 
-                     time     = globals$TIME, 
-                     compress = globals$FST_COMP_LVL)
+                     time     = gls$TIME, 
+                     compress = gls$FST_COMP_LVL)
   ),
   
   ### Save interpolated means table ----
@@ -493,10 +493,10 @@ list(
     interpolated_means_file,
     format = 'file', 
     save_estimations(dt       = dt_ref_mean_pred, 
-                     dir      = globals$OUT_EST_DIR_PC, 
+                     dir      = gls$OUT_EST_DIR_PC, 
                      name     = "interpolated_means", 
-                     time     = globals$TIME, 
-                     compress = globals$FST_COMP_LVL)
+                     time     = gls$TIME, 
+                     compress = gls$FST_COMP_LVL)
   )
   
 )
