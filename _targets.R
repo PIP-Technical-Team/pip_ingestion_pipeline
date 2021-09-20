@@ -2,7 +2,7 @@
 
 # remotes::install_github("PIP-Technical-Team/pipload@master")
 # remotes::install_github("PIP-Technical-Team/pipaux@master")
-# remotes::install_github("PIP-Technical-Team/pipdm@master")
+# remotes::install_github("PIP-Technical-Team/pipdm@dev_server")
 # remotes::install_github("PIP-Technical-Team/wbpip@master")
 
 
@@ -102,9 +102,9 @@ list(
       x <- fst::read_fst(cache_inventory_dir, 
                          as.data.table = TRUE)
       # to filter temporarily
-      # x <- x[grepl("^(PRY|ARE)", survey_id)
-      #        ][gsub("([A-Z]+)_([0-9]+)_(.*)", "\\2", survey_id) > 2010
-      #        ]
+      x <- x[grepl("^(CHN|IDN)", survey_id)
+             ][gsub("([A-Z]+)_([0-9]+)_(.*)", "\\2", survey_id) > 2010
+             ]
       
     },
   ),
