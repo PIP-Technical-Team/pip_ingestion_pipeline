@@ -104,7 +104,7 @@ named_mean <- function(dt) {
 
 prep_aux_data <- function(PIP_DATA_DIR) {
   
-  PIP_DATA_DIR = globals$PIP_DATA_DIR
+  PIP_DATA_DIR = gls$PIP_DATA_DIR
   
   auxdir <- paste0(PIP_DATA_DIR, "_aux/")
   
