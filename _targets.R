@@ -1,10 +1,13 @@
 # ---- Install packages ----
 
 # remotes::install_github("PIP-Technical-Team/pipload@master")
+# 3
 # remotes::install_github("PIP-Technical-Team/pipaux@master")
+# 3
 # remotes::install_github("PIP-Technical-Team/pipdm@dev_server")
+# 3
 # remotes::install_github("PIP-Technical-Team/wbpip@master")
-
+# 3
 
 # ---- Start up ----
 
@@ -102,10 +105,9 @@ list(
       x <- fst::read_fst(cache_inventory_dir, 
                          as.data.table = TRUE)
       # to filter temporarily
-      x <- x[grepl("^(CHN|IDN)", survey_id)
-             ][gsub("([A-Z]+)_([0-9]+)_(.*)", "\\2", survey_id) > 2010
-             ]
-      
+      # x <- x[grepl("^(CHN|IDN)", survey_id)
+      #        ][gsub("([A-Z]+)_([0-9]+)_(.*)", "\\2", survey_id) > 2010
+      #        ]
     },
   ),
   
@@ -211,10 +213,10 @@ list(
   
   tar_target(
     name      = dl_dist_stats,
-    command   = db_compute_dist_stats(dt       = cache, 
-                                      mean     = dl_mean, 
-                                      pop      = dl_aux$pop, 
-                                      cache_id = cache_ids), 
+    command   = db_compute_dist_stats(dt        = cache, 
+                                      mean      = dl_mean, 
+                                      pop_table = dl_aux$pop, 
+                                      cache_id  = cache_ids), 
     pattern   =  map(cache, dl_mean, cache_ids), 
     iteration = "list"
   ),
