@@ -301,6 +301,12 @@ list(
     iteration = "list"
   ),
   
+  # Create Framework data
+  tar_target(
+    dt_framework,
+    create_framework(dl_aux$pfw)
+  ),
+  
   ## Save data ---- 
   
   ### Save survey data ------
@@ -426,6 +432,17 @@ list(
     save_aux_data(
       dt_decomposition,
       paste0(gls$OUT_AUX_DIR_PC, "decomposition.fst"),
+      compress = TRUE
+    ),
+    format = 'file',
+  ),
+  
+  # Framework data
+  tar_target(
+    framework_out,
+    save_aux_data(
+      dt_framework,
+      paste0(gls$OUT_AUX_DIR_PC, "framework.fst"),
       compress = TRUE
     ),
     format = 'file',
