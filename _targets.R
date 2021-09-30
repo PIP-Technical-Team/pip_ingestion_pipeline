@@ -127,26 +127,33 @@ list(
   ## LCU survey means ---- 
   
   ### Fetch GD survey means and convert them to daily values ----
+  # tar_target(
+  #   gd_means, {
+  #     
+  #     cache_inventory[dl_aux$gdm,
+  #                     on = "survey_id",
+  #                     # Convert to daily values (PCN is in monthly) 
+  #                     survey_mean_lcu := i.survey_mean_lcu * (12/365) 
+  #     ][,
+  #       survey_mean_lcu
+  #     ]
+  #     
+  #   }, 
+  #   iteration = "list"
+  # ) ,
   tar_target(
-    gd_means, {
-      
-      cache_inventory[dl_aux$gdm,
-                      on = "survey_id",
-                      # Convert to daily values (PCN is in monthly) 
-                      survey_mean_lcu := i.survey_mean_lcu * (12/365) 
-      ][,
-        survey_mean_lcu
-      ]
-      
-    }, 
-    iteration = "list"
-  ) ,
+    dl_gd_means,  purrr::map(cache_inventory$survey_id, function(x) {
+      x <- gdm[survey_id == x][['survey_mean_lcu']]
+      x <- x * (12/365) # Convert to daily values (PCN is in monthly)
+      return(x) 
+    })
+  ),
   
   ### Calculate LCU survey mean ----
   
   tar_target(
     svy_mean_lcu,
-    db_compute_survey_mean(cache, gd_means),
+    db_compute_survey_mean(cache, dl_gd_means),
     pattern =  map(cache, gd_means), 
     iteration = "list"
   ),
