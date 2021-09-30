@@ -104,7 +104,7 @@ named_mean <- function(dt) {
 
 prep_aux_data <- function(PIP_DATA_DIR) {
   
-  PIP_DATA_DIR = globals$PIP_DATA_DIR
+  PIP_DATA_DIR = gls$PIP_DATA_DIR
   
   auxdir <- paste0(PIP_DATA_DIR, "_aux/")
   
@@ -131,3 +131,39 @@ prep_aux_data <- function(PIP_DATA_DIR) {
   
   return(aux_tb)
 }
+
+#' Create framework data from Price FrameWork data (subsample)
+#'
+#' @param pfw 
+#'
+#' @return
+#' @export
+#'
+#' @examples
+create_framework <- function(pfw) {
+  meta_vars <- 
+    c(
+      "wb_region_code",
+      "country_code",
+      "pcn_region_code",
+      "ctryname",
+      "year",
+      "surveyid_year",
+      "reporting_year",
+      "survey_year",
+      "survey_acronym",
+      "survey_coverage",
+      "welfare_type",
+      "use_imputed",
+      "use_microdata",
+      "use_bin",
+      "use_groupdata",
+      "survey_comparability"
+    )
+  
+  pfw <- pfw[, ..meta_vars]
+  setnames(pfw, "ctryname", "country_name")
+  
+  return(pfw)
+}
+
