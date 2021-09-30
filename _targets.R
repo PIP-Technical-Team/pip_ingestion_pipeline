@@ -132,13 +132,17 @@ list(
   tar_target(
     gd_means, {
       
-      cache_inventory[dl_aux$gdm,
-                      on = "survey_id",
-                      # Convert to daily values (PCN is in monthly) 
-                      survey_mean_lcu := i.survey_mean_lcu * (12/365) 
-      ][,
-        survey_mean_lcu
-      ]
+      dt. <- joyn::merge(x          = cache_inventory,
+                         y          = gdm,
+                         by         = c("survey_id", "welfare_type"),
+                         match_type = "1:m",
+                         yvars      = c("survey_mean_lcu", "pop_data_level"),
+                         keep       = "left")
+      
+      gd_means        <- dt.[, survey_mean_lcu]
+      gd_means        <- gd_means * (12/365)
+      names(gd_means) <- dt.[, cache_id]
+      return(gd_means)
       
     }, 
     iteration = "list"
