@@ -1,13 +1,13 @@
 # ---- Install packages ----
 
-# remotes::install_github("PIP-Technical-Team/pipload@master")
-# 3
-# remotes::install_github("PIP-Technical-Team/pipaux@master")
-# 3
-# remotes::install_github("PIP-Technical-Team/pipdm@dev_server")
-# 3
-# remotes::install_github("PIP-Technical-Team/wbpip@master")
-# 3
+# remotes::install_github("PIP-Technical-Team/pipload@master", 
+#                         dependencies = FALSE)
+# remotes::install_github("PIP-Technical-Team/pipaux@master"
+# dependencies = FALSE)
+# remotes::install_github("PIP-Technical-Team/pipdm@development"
+# dependencies = FALSE)
+# remotes::install_github("PIP-Technical-Team/wbpip@master"
+# dependencies = FALSE)
 
 # ---- Start up ----
 
@@ -70,7 +70,7 @@ list(
   
   tar_target(pipeline_inventory, {
     x <- pipdm::db_filter_inventory(
-      dt = pip_inventory,
+      dt        = pip_inventory,
       pfw_table = dl_aux$pfw)
     # Uncomment for specific countries
     # x <- x[country_code == 'IDN' & surveyid_year == 2015]
@@ -133,7 +133,7 @@ list(
     gd_means, {
       
       dt. <- joyn::merge(x          = cache_inventory,
-                         y          = gdm,
+                         y          = dl_aux$gdm,
                          by         = c("survey_id", "welfare_type"),
                          match_type = "1:m",
                          yvars      = c("survey_mean_lcu", "pop_data_level"),
