@@ -139,9 +139,16 @@ list(
                          yvars      = c("survey_mean_lcu", "pop_data_level"),
                          keep       = "left")
       
+      data.table::setorder(dt., cache_id, pop_data_level)
+      
+      
       gd_means        <- dt.[, survey_mean_lcu]
       gd_means        <- gd_means * (12/365)
+      
       names(gd_means) <- dt.[, cache_id]
+      ## convert to list by name
+      gd_means        <- split(unname(gd_means),names(gd_means)) 
+      
       return(gd_means)
       
     }, 
