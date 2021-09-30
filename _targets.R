@@ -143,7 +143,7 @@ list(
   # ) ,
   tar_target(
     dl_gd_means,  purrr::map(cache_inventory$survey_id, function(x) {
-      x <- gdm[survey_id == x][['survey_mean_lcu']]
+      x <- dl_aux$gdm[survey_id == x][['survey_mean_lcu']]
       x <- x * (12/365) # Convert to daily values (PCN is in monthly)
       return(x) 
     })
