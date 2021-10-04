@@ -324,12 +324,12 @@ list(
   
   tar_target(
     survey_files,
-    save_survey_data(
+    pipdm::save_survey_data(
       dt              = cache,
       cache_filename  = cache_ids,
       output_dir      = gls$OUT_SVY_DIR_PC,
       cols            = c('welfare', 'weight', 'area'),
-      compress        = gls$FST_COMP_LVL,), 
+      compress        = gls$FST_COMP_LVL), 
     pattern = map(cache, cache_ids)
   ),
   
@@ -351,7 +351,7 @@ list(
   # Countries
   tar_target(
     countries_out,
-    save_aux_data(
+    pipdm::save_aux_data(
       dl_aux$countries %>% 
         data.table::setnames('pcn_region_code', 'region_code'),
       paste0(gls$OUT_AUX_DIR_PC, "countries.fst"),
