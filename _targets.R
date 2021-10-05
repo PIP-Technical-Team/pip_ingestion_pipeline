@@ -363,7 +363,7 @@ list(
   # Regions
   tar_target(
     regions_out,
-    save_aux_data(
+    pipdm::save_aux_data(
       dl_aux$regions,
       paste0(gls$OUT_AUX_DIR_PC, "regions.fst"),
       compress = TRUE
@@ -374,7 +374,7 @@ list(
   # Country profiles 
   tar_target(
     country_profiles_out,
-    save_aux_data(
+    pipdm::save_aux_data(
       dl_aux$cp,
       paste0(gls$OUT_AUX_DIR_PC, "country_profiles.rds"),
       compress = TRUE
@@ -385,7 +385,7 @@ list(
   # Poverty lines
   tar_target(
     poverty_lines_out,
-    save_aux_data(
+    pipdm::save_aux_data(
       dl_aux$pl,
       paste0(gls$OUT_AUX_DIR_PC, "poverty_lines.fst"),
       compress = TRUE
@@ -396,7 +396,7 @@ list(
   # Survey metadata (for Data Sources page)
   tar_target(
     survey_metadata_out,
-    save_aux_data(
+    pipdm::save_aux_data(
       dl_aux$metadata,
       paste0(gls$OUT_AUX_DIR_PC, "survey_metadata.fst"),
       compress = TRUE
@@ -407,7 +407,7 @@ list(
   # Indicators master
   tar_target(
     indicators_out,
-    save_aux_data(
+    pipdm::save_aux_data(
       dl_aux$indicators,
       paste0(gls$OUT_AUX_DIR_PC, "indicators.fst"),
       compress = TRUE
@@ -418,7 +418,7 @@ list(
   # Regional population
   tar_target(
     pop_region_out,
-    save_aux_data(
+    pipdm::save_aux_data(
       dt_pop_region,
       paste0(gls$OUT_AUX_DIR_PC, "pop_region.fst"),
       compress = TRUE
@@ -429,7 +429,7 @@ list(
   # Coverage 
   tar_target(
     coverage_out,
-    save_aux_data(
+    pipdm::save_aux_data(
       dt_coverage,
       paste0(gls$OUT_AUX_DIR_PC, "coverage.fst"),
       compress = TRUE
@@ -440,7 +440,7 @@ list(
   # Decomposition master
   tar_target(
     decomposition_out,
-    save_aux_data(
+    pipdm::save_aux_data(
       dt_decomposition,
       paste0(gls$OUT_AUX_DIR_PC, "decomposition.fst"),
       compress = TRUE
@@ -451,7 +451,7 @@ list(
   # Framework data
   tar_target(
     framework_out,
-    save_aux_data(
+    pipdm::save_aux_data(
       dt_framework,
       paste0(gls$OUT_AUX_DIR_PC, "framework.fst"),
       compress = TRUE
@@ -485,7 +485,7 @@ list(
   
   tar_target(
     lorenz_out,
-    save_aux_data(
+    pipdm::save_aux_data(
       lorenz,
       paste0(gls$OUT_AUX_DIR_PC, "lorenz.rds"),
       compress = TRUE
