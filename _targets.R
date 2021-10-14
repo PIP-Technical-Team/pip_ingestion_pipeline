@@ -1,13 +1,11 @@
 # ---- Install packages ----
 
-# remotes::install_github("PIP-Technical-Team/pipload@master", 
+# remotes::install_github("PIP-Technical-Team/pipload@master",
 #                         dependencies = FALSE)
-# remotes::install_github("PIP-Technical-Team/pipaux@master"
-# dependencies = FALSE)
-# remotes::install_github("PIP-Technical-Team/pipdm@development"
-# dependencies = FALSE)
-# remotes::install_github("PIP-Technical-Team/wbpip@master"
-# dependencies = FALSE)
+# remotes::install_github("PIP-Technical-Team/pipdm@master",
+#                         dependencies = FALSE)
+# remotes::install_github("PIP-Technical-Team/wbpip@master",
+#                         dependencies = FALSE)
 
 # ---- Start up ----
 
@@ -53,12 +51,14 @@ pip_inventory <-
 
 # Load AUX data
 aux_tb <- prep_aux_data(gls$PIP_DATA_DIR)
+
 dl_aux <- lapply(aux_tb$auxname, function(x) {
-  pipaux::load_aux(x, apply_label = FALSE,
-                   maindir = gls$PIP_DATA_DIR)
+  pipload::pip_load_aux(measure     = x, 
+                        apply_label = FALSE,
+                        maindir     = gls$PIP_DATA_DIR, 
+                        verbose     = FALSE)
 })
 names(dl_aux) <- aux_tb$auxname                
-
 
 # ---- Step 2: Run pipeline -----
 

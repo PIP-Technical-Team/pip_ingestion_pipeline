@@ -662,7 +662,7 @@
     },
     "pipaux": {
       "Package": "pipaux",
-      "Version": "0.0.2",
+      "Version": "0.0.3",
       "Source": "GitHub",
       "Remotes": "github::PIP-Technical-Team/pipload",
       "RemoteType": "github",
@@ -670,33 +670,33 @@
       "RemoteRepo": "pipaux",
       "RemoteUsername": "PIP-Technical-Team",
       "RemoteRef": "master",
-      "RemoteSha": "501e778a34319b0c47088132641ef85c965d4be4",
-      "Hash": "92ce152eca18ed9402ff94c0d328d2d9"
+      "RemoteSha": "1c6b97f0aa007c4c8213be140f3943972ff6bebb",
+      "Hash": "b81e59e72dd2d6bc32ba98541bca66f8"
     },
     "pipdm": {
       "Package": "pipdm",
-      "Version": "0.0.3.9001",
+      "Version": "0.0.4.9000",
       "Source": "GitHub",
-      "RemoteType": "github",
       "Remotes": "github::PIP-Technical-Team/pipload",
+      "RemoteType": "github",
       "RemoteHost": "api.github.com",
       "RemoteRepo": "pipdm",
-      "RemoteUsername": "PIP-technical-team",
-      "RemoteRef": "HEAD",
-      "RemoteSha": "3ce43c324d736f4b5dd16dd44ff8f72093478de6",
-      "Hash": "4bc4f694fd825d79db21204813ad71fd"
+      "RemoteUsername": "PIP-Technical-Team",
+      "RemoteRef": "master",
+      "RemoteSha": "db70c72164ddc6ac5c04d23c983e97c232539457",
+      "Hash": "0b44f7ca42dfbef0923e62e20c0446a7"
     },
     "pipload": {
       "Package": "pipload",
-      "Version": "0.1.4.9003",
+      "Version": "0.1.6.9000",
       "Source": "GitHub",
       "RemoteType": "github",
       "RemoteHost": "api.github.com",
       "RemoteRepo": "pipload",
       "RemoteUsername": "PIP-Technical-Team",
-      "RemoteRef": "HEAD",
-      "RemoteSha": "5dfe900d32071e32a5b3fd850600ff2ca0ddfdb7",
-      "Hash": "b25a8dc7e5f9094886f268ee6f336fa1"
+      "RemoteRef": "master",
+      "RemoteSha": "411863ba9d85c684a005856e7c37f051582ea955",
+      "Hash": "62e113ba5ea920610f18c070b5c79592"
     },
     "pkgconfig": {
       "Package": "pkgconfig",
@@ -1014,9 +1014,9 @@
       "RemoteHost": "api.github.com",
       "RemoteRepo": "wbpip",
       "RemoteUsername": "PIP-Technical-Team",
-      "RemoteRef": "HEAD",
-      "RemoteSha": "fce3aa20396d19003580cb3b981263b169dc2402",
-      "Hash": "d11447b3a2407ea2cb256d2ae189e5e0"
+      "RemoteRef": "master",
+      "RemoteSha": "a44d719345b55044ad5b818223951f29700dddf7",
+      "Hash": "43621ee92e2e39cba4a02844afed1ae6"
     },
     "wbstats": {
       "Package": "wbstats",

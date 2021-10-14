@@ -8,6 +8,9 @@ PIP_DATA_DIR <- '//w1wbgencifs01/pip/PIP-Data/_testing/pipdp_testing/'
 PCN_MASTER_DIR <- 'P:/01.PovcalNet/00.Master/02.vintage/'
 
 # Load packages 
+# remotes::install_github("PIP-Technical-Team/pipaux@master",
+#                         dependencies = FALSE)
+
 library(pipaux)
 library(pipload)
 library(RStata)
