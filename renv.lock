@@ -675,7 +675,7 @@
     },
     "pipdm": {
       "Package": "pipdm",
-      "Version": "0.0.4.9000",
+      "Version": "0.0.5",
       "Source": "GitHub",
       "Remotes": "github::PIP-Technical-Team/pipload",
       "RemoteType": "github",
@@ -683,8 +683,8 @@
       "RemoteRepo": "pipdm",
       "RemoteUsername": "PIP-Technical-Team",
       "RemoteRef": "master",
-      "RemoteSha": "db70c72164ddc6ac5c04d23c983e97c232539457",
-      "Hash": "0b44f7ca42dfbef0923e62e20c0446a7"
+      "RemoteSha": "699d6802f6adfef3d7c763f6418e0a5fd1d24a14",
+      "Hash": "817c5b8b3bf7e8f8f60b299caaf838af"
     },
     "pipload": {
       "Package": "pipload",

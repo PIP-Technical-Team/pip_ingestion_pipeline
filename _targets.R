@@ -86,7 +86,7 @@ list(
                tool               = "PC",
                cache_svy_dir      = gls$CACHE_SVY_DIR_PC,
                compress           = gls$FST_COMP_LVL,
-               force              = FALSE,
+               force              = TRUE,
                verbose            = FALSE,
                cpi_dt             = dl_aux$cpi,
                ppp_dt             = dl_aux$ppp)
@@ -155,20 +155,12 @@ list(
     iteration = "list"
   ) ,
   
-  ### Calculate LCU survey mean ----
+  ## Calculate LCU survey mean ----
   
   tar_target(
     svy_mean_lcu,
     db_compute_survey_mean(cache, gd_means),
     pattern =  map(cache, gd_means), 
-    iteration = "list"
-  ),
-  
-  # Get mean 
-  tar_target(
-    dl_mean, # name vectors. 
-    named_mean(svy_mean_lcu),
-    pattern = map(svy_mean_lcu),
     iteration = "list"
   ),
   
@@ -221,6 +213,15 @@ list(
   ),
   
   ### Calculate distributional statistics ----
+  
+  # Get mean 
+  tar_target(
+    dl_mean, # name vectors. 
+    named_mean(svy_mean_lcu),
+    pattern = map(svy_mean_lcu),
+    iteration = "list"
+  ),
+  
   
   tar_target(
     name      = dl_dist_stats,
@@ -398,7 +399,7 @@ list(
     survey_metadata_out,
     pipdm::save_aux_data(
       dl_aux$metadata,
-      paste0(gls$OUT_AUX_DIR_PC, "survey_metadata.fst"),
+      paste0(gls$OUT_AUX_DIR_PC, "survey_metadata.rds"),
       compress = TRUE
     ),
     format = 'file',
