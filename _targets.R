@@ -115,11 +115,15 @@ list(
   
   tar_target(cache_ids, 
              get_cache_id(cache_inventory)),
+  
   tar_target(survey_ids, 
              get_survey_id(cache_inventory)),
+  
   tar_target(cache_files,
              get_cache_files(cache_inventory)),
-  tar_files(cache_dir, cache_files),
+  
+  tar_files(cache_dir, cache_files), # label as files, not targets
+  
   tar_target(cache, 
              fst::read_fst(path = cache_dir, 
                            as.data.table = TRUE), 
@@ -207,28 +211,36 @@ list(
   ### Lorenz curves -----
   
   # Calculate Lorenz curves (for microdata)  
+  # tar_target(
+  #   lorenz_all,
+  #   db_compute_lorenz(cache),
+  #   pattern = map(cache), 
+  #   iteration = "list"
+  # ), 
+  
   tar_target(
-    lorenz_all,
-    db_compute_lorenz(cache),
-    pattern = map(cache), 
-    iteration = "list"
+    lorenz, {
+      w <- purrr::map(.x = cache, 
+                 .f = db_compute_lorenz)
+      purrr::keep(w, ~!is.null(.x))
+    }
   ), 
   
   # Clean group data 
-  tar_target(
-    lorenz, 
-    purrr::keep(lorenz_all, ~!is.null(.x))
-  ),
+  # tar_target(
+  #   lorenz, 
+  #   purrr::keep(lorenz_all, ~!is.null(.x))
+  # ),
   
   ### Calculate distributional statistics ----
   
   # Get mean 
-  tar_target(
-    dl_mean, # name vectors. 
-    named_mean(svy_mean_lcu),
-    pattern = map(svy_mean_lcu),
-    iteration = "list"
-  ),
+  # tar_target(
+  #   dl_mean, # name vectors. 
+  #   named_mean(svy_mean_lcu),
+  #   pattern = map(svy_mean_lcu),
+  #   iteration = "list"
+  # ),
   
   
   tar_target(
