@@ -124,12 +124,21 @@ list(
   
   tar_files(cache_dir, cache_files), # label as files, not targets
   
-  tar_target(cache, 
-             fst::read_fst(path = cache_dir, 
-                           as.data.table = TRUE), 
-             pattern = map(cache_dir), 
-             iteration = "list"),
+  tar_target( cache, {
+    x <- purrr::map(.x = cache_dir, 
+               .f = fst::read_fst, 
+               as.data.table = TRUE)
+    names(x) <- cache_ids
+    return(x)
+    
+    }),
   
+  # tar_target(cache, 
+  #            fst::read_fst(path = cache_dir, 
+  #                          as.data.table = TRUE), 
+  #            pattern = map(cache_dir), 
+  #            iteration = "list"),
+  # 
   ## LCU survey means ---- 
   
   ### Fetch GD survey means and convert them to daily values ----
@@ -222,6 +231,7 @@ list(
     lorenz, {
       w <- purrr::map(.x = cache, 
                  .f = db_compute_lorenz)
+      names(w) <- cache_ids
       purrr::keep(w, ~!is.null(.x))
     }
   ), 
