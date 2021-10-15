@@ -675,16 +675,16 @@
     },
     "pipdm": {
       "Package": "pipdm",
-      "Version": "0.0.5",
+      "Version": "0.0.6.9000",
       "Source": "GitHub",
-      "Remotes": "github::PIP-Technical-Team/pipload",
+      "Remotes": "github::PIP-Technical-Team/pipload,\ngithub::PIP-Technical-Team/wbpip",
       "RemoteType": "github",
       "RemoteHost": "api.github.com",
       "RemoteRepo": "pipdm",
       "RemoteUsername": "PIP-Technical-Team",
       "RemoteRef": "master",
-      "RemoteSha": "699d6802f6adfef3d7c763f6418e0a5fd1d24a14",
-      "Hash": "817c5b8b3bf7e8f8f60b299caaf838af"
+      "RemoteSha": "e7a86a25c083b6b4a5a76f9a7d9f9a01b4a5d6e1",
+      "Hash": "e76b5f93104d9044680ef0f1e8898867"
     },
     "pipload": {
       "Package": "pipload",
@@ -1008,15 +1008,15 @@
     },
     "wbpip": {
       "Package": "wbpip",
-      "Version": "0.0.2.9000",
+      "Version": "0.0.2.9004",
       "Source": "GitHub",
       "RemoteType": "github",
       "RemoteHost": "api.github.com",
       "RemoteRepo": "wbpip",
       "RemoteUsername": "PIP-Technical-Team",
-      "RemoteRef": "master",
-      "RemoteSha": "a44d719345b55044ad5b818223951f29700dddf7",
-      "Hash": "43621ee92e2e39cba4a02844afed1ae6"
+      "RemoteRef": "synth_vector",
+      "RemoteSha": "152e196eb12dfd1e1898b9cea08594936f81efad",
+      "Hash": "2e6caa1e539236babf26bd71dd00f1da"
     },
     "wbstats": {
       "Package": "wbstats",

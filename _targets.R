@@ -2,9 +2,9 @@
 
 # remotes::install_github("PIP-Technical-Team/pipload@master",
 #                         dependencies = FALSE)
-# remotes::install_github("PIP-Technical-Team/pipdm@master",
+# remotes::install_github("PIP-Technical-Team/wbpip@synth_vector",
 #                         dependencies = FALSE)
-# remotes::install_github("PIP-Technical-Team/wbpip@master",
+# remotes::install_github("PIP-Technical-Team/pipdm@master",
 #                         dependencies = FALSE)
 
 # ---- Start up ----
@@ -86,7 +86,7 @@ list(
                tool               = "PC",
                cache_svy_dir      = gls$CACHE_SVY_DIR_PC,
                compress           = gls$FST_COMP_LVL,
-               force              = TRUE,
+               force              = FALSE,
                verbose            = FALSE,
                cpi_dt             = dl_aux$cpi,
                ppp_dt             = dl_aux$ppp)
@@ -225,11 +225,11 @@ list(
   
   tar_target(
     name      = dl_dist_stats,
-    command   = db_compute_dist_stats(dt        = cache, 
-                                      mean      = dl_mean, 
-                                      pop_table = dl_aux$pop, 
-                                      cache_id  = cache_ids), 
-    pattern   =  map(cache, dl_mean, cache_ids), 
+    command   = db_compute_dist_stats(dt         = cache, 
+                                      mean_table = svy_mean_ppp_table, 
+                                      pop_table  = dl_aux$pop, 
+                                      cache_id   = cache_ids), 
+    pattern   =  map(cache, cache_ids), 
     iteration = "list"
   ),
   
