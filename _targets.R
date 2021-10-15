@@ -237,7 +237,7 @@ list(
                  .f = db_compute_lorenz)
       names(w) <- cache_ids
       w <- purrr::keep(w, ~!is.null(.x))
-      w
+      return(w)
     }
   ), 
   
@@ -269,14 +269,15 @@ list(
   # ),
   
   tar_target( dl_dist_stats, {
+    
     f <- purrr::map2(.x = cache, 
-                .y = cache_ids, 
-                .f = ~ {
-                  db_compute_dist_stats(dt         = .x, 
-                                        mean_table = svy_mean_ppp_table, 
-                                        pop_table  = dl_aux$pop, 
-                                        cache_id   = .y)
-                })
+                     .y = cache_ids, 
+                     .f = ~ {
+                       db_compute_dist_stats(dt         = .x, 
+                                             mean_table = svy_mean_ppp_table, 
+                                             pop_table  = dl_aux$pop, 
+                                             cache_id   = .y)
+                     })
     names(f) <- cache_ids
     return(f)
   }),
