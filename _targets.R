@@ -157,11 +157,19 @@ list(
   
   ## Calculate LCU survey mean ----
   
+  # tar_target(
+  #   svy_mean_lcu,
+  #   db_compute_survey_mean(cache, gd_means),
+  #   pattern =  map(cache, gd_means), 
+  #   iteration = "list"
+  # ),
+  
   tar_target(
-    svy_mean_lcu,
-    db_compute_survey_mean(cache, gd_means),
-    pattern =  map(cache, gd_means), 
-    iteration = "list"
+    svy_mean_lcu,{
+      purrr::map2(.x = cache, 
+                  .y = gd_means, 
+                  .f = db_compute_survey_mean)
+    }
   ),
   
   ## Create LCU table ------
