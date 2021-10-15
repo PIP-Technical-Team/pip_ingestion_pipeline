@@ -257,16 +257,29 @@ list(
   #   iteration = "list"
   # ),
   
+  # 
+  # tar_target(
+  #   name      = dl_dist_stats,
+  #   command   = db_compute_dist_stats(dt         = cache, 
+  #                                     mean_table = svy_mean_ppp_table, 
+  #                                     pop_table  = dl_aux$pop, 
+  #                                     cache_id   = cache_ids), 
+  #   pattern   =  map(cache, cache_ids), 
+  #   iteration = "list"
+  # ),
   
-  tar_target(
-    name      = dl_dist_stats,
-    command   = db_compute_dist_stats(dt         = cache, 
-                                      mean_table = svy_mean_ppp_table, 
-                                      pop_table  = dl_aux$pop, 
-                                      cache_id   = cache_ids), 
-    pattern   =  map(cache, cache_ids), 
-    iteration = "list"
-  ),
+  tar_target( dl_dist_stats, {
+    f <- purrr::map2(.x = cache, 
+                .y = cache_ids, 
+                .f = ~ {
+                  db_compute_dist_stats(dt         = .x, 
+                                        mean_table = svy_mean_ppp_table, 
+                                        pop_table  = dl_aux$pop, 
+                                        cache_id   = .y)
+                })
+    names(f) <- cache_ids
+    return(f)
+  }),
   
   ### Create dist stat table ------
 
