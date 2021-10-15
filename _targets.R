@@ -73,7 +73,8 @@ list(
       dt        = pip_inventory,
       pfw_table = dl_aux$pfw)
     # Uncomment for specific countries
-    # x <- x[country_code == 'IDN' & surveyid_year == 2015]
+    # x <- x[country_code == 'ARG' & surveyid_year == 2015]
+    # x <- x[country_code == 'ARG']
   }
   ),
   
@@ -89,7 +90,8 @@ list(
                force              = FALSE,
                verbose            = FALSE,
                cpi_dt             = dl_aux$cpi,
-               ppp_dt             = dl_aux$ppp)
+               ppp_dt             = dl_aux$ppp, 
+               pfw_dt             = dl_aux$pfw)
   ),
   
   ### Cache inventory file ----
@@ -179,9 +181,11 @@ list(
   
   tar_target(
     svy_mean_lcu,{
-      purrr::map2(.x = cache, 
+      w <- purrr::map2(.x = cache, 
                   .y = gd_means, 
                   .f = db_compute_survey_mean)
+      names(w) <- cache_ids
+      return(w)
     }
   ),
   
@@ -232,7 +236,8 @@ list(
       w <- purrr::map(.x = cache, 
                  .f = db_compute_lorenz)
       names(w) <- cache_ids
-      purrr::keep(w, ~!is.null(.x))
+      w <- purrr::keep(w, ~!is.null(.x))
+      w
     }
   ), 
   
@@ -370,13 +375,24 @@ list(
              aux_out_files_fun(gls$OUT_AUX_DIR_PC, aux_names)
   ),
   tar_files(aux_out_dir, aux_out_files),
-  tar_target(aux_out, 
-             fst::write_fst(x        = aux_clean,
-                            path     = aux_out_dir,
-                            compress = gls$FST_COMP_LVL), 
-             pattern   = map(aux_clean, aux_out_dir), 
-             iteration = "list"),
   
+  tar_target(aux_out, {
+    
+    x <- purrr::map2(.x = aux_clean, 
+                .y = aux_out_dir, 
+                .f = fst::write_fst, 
+                compress = gls$FST_COMP_LVL)
+    names(x) <- aux_names
+    return(x)
+  }),
+  
+  # tar_target(aux_out, 
+  #            fst::write_fst(x        = aux_clean,
+  #                           path     = aux_out_dir,
+  #                           compress = gls$FST_COMP_LVL), 
+  #            pattern   = map(aux_clean, aux_out_dir), 
+  #            iteration = "list"),
+  # 
   ### Save additional AUX files ----
   
   # Countries
