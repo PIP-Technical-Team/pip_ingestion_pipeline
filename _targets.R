@@ -246,15 +246,6 @@ list(
   ## Distributional stats ---- 
   
   ### Lorenz curves -----
-  
-  # Calculate Lorenz curves (for microdata)  
-  # tar_target(
-  #   lorenz_all,
-  #   db_compute_lorenz(cache),
-  #   pattern = map(cache), 
-  #   iteration = "list"
-  # ), 
-  
   tar_target(
     lorenz, {
       w <- purrr::map(.x = cache, 
@@ -265,11 +256,19 @@ list(
     }
   ), 
   
-  # Clean group data 
-  # tar_target(
-  #   lorenz, 
-  #   purrr::keep(lorenz_all, ~!is.null(.x))
-  # ),
+  # Calculate Lorenz curves (for microdata)
+  tar_target(
+    lorenz_all,
+    db_compute_lorenz(cache),
+    pattern = map(cache),
+    iteration = "list"
+  ),
+
+  # Clean group data
+  tar_target(
+    lorenz,
+    purrr::keep(lorenz_all, ~!is.null(.x))
+  ),
   
   ### Calculate distributional statistics ----
   
@@ -281,30 +280,30 @@ list(
   #   iteration = "list"
   # ),
   
-  # 
-  # tar_target(
-  #   name      = dl_dist_stats,
-  #   command   = db_compute_dist_stats(dt         = cache, 
-  #                                     mean_table = svy_mean_ppp_table, 
-  #                                     pop_table  = dl_aux$pop, 
-  #                                     cache_id   = cache_ids), 
-  #   pattern   =  map(cache, cache_ids), 
-  #   iteration = "list"
-  # ),
+   
+  tar_target(
+    name      = dl_dist_stats,
+    command   = db_compute_dist_stats(dt         = cache,
+                                      mean_table = svy_mean_ppp_table,
+                                      pop_table  = dl_aux$pop,
+                                      cache_id   = cache_ids),
+    pattern   =  map(cache, cache_ids),
+    iteration = "list"
+  ),
   
-  tar_target( dl_dist_stats, {
-    
-    f <- purrr::map2(.x = cache, 
-                     .y = cache_ids, 
-                     .f = ~ {
-                       db_compute_dist_stats(dt         = .x, 
-                                             mean_table = svy_mean_ppp_table, 
-                                             pop_table  = dl_aux$pop, 
-                                             cache_id   = .y)
-                     })
-    names(f) <- cache_ids
-    return(f)
-  }),
+  # tar_target( dl_dist_stats, {
+  #   
+  #   f <- purrr::map2(.x = cache, 
+  #                    .y = cache_ids, 
+  #                    .f = ~ {
+  #                      db_compute_dist_stats(dt         = .x, 
+  #                                            mean_table = svy_mean_ppp_table, 
+  #                                            pop_table  = dl_aux$pop, 
+  #                                            cache_id   = .y)
+  #                    })
+  #   names(f) <- cache_ids
+  #   return(f)
+  # }),
   
   ### Create dist stat table ------
 
@@ -414,23 +413,23 @@ list(
   ),
   tar_files(aux_out_dir, aux_out_files),
   
-  tar_target(aux_out, {
-    
-    x <- purrr::map2(.x = aux_clean, 
-                .y = aux_out_dir, 
-                .f = fst::write_fst, 
-                compress = gls$FST_COMP_LVL)
-    names(x) <- aux_names
-    return(x)
-  }),
+  # tar_target(aux_out, {
+  #   
+  #   x <- purrr::map2(.x = aux_clean, 
+  #               .y = aux_out_dir, 
+  #               .f = fst::write_fst, 
+  #               compress = gls$FST_COMP_LVL)
+  #   names(x) <- aux_names
+  #   return(x)
+  # }),
   
-  # tar_target(aux_out, 
-  #            fst::write_fst(x        = aux_clean,
-  #                           path     = aux_out_dir,
-  #                           compress = gls$FST_COMP_LVL), 
-  #            pattern   = map(aux_clean, aux_out_dir), 
-  #            iteration = "list"),
-  # 
+  tar_target(aux_out,
+             fst::write_fst(x        = aux_clean,
+                            path     = aux_out_dir,
+                            compress = gls$FST_COMP_LVL),
+             pattern   = map(aux_clean, aux_out_dir),
+             iteration = "list"),
+
   ### Save additional AUX files ----
   
   # Countries
