@@ -104,8 +104,15 @@ list(
   tar_target(
     cache_inventory, 
     {
-      x <- fst::read_fst(cache_inventory_dir, 
-                         as.data.table = TRUE)
+      x <- pip_update_cache_inventory(
+        pipeline_inventory = pipeline_inventory,
+        pip_data_dir       = gls$PIP_DATA_DIR,
+        cache_svy_dir      = gls$CACHE_SVY_DIR_PC,
+        tool               = "PC", 
+        save               = TRUE, 
+        load               = TRUE, 
+        verbose            = TRUE
+      )
       # to filter temporarily
       # x <- x[grepl("^(CHN|IDN)", survey_id)
       #        ][gsub("([A-Z]+)_([0-9]+)_(.*)", "\\2", survey_id) > 2010
@@ -182,8 +189,8 @@ list(
   tar_target(
     svy_mean_lcu,{
       w <- purrr::map2(.x = cache, 
-                  .y = gd_means, 
-                  .f = db_compute_survey_mean)
+                       .y = gd_means, 
+                       .f = db_compute_survey_mean)
       names(w) <- cache_ids
       return(w)
     }
