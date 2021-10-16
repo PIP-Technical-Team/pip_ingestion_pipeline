@@ -179,12 +179,12 @@ list(
   
   ## Calculate LCU survey mean ----
   
-  # tar_target(
-  #   svy_mean_lcu,
-  #   db_compute_survey_mean(cache, gd_means),
-  #   pattern =  map(cache, gd_means),
-  #   iteration = "list"
-  # ),
+  tar_target(
+    svy_mean_lcu,
+    db_compute_survey_mean(cache, gd_means),
+    pattern =  map(cache, gd_means),
+    iteration = "list"
+  ),
   
   # tar_target(
   #   svy_mean_lcu,{
@@ -196,22 +196,22 @@ list(
   #   }
   # ),
    
-  tar_target(
-    svy_mean_lcu,{
-      w <- purrr::imap(.x =  cache_ids,
-                      .f = {
-                        cli::cli_progress_step("Working on {.x}")
-                        ch <- cache[[.y]]
-                        gm <- gd_means[[.x]]
-                        
-                        db_compute_survey_mean(ch, gm)
-                        
-                      }
-                      )
-      names(w) <- cache_ids
-      return(w)
-    }
-  ),
+  # tar_target(
+  #   svy_mean_lcu,{
+  #     w <- purrr::imap(.x =  cache_ids,
+  #                     .f = {
+  #                       cli::cli_progress_step("Working on {.x}")
+  #                       ch <- cache[[.y]]
+  #                       gm <- gd_means[[.x]]
+  #                       
+  #                       db_compute_survey_mean(ch, gm)
+  #                       
+  #                     }
+  #                     )
+  #     names(w) <- cache_ids
+  #     return(w)
+  #   }
+  # ),
   
   ## Create LCU table ------
   tar_target(
