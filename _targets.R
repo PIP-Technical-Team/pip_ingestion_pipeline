@@ -133,20 +133,20 @@ list(
   
   tar_files(cache_dir, cache_files), # label as files, not targets
   
-  tar_target( cache, {
-    x <- purrr::map(.x = cache_dir, 
-               .f = fst::read_fst, 
-               as.data.table = TRUE)
-    names(x) <- cache_ids
-    return(x)
-    
-    }),
+  # tar_target( cache, {
+  #   x <- purrr::map(.x = cache_dir, 
+  #              .f = fst::read_fst, 
+  #              as.data.table = TRUE)
+  #   names(x) <- cache_ids
+  #   return(x)
+  #   
+  #   }),
   
-  # tar_target(cache, 
-  #            fst::read_fst(path = cache_dir, 
-  #                          as.data.table = TRUE), 
-  #            pattern = map(cache_dir), 
-  #            iteration = "list"),
+  tar_target(cache,
+             fst::read_fst(path = cache_dir,
+                           as.data.table = TRUE),
+             pattern = map(cache_dir),
+             iteration = "list"),
   # 
   ## LCU survey means ---- 
   
@@ -179,22 +179,39 @@ list(
   
   ## Calculate LCU survey mean ----
   
-  tar_target(
-    svy_mean_lcu,
-    db_compute_survey_mean(cache, gd_means),
-    pattern =  map(cache, gd_means),
-    iteration = "list"
-  ),
+  # tar_target(
+  #   svy_mean_lcu,
+  #   db_compute_survey_mean(cache, gd_means),
+  #   pattern =  map(cache, gd_means),
+  #   iteration = "list"
+  # ),
   
   # tar_target(
   #   svy_mean_lcu,{
-  #     w <- purrr::map2(.x = cache, 
-  #                      .y = gd_means, 
+  #     w <- purrr::map2(.x = cache,
+  #                      .y = gd_means,
   #                      .f = db_compute_survey_mean)
   #     names(w) <- cache_ids
   #     return(w)
   #   }
   # ),
+   
+  tar_target(
+    svy_mean_lcu,{
+      w <- purrr::imap(.x =  cache_ids,
+                      .f = {
+                        cli::cli_progress_step("Working on {.x}")
+                        ch <- cache[[.y]]
+                        gm <- gd_means[[.x]]
+                        
+                        db_compute_survey_mean(ch, gm)
+                        
+                      }
+                      )
+      names(w) <- cache_ids
+      return(w)
+    }
+  ),
   
   ## Create LCU table ------
   tar_target(
