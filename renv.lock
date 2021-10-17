@@ -675,16 +675,16 @@
     },
     "pipdm": {
       "Package": "pipdm",
-      "Version": "0.0.6.9001",
+      "Version": "0.0.7",
       "Source": "GitHub",
       "Remotes": "github::PIP-Technical-Team/pipload,\ngithub::PIP-Technical-Team/wbpip",
       "RemoteType": "github",
       "RemoteHost": "api.github.com",
       "RemoteRepo": "pipdm",
-      "RemoteUsername": "PIP-Technical-team",
-      "RemoteRef": "development",
-      "RemoteSha": "3f19502f9cf4dc01d593cf0f75cfa2482e757780",
-      "Hash": "5dd271f863365222c776507d6e056649"
+      "RemoteUsername": "PIP-Technical-Team",
+      "RemoteRef": "master",
+      "RemoteSha": "b5958cead233625aed90d13c47401484e9582c18",
+      "Hash": "6d57ed11cfbda10df7741e2bdb62df24"
     },
     "pipload": {
       "Package": "pipload",
