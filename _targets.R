@@ -1,10 +1,10 @@
 # ---- Install packages ----
 
-# remotes::install_github("PIP-Technical-Team/pipload@master",
+# remotes::install_github("PIP-Technical-Team/pipload@development",
 #                         dependencies = FALSE)
 # remotes::install_github("PIP-Technical-Team/wbpip@synth_vector",
-#                         dependencies = FALSE)
-# remotes::install_github("PIP-Technical-Team/pipdm@master",
+#                        dependencies = FALSE)
+# remotes::install_github("PIP-Technical-Team/pipdm@development",
 #                         dependencies = FALSE)
 
 # ---- Start up ----
@@ -69,11 +69,11 @@ list(
   ### Create pipeline inventory ----
   
   tar_target(pipeline_inventory, {
-    x <- pipdm::db_filter_inventory(
+    x <- db_filter_inventory(
       dt        = pip_inventory,
       pfw_table = dl_aux$pfw)
-    # Uncomment for specific countries
-    # x <- x[country_code == 'ARG' & surveyid_year == 2015]
+     # Uncomment for specific countries
+    x <- x[country_code == 'PHL' & surveyid_year == 2000]
     # x <- x[country_code == 'ARG']
   }
   ),
@@ -81,7 +81,7 @@ list(
   ### Create cache files ----
   
   tar_target(status_cache_files_creation, 
-             pipdm::create_cache_file(
+             create_cache_file(
                pipeline_inventory = pipeline_inventory,
                pip_data_dir       = gls$PIP_DATA_DIR,
                tool               = "PC",
@@ -96,11 +96,6 @@ list(
   
   ### Cache inventory file ----
   
-  tar_target(
-    cache_inventory_dir, 
-    cache_inventory_path(gls$CACHE_SVY_DIR_PC),
-    format = "file"
-  ),
   tar_target(
     cache_inventory, 
     {
@@ -117,7 +112,7 @@ list(
       # x <- x[grepl("^(CHN|IDN)", survey_id)
       #        ][gsub("([A-Z]+)_([0-9]+)_(.*)", "\\2", survey_id) > 2010
       #        ]
-    },
+    }
   ),
   
   ### Identifiers -----
@@ -337,7 +332,7 @@ list(
   
   tar_target(
     survey_files,
-    pipdm::save_survey_data(
+    save_survey_data(
       dt              = cache,
       cache_filename  = cache_ids,
       output_dir      = gls$OUT_SVY_DIR_PC,
@@ -365,7 +360,7 @@ list(
   # Countries
   tar_target(
     countries_out,
-    pipdm::save_aux_data(
+    save_aux_data(
       dl_aux$countries %>% 
         data.table::setnames('pcn_region_code', 'region_code'),
       paste0(gls$OUT_AUX_DIR_PC, "countries.fst"),
@@ -377,7 +372,7 @@ list(
   # Regions
   tar_target(
     regions_out,
-    pipdm::save_aux_data(
+    save_aux_data(
       dl_aux$regions,
       paste0(gls$OUT_AUX_DIR_PC, "regions.fst"),
       compress = TRUE
@@ -388,7 +383,7 @@ list(
   # Country profiles 
   tar_target(
     country_profiles_out,
-    pipdm::save_aux_data(
+    save_aux_data(
       dl_aux$cp,
       paste0(gls$OUT_AUX_DIR_PC, "country_profiles.rds"),
       compress = TRUE
@@ -399,7 +394,7 @@ list(
   # Poverty lines
   tar_target(
     poverty_lines_out,
-    pipdm::save_aux_data(
+    save_aux_data(
       dl_aux$pl,
       paste0(gls$OUT_AUX_DIR_PC, "poverty_lines.fst"),
       compress = TRUE
@@ -410,7 +405,7 @@ list(
   # Survey metadata (for Data Sources page)
   tar_target(
     survey_metadata_out,
-    pipdm::save_aux_data(
+    save_aux_data(
       dl_aux$metadata,
       paste0(gls$OUT_AUX_DIR_PC, "survey_metadata.rds"),
       compress = TRUE
@@ -421,7 +416,7 @@ list(
   # Indicators master
   tar_target(
     indicators_out,
-    pipdm::save_aux_data(
+    save_aux_data(
       dl_aux$indicators,
       paste0(gls$OUT_AUX_DIR_PC, "indicators.fst"),
       compress = TRUE
@@ -432,7 +427,7 @@ list(
   # Regional population
   tar_target(
     pop_region_out,
-    pipdm::save_aux_data(
+    save_aux_data(
       dt_pop_region,
       paste0(gls$OUT_AUX_DIR_PC, "pop_region.fst"),
       compress = TRUE
@@ -443,7 +438,7 @@ list(
   # Coverage 
   tar_target(
     coverage_out,
-    pipdm::save_aux_data(
+    save_aux_data(
       dt_coverage,
       paste0(gls$OUT_AUX_DIR_PC, "coverage.fst"),
       compress = TRUE
@@ -454,7 +449,7 @@ list(
   # Decomposition master
   tar_target(
     decomposition_out,
-    pipdm::save_aux_data(
+    save_aux_data(
       dt_decomposition,
       paste0(gls$OUT_AUX_DIR_PC, "decomposition.fst"),
       compress = TRUE
@@ -465,7 +460,7 @@ list(
   # Framework data
   tar_target(
     framework_out,
-    pipdm::save_aux_data(
+    save_aux_data(
       dt_framework,
       paste0(gls$OUT_AUX_DIR_PC, "framework.fst"),
       compress = TRUE
@@ -499,7 +494,7 @@ list(
   
   tar_target(
     lorenz_out,
-    pipdm::save_aux_data(
+    save_aux_data(
       lorenz,
       paste0(gls$OUT_AUX_DIR_PC, "lorenz.rds"),
       compress = TRUE

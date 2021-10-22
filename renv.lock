@@ -675,28 +675,28 @@
     },
     "pipdm": {
       "Package": "pipdm",
-      "Version": "0.0.7",
+      "Version": "0.0.7.9012",
       "Source": "GitHub",
       "Remotes": "github::PIP-Technical-Team/pipload,\ngithub::PIP-Technical-Team/wbpip",
       "RemoteType": "github",
       "RemoteHost": "api.github.com",
       "RemoteRepo": "pipdm",
       "RemoteUsername": "PIP-Technical-Team",
-      "RemoteRef": "master",
-      "RemoteSha": "b5958cead233625aed90d13c47401484e9582c18",
-      "Hash": "6d57ed11cfbda10df7741e2bdb62df24"
+      "RemoteRef": "development",
+      "RemoteSha": "64ba44a21cf3fcf924fe98fb89b54ebf85177185",
+      "Hash": "9d50b594e19c2b2fe05a7bbc26a3d288"
     },
     "pipload": {
       "Package": "pipload",
-      "Version": "0.1.6.9000",
+      "Version": "0.1.7.9003",
       "Source": "GitHub",
       "RemoteType": "github",
       "RemoteHost": "api.github.com",
       "RemoteRepo": "pipload",
       "RemoteUsername": "PIP-Technical-Team",
-      "RemoteRef": "master",
-      "RemoteSha": "411863ba9d85c684a005856e7c37f051582ea955",
-      "Hash": "62e113ba5ea920610f18c070b5c79592"
+      "RemoteRef": "development",
+      "RemoteSha": "92551ab1ab45321bed8357459fdff3ee8bc4d979",
+      "Hash": "e114ca95562bebab73996b5272570226"
     },
     "pkgconfig": {
       "Package": "pkgconfig",
