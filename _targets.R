@@ -4,6 +4,8 @@
 #                         dependencies = FALSE)
 # remotes::install_github("PIP-Technical-Team/wbpip@synth_vector",
 #                        dependencies = FALSE)
+# remotes::install_github("PIP-Technical-Team/pipdm",
+#                         dependencies = FALSE)
 # remotes::install_github("PIP-Technical-Team/pipdm@development",
 #                         dependencies = FALSE)
 
@@ -73,8 +75,8 @@ list(
       dt        = pip_inventory,
       pfw_table = dl_aux$pfw)
      # Uncomment for specific countries
-    x <- x[country_code == 'PHL' & surveyid_year == 2000]
-    # x <- x[country_code == 'ARG']
+    # x <- x[country_code == 'PHL' & surveyid_year == 2000]
+    # x <- x[country_code %in% c("IND", "IDN")]
   }
   ),
   
@@ -87,7 +89,7 @@ list(
                tool               = "PC",
                cache_svy_dir      = gls$CACHE_SVY_DIR_PC,
                compress           = gls$FST_COMP_LVL,
-               force              = FALSE,
+               force              = TRUE,
                verbose            = FALSE,
                cpi_dt             = dl_aux$cpi,
                ppp_dt             = dl_aux$ppp, 
