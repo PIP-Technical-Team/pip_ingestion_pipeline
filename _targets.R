@@ -527,6 +527,14 @@ list(
                      name     = "interpolated_means", 
                      time     = gls$TIME, 
                      compress = gls$FST_COMP_LVL)
+  ),
+  
+  ### Save data timestamp file ----
+  
+  tar_target(
+    data_timestamp_file,
+    format = 'file', 
+    writeLines(as.character(Sys.time()), paste0(gls$PIP_PIPE_DIR, "pc_data/data_update_timestamp.txt"))
   )
   
 )
