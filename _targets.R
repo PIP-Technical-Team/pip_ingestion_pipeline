@@ -274,6 +274,19 @@ list(
     )
   ),
   
+  
+  ### Create censoring table -------
+  
+  # Create censoring list
+  tar_target(
+    dl_censored,
+    pipdm::db_create_censoring_table(
+      censored = dl$censoring, 
+      coverage_table = dt_coverage,
+      coverage_threshold = 50
+    )
+  ),
+  
   ### Create regional population table ----
   
   tar_target(
@@ -436,6 +449,18 @@ list(
     ),
     format = 'file',
   ),
+  
+  # Censoring 
+  tar_target(
+    censored_out,
+    pipdm::save_aux_data(
+      dl_censored,
+      paste0(gls$OUT_AUX_DIR_PC, "censored.rds"),
+      compress = TRUE
+    ),
+    format = 'file',
+  ),
+  
   
   # Decomposition master
   tar_target(
