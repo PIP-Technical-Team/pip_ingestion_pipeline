@@ -4,6 +4,8 @@
 #                         dependencies = FALSE)
 # remotes::install_github("PIP-Technical-Team/wbpip@synth_vector",
 #                        dependencies = FALSE)
+# remotes::install_github("PIP-Technical-Team/wbpip",
+#                        dependencies = FALSE)
 # remotes::install_github("PIP-Technical-Team/pipdm",
 #                         dependencies = FALSE)
 # remotes::install_github("PIP-Technical-Team/pipdm@development",
@@ -89,7 +91,7 @@ list(
                tool               = "PC",
                cache_svy_dir      = gls$CACHE_SVY_DIR_PC,
                compress           = gls$FST_COMP_LVL,
-               force              = TRUE,
+               force              = FALSE,
                verbose            = FALSE,
                cpi_dt             = dl_aux$cpi,
                ppp_dt             = dl_aux$ppp, 
