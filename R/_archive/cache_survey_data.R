@@ -91,7 +91,7 @@ cache_survey_data <- function(pipeline_inventory,
                        .f = ~ {
                          id_what <- gsub("([A-Z]+_[0-9]+)(.+)", "\\1", .x)
                          pb$tick(tokens = list(what = id_what))
-                         # pipdm::process_svy_data_to_cache(
+                          pipdm::process_svy_data_to_cache(
                            survey_id     = .x, 
                            chh_filename  = .y,
                            pip_data_dir  = pip_data_dir,

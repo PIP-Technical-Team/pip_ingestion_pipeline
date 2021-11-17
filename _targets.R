@@ -568,7 +568,7 @@ list(
   
   tar_target(
     data_timestamp_file,
-    format = 'file', 
+    # format = 'file', 
     writeLines(as.character(Sys.time()), paste0(gls$PIP_PIPE_DIR, "pc_data/data_update_timestamp.txt"))
   )
   
