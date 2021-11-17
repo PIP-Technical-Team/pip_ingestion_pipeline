@@ -46,14 +46,8 @@ tar_option_set(
 
 # ---- Step 1: Prepare data ----
 
-## Load PIP inventory 
-pip_inventory <- 
-  pipload::pip_find_data(
-    inv_file = paste0(gls$PIP_DATA_DIR, '_inventory/inventory.fst'),
-    filter_to_pc = TRUE,
-    maindir = gls$PIP_DATA_DIR)
 
-# Load AUX data
+## Load AUX data -----
 aux_tb <- prep_aux_data(gls$PIP_DATA_DIR)
 
 dl_aux <- lapply(aux_tb$auxname, function(x) {
@@ -64,41 +58,44 @@ dl_aux <- lapply(aux_tb$auxname, function(x) {
 })
 names(dl_aux) <- aux_tb$auxname                
 
+
+## Load PIP inventory ----
+pip_inventory <- 
+  pipload::pip_find_data(
+    inv_file = paste0(gls$PIP_DATA_DIR, '_inventory/inventory.fst'),
+    filter_to_pc = TRUE,
+    maindir = gls$PIP_DATA_DIR)
+
+
+## Create pipeline inventory ----
+
+pipeline_inventory <- 
+  db_filter_inventory(dt        = pip_inventory,
+                      pfw_table = dl_aux$pfw)
+  # Uncomment for specific countries
+  # pipeline_inventory <- 
+  #    pipeline_inventory[country_code == 'PHL' & surveyid_year == 2000]
+
+## --- Create cache files ----
+
+status_cache_files_creation <- 
+           create_cache_file(
+             pipeline_inventory = pipeline_inventory,
+             pip_data_dir       = gls$PIP_DATA_DIR,
+             tool               = "PC",
+             cache_svy_dir      = gls$CACHE_SVY_DIR_PC,
+             compress           = gls$FST_COMP_LVL,
+             force              = FALSE,
+             verbose            = FALSE,
+             cpi_dt             = dl_aux$cpi,
+             ppp_dt             = dl_aux$ppp, 
+             pfw_dt             = dl_aux$pfw)
+
 # ---- Step 2: Run pipeline -----
 
 list(
   
-  ## Inventory and cache files ----
-  
-  ### Create pipeline inventory ----
-  
-  tar_target(pipeline_inventory, {
-    x <- db_filter_inventory(
-      dt        = pip_inventory,
-      pfw_table = dl_aux$pfw)
-     # Uncomment for specific countries
-    # x <- x[country_code == 'PHL' & surveyid_year == 2000]
-    # x <- x[country_code %in% c("IND", "IDN")]
-  }
-  ),
-  
-  ### Create cache files ----
-  
-  tar_target(status_cache_files_creation, 
-             create_cache_file(
-               pipeline_inventory = pipeline_inventory,
-               pip_data_dir       = gls$PIP_DATA_DIR,
-               tool               = "PC",
-               cache_svy_dir      = gls$CACHE_SVY_DIR_PC,
-               compress           = gls$FST_COMP_LVL,
-               force              = FALSE,
-               verbose            = FALSE,
-               cpi_dt             = dl_aux$cpi,
-               ppp_dt             = dl_aux$ppp, 
-               pfw_dt             = dl_aux$pfw)
-  ),
-  
-  ### Cache inventory file ----
+### Cache inventory file ----
   
   tar_target(
     cache_inventory, 
