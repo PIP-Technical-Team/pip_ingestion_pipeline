@@ -293,7 +293,7 @@ list(
   tar_target(
     dl_censored,
     pipdm::db_create_censoring_table(
-      censored = dl$censoring, 
+      censored = dl_aux$censoring, 
       coverage_table = dt_coverage,
       coverage_threshold = 50
     )
