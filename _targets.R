@@ -121,7 +121,7 @@ list(
   tar_target(cache_ids, 
              get_cache_id(cache_inventory)),
   
-  tar_files(cache_dir, 
+  tar_target(cache_dir, 
             get_cache_files(cache_inventory)), # label as files, not targets
 
   # tar_target(cache_files,
@@ -130,10 +130,7 @@ list(
   # tar_files(cache_dir, cache_files), # label as files, not targets
   
   tar_target(cache,
-             fst::read_fst(path = cache_dir,
-                           as.data.table = TRUE),
-             pattern = map(cache_dir),
-             iteration = "list"),
+             mp_cache(cache_dir)),
   # 
   ## LCU survey means ---- 
   

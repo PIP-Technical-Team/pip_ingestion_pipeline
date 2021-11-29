@@ -12,9 +12,10 @@ if (requireNamespace("gert", quietly = TRUE)) {
 if (requireNamespace("pushoverr", quietly = TRUE)) {
   
   
-  run_tar <- function() {
+  run_tar <- function(names = NULL) {
+    # names <- rlang::enquo(names)
     start <-  format(Sys.time(), "%H:%M")
-    try(tar_make())
+    try(tar_make(all_of(names)))
     finish <- format(Sys.time(), "%H:%M")
     msg <- paste0("Finished pipeline. \nStarted at ", start, 
                   " \nFinished at ", finish)
