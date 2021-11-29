@@ -203,28 +203,12 @@ list(
   
   # Calculate Lorenz curves (for microdata)
   tar_target(
-    lorenz_all,
-    db_compute_lorenz(cache),
-    pattern = map(cache),
-    iteration = "list"
-  ),
-
-  # Clean group data
-  tar_target(
     lorenz,
-    purrr::keep(lorenz_all, ~!is.null(.x))
+    mp_lorenz(cache)
   ),
   
   ### Calculate distributional statistics ----
-  
-  # Get mean 
-  # tar_target(
-  #   dl_mean, # name vectors. 
-  #   named_mean(svy_mean_lcu),
-  #   pattern = map(svy_mean_lcu),
-  #   iteration = "list"
-  # ),
-  
+
    
   tar_target(
     name      = dl_dist_stats,
