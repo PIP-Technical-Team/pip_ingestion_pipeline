@@ -121,13 +121,13 @@ list(
   tar_target(cache_ids, 
              get_cache_id(cache_inventory)),
   
-  tar_target(survey_ids, 
-             get_survey_id(cache_inventory)),
-  
-  tar_target(cache_files,
-             get_cache_files(cache_inventory)),
-  
-  tar_files(cache_dir, cache_files), # label as files, not targets
+  tar_files(cache_dir, 
+            get_cache_files(cache_inventory)), # label as files, not targets
+
+  # tar_target(cache_files,
+  #            get_cache_files(cache_inventory)),
+  # 
+  # tar_files(cache_dir, cache_files), # label as files, not targets
   
   tar_target(cache,
              fst::read_fst(path = cache_dir,
@@ -168,9 +168,7 @@ list(
   
   tar_target(
     svy_mean_lcu,
-    db_compute_survey_mean(cache, gd_means),
-    pattern =  map(cache, gd_means),
-    iteration = "list"
+    mp_svy_mean_lcu(cache, gd_means)
   ),
   
   
