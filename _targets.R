@@ -202,22 +202,34 @@ list(
   ## Distributional stats ---- 
   
   # Calculate Lorenz curves (for microdata)
+  # tar_target(
+  #   lorenz,
+  #   mp_lorenz(cache)
+  # ),
+
+  # Calculate Lorenz curves (for microdata)
+  tar_target(
+    lorenz_all,
+    db_compute_lorenz(cache),
+    pattern = map(cache),
+    iteration = "list"
+  ),
+
+  # Clean group data
   tar_target(
     lorenz,
-    mp_lorenz(cache)
+    purrr::keep(lorenz_all, ~!is.null(.x))
   ),
+
   
   ### Calculate distributional statistics ----
 
    
-  tar_target(
-    name      = dl_dist_stats,
-    command   = db_compute_dist_stats(dt         = cache,
-                                      mean_table = svy_mean_ppp_table,
-                                      pop_table  = dl_aux$pop,
-                                      cache_id   = cache_ids),
-    pattern   =  map(cache, cache_ids),
-    iteration = "list"
+  tar_target(dl_dist_stats,
+             mp_dl_dist_stats(dt         = cache,
+                              mean_table = svy_mean_ppp_table,
+                              pop_table  = dl_aux$pop,
+                              cache_id   = cache_ids)
   ),
   
   ### Create dist stat table ------
