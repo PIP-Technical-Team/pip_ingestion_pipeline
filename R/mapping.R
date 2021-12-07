@@ -4,12 +4,46 @@ mp_svy_mean_lcu <- function(cache, gd_means) {
 }
 
 
-mp_cache <- function(cache_dir) {
-    purrr::map(.x = cache_dir, 
-               .f = ~{
-                 fst::read_fst(path = .x,
-                               as.data.table = TRUE)
-               })
+mp_cache <- 
+  function(cache_dir = NULL, 
+           load = TRUE, 
+           save = FALSE, 
+           gls  = pipload::pip_create_globals(Sys.getenv("PIP_ROOT_DIR"))) {
+  
+    dir <- paste0(gls$PIP_PIPE_DIR, "pc_data/cache/global_list/")
+    
+    global_file <- paste0(dir, "global_list.rds")
+    
+    if (isTRUE(save)) {
+      
+      if (is.null(cache_dir)) {
+        cli::cli_abort("You must provide a {.code cache_dir} vector")
+      }
+      ch_names <- gsub("(.+/)([A-Za-z0-9_\\-]+)(\\.fst$)", "\\2", cache_dir)
+      names(ch_names) <- NULL
+      names(cache_dir) <- ch_names
+      y <- purrr::map(.x = cli::cli_progress_along(ch_names), 
+                 .f = ~{
+                   fst::read_fst(path = cache_dir[.x],
+                                 as.data.table = TRUE)
+                 })
+      
+      readr::write_rds(y, global_file)
+      
+    }
+    
+    if (isTRUE(load)) {
+      if (file.exists(global_file)) {
+        x <- readr::read_rds(global_file)
+      } else {
+        cli::cli_abort("file {.file {global_file}} does not exist. 
+                       Use option {.code save = TRUE} instead")
+      }
+    } else {
+      x <- TRUE
+    }
+    
+    return(x)
   
 }
 

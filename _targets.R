@@ -10,6 +10,8 @@
 #                         dependencies = FALSE)
 # remotes::install_github("PIP-Technical-Team/pipdm@development",
 #                         dependencies = FALSE)
+# remotes::install_github("PIP-Technical-Team/pipdm@chr2fct",
+#                         dependencies = FALSE)
 
 # ---- Start up ----
 
@@ -91,48 +93,38 @@ status_cache_files_creation <-
              ppp_dt             = dl_aux$ppp, 
              pfw_dt             = dl_aux$pfw)
 
+
+## bring cache our of pipeline -----
+
+cache_inventory <- 
+  pip_update_cache_inventory(
+    pipeline_inventory = pipeline_inventory,
+    pip_data_dir       = gls$PIP_DATA_DIR,
+    cache_svy_dir      = gls$CACHE_SVY_DIR_PC,
+    tool               = "PC", 
+    save               = FALSE, 
+    load               = TRUE, 
+    verbose            = TRUE
+  )
+# to filter temporarily
+# cache_inventory 
+#   <- cache_inventory[grepl("^(CHN|IDN)", survey_id)
+#        ][gsub("([A-Z]+)_([0-9]+)_(.*)", "\\2", survey_id) > 2010
+#        ]
+
+cache_ids <- get_cache_id(cache_inventory)
+cache_dir <- get_cache_files(cache_inventory)
+cache_o   <- mp_cache(cache_dir = cache_dir, 
+                      load = TRUE, 
+                      save = TRUE, 
+                      gls = gls)
+
 # ---- Step 2: Run pipeline -----
 
 list(
   
-### Cache inventory file ----
-  
-  tar_target(
-    cache_inventory, 
-    {
-      x <- pip_update_cache_inventory(
-        pipeline_inventory = pipeline_inventory,
-        pip_data_dir       = gls$PIP_DATA_DIR,
-        cache_svy_dir      = gls$CACHE_SVY_DIR_PC,
-        tool               = "PC", 
-        save               = TRUE, 
-        load               = TRUE, 
-        verbose            = TRUE
-      )
-      # to filter temporarily
-      # x <- x[grepl("^(CHN|IDN)", survey_id)
-      #        ][gsub("([A-Z]+)_([0-9]+)_(.*)", "\\2", survey_id) > 2010
-      #        ]
-    }
-  ),
-  
-  ### Identifiers -----
-  
-  tar_target(cache_ids, 
-             get_cache_id(cache_inventory)),
-  
-  tar_target(cache_dir, 
-            get_cache_files(cache_inventory)), # label as files, not targets
-
-  # tar_target(cache_files,
-  #            get_cache_files(cache_inventory)),
-  # 
-  # tar_files(cache_dir, cache_files), # label as files, not targets
-  
-  tar_target(cache,
-             mp_cache(cache_dir)),
-  # 
-  ## LCU survey means ---- 
+## LCU survey means ---- 
+  tar_target(cache, cache_o, iteration = "list"),
   
   ### Fetch GD survey means and convert them to daily values ----
   tar_target(
@@ -202,24 +194,24 @@ list(
   ## Distributional stats ---- 
   
   # Calculate Lorenz curves (for microdata)
-  # tar_target(
-  #   lorenz,
-  #   mp_lorenz(cache)
-  # ),
-
-  # Calculate Lorenz curves (for microdata)
-  tar_target(
-    lorenz_all,
-    db_compute_lorenz(cache),
-    pattern = map(cache),
-    iteration = "list"
-  ),
-
-  # Clean group data
   tar_target(
     lorenz,
-    purrr::keep(lorenz_all, ~!is.null(.x))
+    mp_lorenz(cache)
   ),
+
+  # Calculate Lorenz curves (for microdata)
+  # tar_target(
+  #   lorenz_all,
+  #   db_compute_lorenz(cache),
+  #   pattern = map(cache),
+  #   iteration = "list"
+  # ),
+
+  # Clean group data
+  # tar_target(
+  #   lorenz,
+  #   purrr::keep(lorenz_all, ~!is.null(.x))
+  # ),
 
   
   ### Calculate distributional statistics ----
