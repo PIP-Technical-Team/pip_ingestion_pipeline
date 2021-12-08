@@ -74,24 +74,24 @@ pip_inventory <-
 pipeline_inventory <- 
   db_filter_inventory(dt        = pip_inventory,
                       pfw_table = dl_aux$pfw)
-  # Uncomment for specific countries
-  # pipeline_inventory <- 
-  #    pipeline_inventory[country_code == 'PHL' & surveyid_year == 2000]
+# Uncomment for specific countries
+# pipeline_inventory <- 
+#    pipeline_inventory[country_code == 'PHL' & surveyid_year == 2000]
 
 ## --- Create cache files ----
 
 status_cache_files_creation <- 
-           create_cache_file(
-             pipeline_inventory = pipeline_inventory,
-             pip_data_dir       = gls$PIP_DATA_DIR,
-             tool               = "PC",
-             cache_svy_dir      = gls$CACHE_SVY_DIR_PC,
-             compress           = gls$FST_COMP_LVL,
-             force              = FALSE,
-             verbose            = FALSE,
-             cpi_dt             = dl_aux$cpi,
-             ppp_dt             = dl_aux$ppp, 
-             pfw_dt             = dl_aux$pfw)
+  create_cache_file(
+    pipeline_inventory = pipeline_inventory,
+    pip_data_dir       = gls$PIP_DATA_DIR,
+    tool               = "PC",
+    cache_svy_dir      = gls$CACHE_SVY_DIR_PC,
+    compress           = gls$FST_COMP_LVL,
+    force              = FALSE,
+    verbose            = FALSE,
+    cpi_dt             = dl_aux$cpi,
+    ppp_dt             = dl_aux$ppp, 
+    pfw_dt             = dl_aux$pfw)
 
 
 ## bring cache our of pipeline -----
@@ -112,19 +112,20 @@ cache_inventory <-
 #        ][gsub("([A-Z]+)_([0-9]+)_(.*)", "\\2", survey_id) > 2010
 #        ]
 
+
 cache_ids <- get_cache_id(cache_inventory)
 cache_dir <- get_cache_files(cache_inventory)
-cache_o   <- mp_cache(cache_dir = cache_dir, 
-                      load = TRUE, 
-                      save = TRUE, 
-                      gls = gls)
+cache   <- mp_cache(cache_dir = cache_dir, 
+                      load      = TRUE, 
+                      save      = FALSE, 
+                      gls       = gls)
 
 # ---- Step 2: Run pipeline -----
 
 list(
   
-## LCU survey means ---- 
-  tar_target(cache, cache_o, iteration = "list"),
+  ## LCU survey means ---- 
+  # tar_target(cache, cache_o, iteration = "list"),
   
   ### Fetch GD survey means and convert them to daily values ----
   tar_target(
@@ -198,7 +199,7 @@ list(
     lorenz,
     mp_lorenz(cache)
   ),
-
+  
   # Calculate Lorenz curves (for microdata)
   # tar_target(
   #   lorenz_all,
@@ -206,17 +207,17 @@ list(
   #   pattern = map(cache),
   #   iteration = "list"
   # ),
-
+  
   # Clean group data
   # tar_target(
   #   lorenz,
   #   purrr::keep(lorenz_all, ~!is.null(.x))
   # ),
-
+  
   
   ### Calculate distributional statistics ----
-
-   
+  
+  
   tar_target(dl_dist_stats,
              mp_dl_dist_stats(dt         = cache,
                               mean_table = svy_mean_ppp_table,
@@ -225,7 +226,7 @@ list(
   ),
   
   ### Create dist stat table ------
-
+  
   # Covert dist stat list to table
   tar_target(dt_dist_stats,
              db_create_dist_table(
@@ -233,7 +234,7 @@ list(
                dsm_table = svy_mean_ppp_table, 
                crr_inv   = cache_inventory)
   ),
-
+  
   ## Output tables --------
   
   ### Create estimations tables ----
@@ -329,13 +330,12 @@ list(
   
   tar_target(
     survey_files,
-    save_survey_data(
+    mp_survey_files(
       dt              = cache,
       cache_filename  = cache_ids,
       output_dir      = gls$OUT_SVY_DIR_PC,
       cols            = c('welfare', 'weight', 'area'),
-      compress        = gls$FST_COMP_LVL), 
-    pattern = map(cache, cache_ids)
+      compress        = gls$FST_COMP_LVL)
   ),
   
   ### Save basic AUX data ----
@@ -351,7 +351,7 @@ list(
                             compress = gls$FST_COMP_LVL),
              pattern   = map(aux_clean, aux_out_dir),
              iteration = "list"),
-
+  
   ### Save additional AUX files ----
   
   # Countries
