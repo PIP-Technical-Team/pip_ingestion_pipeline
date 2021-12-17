@@ -27,9 +27,9 @@ lapply(list.files("./R", full.names = TRUE,
 pipload::add_gls_to_env()
 
 # Check that the correct _targets store is used 
-if (identical(
-  tar_config_get('store'),
-  paste0(gls$PIP_PIPE_DIR, 'pc_data/_targets/'))) {
+if (identical(tar_config_get('store'),
+              paste0(gls$PIP_PIPE_DIR, 'pc_data/_targets/'))
+    ) {
   stop('The store specified in _targets.yaml doesn\'t match with the pipeline directory')
 }
 
@@ -115,6 +115,7 @@ cache_inventory <-
 
 cache_ids <- get_cache_id(cache_inventory)
 cache_dir <- get_cache_files(cache_inventory)
+
 cache   <- mp_cache(cache_dir = cache_dir, 
                       load      = TRUE, 
                       save      = FALSE, 
@@ -271,14 +272,14 @@ list(
   ### Create censoring table -------
   
   # Create censoring list
-  # tar_target(
-  #   dl_censored,
-  #   pipdm::db_create_censoring_table(
-  #     censored = dl$censoring, 
-  #     coverage_table = dt_coverage,
-  #     coverage_threshold = 50
-  #   )
-  # ),
+  tar_target(
+    dl_censored,
+    db_create_censoring_table(
+      censored = dl_aux$censoring,
+      coverage_table = dt_coverage,
+      coverage_threshold = 50
+    )
+  ),
   
   ### Create regional population table ----
   
@@ -444,15 +445,15 @@ list(
   ),
   
   # Censoring 
-  # tar_target(
-  #   censored_out,
-  #   pipdm::save_aux_data(
-  #     dl_censored,
-  #     paste0(gls$OUT_AUX_DIR_PC, "censored.rds"),
-  #     compress = TRUE
-  #   ),
-  #   format = 'file',
-  # ),
+  tar_target(
+    censored_out,
+    pipdm::save_aux_data(
+      dl_censored,
+      paste0(gls$OUT_AUX_DIR_PC, "censored.rds"),
+      compress = TRUE
+    ),
+    format = 'file',
+  ),
   
   
   # Decomposition master
