@@ -89,9 +89,9 @@ status_cache_files_creation <-
     compress           = gls$FST_COMP_LVL,
     force              = FALSE,
     verbose            = FALSE,
-    cpi_dt             = dl_aux$cpi,
-    ppp_dt             = dl_aux$ppp, 
-    pfw_dt             = dl_aux$pfw)
+    cpi_table          = dl_aux$cpi,
+    ppp_table          = dl_aux$ppp, 
+    pfw_table          = dl_aux$pfw)
 
 
 ## bring cache our of pipeline -----
