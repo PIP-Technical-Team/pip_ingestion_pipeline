@@ -91,11 +91,12 @@ cache_survey_data <- function(pipeline_inventory,
                        .f = ~ {
                          id_what <- gsub("([A-Z]+_[0-9]+)(.+)", "\\1", .x)
                          pb$tick(tokens = list(what = id_what))
-                         process_data(survey_id     = .x, 
-                                      chh_filename  = .y,
-                                      pip_data_dir  = pip_data_dir,
-                                      cache_svy_dir = cache_svy_dir,
-                                      compress      = 100) 
+                          pipdm::process_svy_data_to_cache(
+                           survey_id     = .x, 
+                           chh_filename  = .y,
+                           pip_data_dir  = pip_data_dir,
+                           cache_svy_dir = cache_svy_dir,
+                           compress      = 100) 
                        })
   
   #--------- Save correspondence file ---------

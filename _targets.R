@@ -10,6 +10,8 @@
 #                         dependencies = FALSE)
 # remotes::install_github("PIP-Technical-Team/pipdm@development",
 #                         dependencies = FALSE)
+# remotes::install_github("PIP-Technical-Team/pipdm@chr2fct",
+#                         dependencies = FALSE)
 
 # ---- Start up ----
 
@@ -25,9 +27,9 @@ lapply(list.files("./R", full.names = TRUE,
 pipload::add_gls_to_env()
 
 # Check that the correct _targets store is used 
-if (identical(
-  tar_config_get('store'),
-  paste0(gls$PIP_PIPE_DIR, 'pc_data/_targets/'))) {
+if (identical(tar_config_get('store'),
+              paste0(gls$PIP_PIPE_DIR, 'pc_data/_targets/'))
+    ) {
   stop('The store specified in _targets.yaml doesn\'t match with the pipeline directory')
 }
 
@@ -46,14 +48,8 @@ tar_option_set(
 
 # ---- Step 1: Prepare data ----
 
-## Load PIP inventory 
-pip_inventory <- 
-  pipload::pip_find_data(
-    inv_file = paste0(gls$PIP_DATA_DIR, '_inventory/inventory.fst'),
-    filter_to_pc = TRUE,
-    maindir = gls$PIP_DATA_DIR)
 
-# Load AUX data
+## Load AUX data -----
 aux_tb <- prep_aux_data(gls$PIP_DATA_DIR)
 
 dl_aux <- lapply(aux_tb$auxname, function(x) {
@@ -64,81 +60,73 @@ dl_aux <- lapply(aux_tb$auxname, function(x) {
 })
 names(dl_aux) <- aux_tb$auxname                
 
+
+## Load PIP inventory ----
+pip_inventory <- 
+  pipload::pip_find_data(
+    inv_file = paste0(gls$PIP_DATA_DIR, '_inventory/inventory.fst'),
+    filter_to_pc = TRUE,
+    maindir = gls$PIP_DATA_DIR)
+
+
+## Create pipeline inventory ----
+
+pipeline_inventory <- 
+  db_filter_inventory(dt        = pip_inventory,
+                      pfw_table = dl_aux$pfw)
+# Uncomment for specific countries
+# pipeline_inventory <- 
+#    pipeline_inventory[country_code == 'PHL' & surveyid_year == 2000]
+
+## --- Create cache files ----
+
+status_cache_files_creation <- 
+  create_cache_file(
+    pipeline_inventory = pipeline_inventory,
+    pip_data_dir       = gls$PIP_DATA_DIR,
+    tool               = "PC",
+    cache_svy_dir      = gls$CACHE_SVY_DIR_PC,
+    compress           = gls$FST_COMP_LVL,
+    force              = FALSE,
+    verbose            = FALSE,
+    cpi_table          = dl_aux$cpi,
+    ppp_table          = dl_aux$ppp, 
+    pfw_table          = dl_aux$pfw)
+
+
+## bring cache our of pipeline -----
+
+cache_inventory <- 
+  pip_update_cache_inventory(
+    pipeline_inventory = pipeline_inventory,
+    pip_data_dir       = gls$PIP_DATA_DIR,
+    cache_svy_dir      = gls$CACHE_SVY_DIR_PC,
+    tool               = "PC", 
+    save               = FALSE, 
+    load               = TRUE, 
+    verbose            = TRUE
+  )
+# to filter temporarily
+# cache_inventory 
+#   <- cache_inventory[grepl("^(CHN|IDN)", survey_id)
+#        ][gsub("([A-Z]+)_([0-9]+)_(.*)", "\\2", survey_id) > 2010
+#        ]
+
+
+cache_ids <- get_cache_id(cache_inventory)
+cache_dir <- get_cache_files(cache_inventory)
+
+cache   <- mp_cache(cache_dir = cache_dir, 
+                      load      = TRUE, 
+                      save      = FALSE, 
+                      gls       = gls)
+
 # ---- Step 2: Run pipeline -----
 
 list(
   
-  ## Inventory and cache files ----
-  
-  ### Create pipeline inventory ----
-  
-  tar_target(pipeline_inventory, {
-    x <- db_filter_inventory(
-      dt        = pip_inventory,
-      pfw_table = dl_aux$pfw)
-     # Uncomment for specific countries
-    # x <- x[country_code == 'PHL' & surveyid_year == 2000]
-    # x <- x[country_code %in% c("IND", "IDN")]
-  }
-  ),
-  
-  ### Create cache files ----
-  
-  tar_target(status_cache_files_creation, 
-             create_cache_file(
-               pipeline_inventory = pipeline_inventory,
-               pip_data_dir       = gls$PIP_DATA_DIR,
-               tool               = "PC",
-               cache_svy_dir      = gls$CACHE_SVY_DIR_PC,
-               compress           = gls$FST_COMP_LVL,
-               force              = FALSE,
-               verbose            = FALSE,
-               cpi_table          = dl_aux$cpi,
-               ppp_table          = dl_aux$ppp, 
-               pfw_table          = dl_aux$pfw)
-  ),
-  
-  ### Cache inventory file ----
-  
-  tar_target(
-    cache_inventory, 
-    {
-      x <- pip_update_cache_inventory(
-        pipeline_inventory = pipeline_inventory,
-        pip_data_dir       = gls$PIP_DATA_DIR,
-        cache_svy_dir      = gls$CACHE_SVY_DIR_PC,
-        tool               = "PC", 
-        save               = TRUE, 
-        load               = TRUE, 
-        verbose            = TRUE
-      )
-      # to filter temporarily
-      # x <- x[grepl("^(CHN|IDN)", survey_id)
-      #        ][gsub("([A-Z]+)_([0-9]+)_(.*)", "\\2", survey_id) > 2010
-      #        ]
-    }
-  ),
-  
-  ### Identifiers -----
-  
-  tar_target(cache_ids, 
-             get_cache_id(cache_inventory)),
-  
-  tar_target(survey_ids, 
-             get_survey_id(cache_inventory)),
-  
-  tar_target(cache_files,
-             get_cache_files(cache_inventory)),
-  
-  tar_files(cache_dir, cache_files), # label as files, not targets
-  
-  tar_target(cache,
-             fst::read_fst(path = cache_dir,
-                           as.data.table = TRUE),
-             pattern = map(cache_dir),
-             iteration = "list"),
-  # 
   ## LCU survey means ---- 
+  # tar_target(cache, cache_o, iteration = "list"),
   
   ### Fetch GD survey means and convert them to daily values ----
   tar_target(
@@ -171,9 +159,7 @@ list(
   
   tar_target(
     svy_mean_lcu,
-    db_compute_survey_mean(cache, gd_means),
-    pattern =  map(cache, gd_means),
-    iteration = "list"
+    mp_svy_mean_lcu(cache, gd_means)
   ),
   
   
@@ -211,41 +197,37 @@ list(
   
   # Calculate Lorenz curves (for microdata)
   tar_target(
-    lorenz_all,
-    db_compute_lorenz(cache),
-    pattern = map(cache),
-    iteration = "list"
-  ),
-
-  # Clean group data
-  tar_target(
     lorenz,
-    purrr::keep(lorenz_all, ~!is.null(.x))
+    mp_lorenz(cache)
   ),
   
-  ### Calculate distributional statistics ----
-  
-  # Get mean 
+  # Calculate Lorenz curves (for microdata)
   # tar_target(
-  #   dl_mean, # name vectors. 
-  #   named_mean(svy_mean_lcu),
-  #   pattern = map(svy_mean_lcu),
+  #   lorenz_all,
+  #   db_compute_lorenz(cache),
+  #   pattern = map(cache),
   #   iteration = "list"
   # ),
   
-   
-  tar_target(
-    name      = dl_dist_stats,
-    command   = db_compute_dist_stats(dt         = cache,
-                                      mean_table = svy_mean_ppp_table,
-                                      pop_table  = dl_aux$pop,
-                                      cache_id   = cache_ids),
-    pattern   =  map(cache, cache_ids),
-    iteration = "list"
+  # Clean group data
+  # tar_target(
+  #   lorenz,
+  #   purrr::keep(lorenz_all, ~!is.null(.x))
+  # ),
+  
+  
+  ### Calculate distributional statistics ----
+  
+  
+  tar_target(dl_dist_stats,
+             mp_dl_dist_stats(dt         = cache,
+                              mean_table = svy_mean_ppp_table,
+                              pop_table  = dl_aux$pop,
+                              cache_id   = cache_ids)
   ),
   
   ### Create dist stat table ------
-
+  
   # Covert dist stat list to table
   tar_target(dt_dist_stats,
              db_create_dist_table(
@@ -253,7 +235,7 @@ list(
                dsm_table = svy_mean_ppp_table, 
                crr_inv   = cache_inventory)
   ),
-
+  
   ## Output tables --------
   
   ### Create estimations tables ----
@@ -292,8 +274,8 @@ list(
   # Create censoring list
   tar_target(
     dl_censored,
-    pipdm::db_create_censoring_table(
-      censored = dl_aux$censoring, 
+    db_create_censoring_table(
+      censored = dl_aux$censoring,
       coverage_table = dt_coverage,
       coverage_threshold = 50
     )
@@ -349,13 +331,12 @@ list(
   
   tar_target(
     survey_files,
-    save_survey_data(
+    mp_survey_files(
       dt              = cache,
       cache_filename  = cache_ids,
       output_dir      = gls$OUT_SVY_DIR_PC,
       cols            = c('welfare', 'weight', 'area'),
-      compress        = gls$FST_COMP_LVL), 
-    pattern = map(cache, cache_ids)
+      compress        = gls$FST_COMP_LVL)
   ),
   
   ### Save basic AUX data ----
@@ -371,7 +352,7 @@ list(
                             compress = gls$FST_COMP_LVL),
              pattern   = map(aux_clean, aux_out_dir),
              iteration = "list"),
-
+  
   ### Save additional AUX files ----
   
   # Countries
@@ -571,7 +552,7 @@ list(
   
   tar_target(
     data_timestamp_file,
-    format = 'file', 
+    # format = 'file', 
     writeLines(as.character(Sys.time()), paste0(gls$PIP_PIPE_DIR, "pc_data/data_update_timestamp.txt"))
   )
   

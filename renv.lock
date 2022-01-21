@@ -675,16 +675,16 @@
     },
     "pipdm": {
       "Package": "pipdm",
-      "Version": "0.0.8.9001",
+      "Version": "0.0.12.9001",
       "Source": "GitHub",
       "Remotes": "github::PIP-Technical-Team/pipload,\ngithub::PIP-Technical-Team/wbpip",
       "RemoteType": "github",
       "RemoteHost": "api.github.com",
       "RemoteRepo": "pipdm",
       "RemoteUsername": "PIP-Technical-Team",
-      "RemoteRef": "development",
-      "RemoteSha": "015b2548fdf3f6353fe22f58a6ef0a30c33d12a5",
-      "Hash": "504cbadcb4a6b5531febb9da8b13311b"
+      "RemoteRef": "fix_bug",
+      "RemoteSha": "c0e3d385f485e19ea74f0d51525c42670126eda8",
+      "Hash": "c0f1abf60bd4c1f2b46076aa652fa2de"
     },
     "pipload": {
       "Package": "pipload",
@@ -747,12 +747,19 @@
       "Repository": "CRAN",
       "Hash": "97def703420c8ab10d8f0e6c72101e02"
     },
-    "qs": {
-      "Package": "qs",
-      "Version": "0.25.1",
+    "pushoverr": {
+      "Package": "pushoverr",
+      "Version": "1.0.0",
       "Source": "Repository",
       "Repository": "CRAN",
-      "Hash": "d0aa38b78543513496180ddd02eedc12"
+      "Hash": "93493b5ba792b3ae472cd94aaa0fcec4"
+    },
+    "qs": {
+      "Package": "qs",
+      "Version": "0.25.2",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "723c6b66a9f76f9c4d809c1feb3695f6"
     },
     "rappdirs": {
       "Package": "rappdirs",
