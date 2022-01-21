@@ -1,6 +1,6 @@
 # ---- Install packages ----
 
-# remotes::install_github("PIP-Technical-Team/pipload@development",
+# remotes::install_github("PIP-Technical-Team/pipload",
 #                         dependencies = FALSE)
 # remotes::install_github("PIP-Technical-Team/wbpip@synth_vector",
 #                        dependencies = FALSE)
