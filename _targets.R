@@ -1,7 +1,8 @@
 # ---- Install packages ----
 
-# remotes::install_github("PIP-Technical-Team/pipload",
+# remotes::install_github("PIP-Technical-Team/pipload@manual_years_censoring",
 #                         dependencies = FALSE)
+
 # remotes::install_github("PIP-Technical-Team/wbpip@synth_vector",
 #                        dependencies = FALSE)
 # remotes::install_github("PIP-Technical-Team/wbpip",
@@ -91,7 +92,8 @@ status_cache_files_creation <-
     verbose            = FALSE,
     cpi_table          = dl_aux$cpi,
     ppp_table          = dl_aux$ppp, 
-    pfw_table          = dl_aux$pfw)
+    pfw_table          = dl_aux$pfw, 
+    pop_table          = dl_aux$pop)
 
 
 ## bring cache our of pipeline -----
@@ -106,6 +108,7 @@ cache_inventory <-
     load               = TRUE, 
     verbose            = TRUE
   )
+
 # to filter temporarily
 # cache_inventory 
 #   <- cache_inventory[grepl("^(CHN|IDN)", survey_id)
@@ -120,6 +123,13 @@ cache   <- mp_cache(cache_dir = cache_dir,
                       load      = TRUE, 
                       save      = FALSE, 
                       gls       = gls)
+
+
+# notify that cache has finished loading (please do NOT delete)
+if (requireNamespace("pushoverr")) {
+  pushoverr::pushover("Finished loading or creating cache list")
+}
+
 
 # ---- Step 2: Run pipeline -----
 
@@ -332,8 +342,8 @@ list(
   tar_target(
     survey_files,
     mp_survey_files(
-      dt              = cache,
-      cache_filename  = cache_ids,
+      cache           = cache,
+      cache_ids       = cache_ids,
       output_dir      = gls$OUT_SVY_DIR_PC,
       cols            = c('welfare', 'weight', 'area'),
       compress        = gls$FST_COMP_LVL)

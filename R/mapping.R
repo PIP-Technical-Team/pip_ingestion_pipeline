@@ -98,8 +98,8 @@ mp_dl_dist_stats <- function(dt         ,
 }
 
 
-mp_survey_files <- function(dt             ,
-                            cache_filename ,
+mp_survey_files <- function(cache          ,
+                            cache_ids      ,
                             output_dir     ,
                             cols           ,
                             compress       ) {
