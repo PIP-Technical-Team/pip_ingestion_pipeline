@@ -682,21 +682,21 @@
       "RemoteHost": "api.github.com",
       "RemoteRepo": "pipdm",
       "RemoteUsername": "PIP-Technical-Team",
-      "RemoteRef": "fix_bug",
-      "RemoteSha": "c0e3d385f485e19ea74f0d51525c42670126eda8",
-      "Hash": "c0f1abf60bd4c1f2b46076aa652fa2de"
+      "RemoteRef": "HEAD",
+      "RemoteSha": "f28ac2206d00643c22eebb371cb7b6c60af622fc",
+      "Hash": "f4a32efc0eb6c5091307d1a3083f3e98"
     },
     "pipload": {
       "Package": "pipload",
-      "Version": "0.1.7.9003",
+      "Version": "0.1.8.9000",
       "Source": "GitHub",
       "RemoteType": "github",
       "RemoteHost": "api.github.com",
       "RemoteRepo": "pipload",
       "RemoteUsername": "PIP-Technical-Team",
-      "RemoteRef": "development",
-      "RemoteSha": "92551ab1ab45321bed8357459fdff3ee8bc4d979",
-      "Hash": "e114ca95562bebab73996b5272570226"
+      "RemoteRef": "manual_years_censoring",
+      "RemoteSha": "6d64df6c61cfd8797ab8f8f3eda369503e2efecc",
+      "Hash": "ee6aaecb0a4c5a7484039d5d6cafd212"
     },
     "pkgconfig": {
       "Package": "pkgconfig",
