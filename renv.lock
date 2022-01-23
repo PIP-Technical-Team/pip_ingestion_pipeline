@@ -387,13 +387,6 @@
       "Repository": "CRAN",
       "Hash": "38c2580abbda249bd6afeec00d14f531"
     },
-    "git2r": {
-      "Package": "git2r",
-      "Version": "0.28.0",
-      "Source": "Repository",
-      "Repository": "CRAN",
-      "Hash": "f64fd34026f6025de71a4354800e6d79"
-    },
     "gitcreds": {
       "Package": "gitcreds",
       "Version": "0.1.1",
@@ -688,15 +681,15 @@
     },
     "pipload": {
       "Package": "pipload",
-      "Version": "0.1.8.9000",
+      "Version": "0.1.8.9003",
       "Source": "GitHub",
       "RemoteType": "github",
       "RemoteHost": "api.github.com",
       "RemoteRepo": "pipload",
       "RemoteUsername": "PIP-Technical-Team",
       "RemoteRef": "manual_years_censoring",
-      "RemoteSha": "6d64df6c61cfd8797ab8f8f3eda369503e2efecc",
-      "Hash": "ee6aaecb0a4c5a7484039d5d6cafd212"
+      "RemoteSha": "1fb8695c473bf990a7359c9057475b4da98a0004",
+      "Hash": "d0807c6003ea1604f45754a2f1dd8054"
     },
     "pkgconfig": {
       "Package": "pkgconfig",
