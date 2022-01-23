@@ -1,5 +1,5 @@
 # ---- Install packages ----
-
+# 
 # remotes::install_github("PIP-Technical-Team/pipload@manual_years_censoring",
 #                         dependencies = FALSE)
 
@@ -51,14 +51,21 @@ tar_option_set(
 
 
 ## Load AUX data -----
-aux_tb <- prep_aux_data(gls$PIP_DATA_DIR)
+aux_tb  <- prep_aux_data(gls$PIP_DATA_DIR)
+aux_ver <- rep(0, length(aux_tb$auxname))
 
-dl_aux <- lapply(aux_tb$auxname, function(x) {
-  pipload::pip_load_aux(measure     = x, 
+aux_ver[which(aux_tb$auxname == "cpi")] <- -1 # remove for march update
+
+dl_aux <- purrr::map2(.x = aux_tb$auxname, 
+                      .y =  aux_ver,
+                      .f = ~ {
+  pipload::pip_load_aux(measure     = .x, 
                         apply_label = FALSE,
                         maindir     = gls$PIP_DATA_DIR, 
-                        verbose     = FALSE)
-})
+                        verbose     = FALSE, 
+                        version     = .y )
+                        }
+  )
 names(dl_aux) <- aux_tb$auxname                
 
 
@@ -188,7 +195,8 @@ list(
              db_create_dsm_table(
                lcu_table = svy_mean_lcu_table,
                cpi_table = dl_aux$cpi,
-               ppp_table = dl_aux$ppp)),
+               ppp_table = dl_aux$ppp)
+             ),
   
   ## Create reference year table ------
   
