@@ -54,7 +54,7 @@ tar_option_set(
 aux_tb  <- prep_aux_data(gls$PIP_DATA_DIR)
 aux_ver <- rep(0, length(aux_tb$auxname))
 
-aux_ver[which(aux_tb$auxname == "cpi")] <- -1 # remove for march update
+# aux_ver[which(aux_tb$auxname == "cpi")] <- -1 # remove for march update
 
 dl_aux <- purrr::map2(.x = aux_tb$auxname, 
                       .y =  aux_ver,
@@ -83,8 +83,14 @@ pipeline_inventory <-
   db_filter_inventory(dt        = pip_inventory,
                       pfw_table = dl_aux$pfw)
 # Uncomment for specific countries
-# pipeline_inventory <- 
-#    pipeline_inventory[country_code == 'PHL' & surveyid_year == 2000]
+
+
+# Manuall remove CHN 2017 and 2018
+pipeline_inventory <-
+   pipeline_inventory[!(country_code == 'CHN' & surveyid_year >= 2017)]
+  
+# pipeline_inventory <-
+#    pipeline_inventory[country_code == 'PAK']
 
 ## --- Create cache files ----
 
@@ -128,8 +134,11 @@ cache_dir <- get_cache_files(cache_inventory)
 
 cache   <- mp_cache(cache_dir = cache_dir, 
                       load      = TRUE, 
-                      save      = FALSE, 
+                      save      = TRUE, 
                       gls       = gls)
+
+# remove CHN 2017 and 2018 manually
+cache[grep("CHN_201[78]", names(cache), value = TRUE)] <- NULL
 
 
 # notify that cache has finished loading (please do NOT delete)
