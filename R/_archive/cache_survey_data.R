@@ -66,7 +66,7 @@ cache_survey_data <- function(pipeline_inventory,
                            It will be created", 
                            wrap = TRUE)
       
-      pipdm::pip_update_cache_inventory(pipeline_inventory,
+      pip_update_cache_inventory(pipeline_inventory,
                                         cache_svy_dir)
     } 
     
@@ -91,7 +91,7 @@ cache_survey_data <- function(pipeline_inventory,
                        .f = ~ {
                          id_what <- gsub("([A-Z]+_[0-9]+)(.+)", "\\1", .x)
                          pb$tick(tokens = list(what = id_what))
-                          pipdm::process_svy_data_to_cache(
+                          process_svy_data_to_cache(
                            survey_id     = .x, 
                            chh_filename  = .y,
                            pip_data_dir  = pip_data_dir,
@@ -100,7 +100,7 @@ cache_survey_data <- function(pipeline_inventory,
                        })
   
   #--------- Save correspondence file ---------
-  crr_status <- pipdm::pip_update_cache_inventory(pipeline_inventory,
+  crr_status <- pip_update_cache_inventory(pipeline_inventory,
                                                   cache_svy_dir)
   if (verbose && crr_status) {
     
