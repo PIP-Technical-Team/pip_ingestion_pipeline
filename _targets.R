@@ -6,12 +6,6 @@
 #                        dependencies = FALSE)
 # remotes::install_github("PIP-Technical-Team/wbpip",
 #                        dependencies = FALSE)
-# remotes::install_github("PIP-Technical-Team/pipdm",
-#                         dependencies = FALSE)
-# remotes::install_github("PIP-Technical-Team/pipdm@development",
-#                         dependencies = FALSE)
-# remotes::install_github("PIP-Technical-Team/pipdm@chr2fct",
-#                         dependencies = FALSE)
 
 # ---- Start up ----
 
@@ -20,8 +14,13 @@ source("./_packages.R")
 options(joyn.verbose = FALSE) # make sure joyn does not display messages
 
 # Load R files
-lapply(list.files("./R", full.names = TRUE,
-                  pattern = "\\.R$"), source)
+purrr::walk(fs::dir_ls(path = "./R", 
+                  regexp = "\\.R$"), source)
+
+# Read pipdm functions
+purrr::walk(fs::dir_ls(path = "./R/pipdm/R", 
+                  regexp = "\\.R$"), source)
+
 
 # Set-up global variables
 pipload::add_gls_to_env()
@@ -39,7 +38,6 @@ tar_option_set(
   memory = 'transient',
   format = 'qs', #'fst_dt',
   imports  = c('pipload',
-               'pipdm',
                'wbpip')
 )
 
@@ -447,7 +445,7 @@ list(
   # Censoring 
   tar_target(
     censored_out,
-    pipdm::save_aux_data(
+    save_aux_data(
       dl_censored,
       paste0(gls$OUT_AUX_DIR_PC, "censored.rds"),
       compress = TRUE
