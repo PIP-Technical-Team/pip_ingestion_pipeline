@@ -104,7 +104,7 @@ named_mean <- function(dt) {
 
 prep_aux_data <- function(PIP_DATA_DIR) {
   
-  auxdir <- paste0(PIP_DATA_DIR, "_aux/")
+  auxdir <- fs::path(PIP_DATA_DIR, "_aux/")
   
   aux_files <- list.files(auxdir,
                           pattern    = "[a-z]+\\.(rds|fst)",
