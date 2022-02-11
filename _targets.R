@@ -2,6 +2,8 @@
 
 # remotes::install_github("PIP-Technical-Team/pipload",
 #                         dependencies = FALSE)
+# remotes::install_github("PIP-Technical-Team/pipload@manual_years_censoring",
+#                         dependencies = FALSE)
 # remotes::install_github("PIP-Technical-Team/wbpip@synth_vector",
 #                        dependencies = FALSE)
 # remotes::install_github("PIP-Technical-Team/wbpip",
@@ -23,7 +25,7 @@ purrr::walk(fs::dir_ls(path = "./R/pipdm/R",
 
 
 # Set-up global variables
-pipload::add_gls_to_env()
+pipload::add_gls_to_env(out_dir = fs::path("y:/pip_ingestion_pipeline/temp/"))
 
 # Check that the correct _targets store is used 
 if (identical(tar_config_get('store'),
