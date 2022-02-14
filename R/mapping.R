@@ -10,10 +10,10 @@ mp_cache <-
            save = FALSE, 
            gls  = pipload::pip_create_globals(Sys.getenv("PIP_ROOT_DIR"))) {
     
-    dir <- paste0(gls$PIP_PIPE_DIR, "pc_data/cache/global_list/")
+    dir <- fs::path(gls$PIP_PIPE_DIR, "pc_data/cache/global_list/")
     
     # global_file <- paste0(dir, "global_list.rds")
-    global_file <- paste0(dir, "global_list.qs")
+    global_file <- fs::path(dir, "global_list", ext = "qs")
     
     if (isTRUE(save)) {
       

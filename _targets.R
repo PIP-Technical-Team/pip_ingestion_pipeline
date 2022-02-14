@@ -139,6 +139,10 @@ cache   <- mp_cache(cache_dir = cache_dir,
                       save      = FALSE, 
                       gls       = gls)
 
+selected_files <- which(grepl("^(COL)", names(cache)))
+cache <- cache[selected_files]
+
+
 # ---- Step 2: Run pipeline -----
 
 list(
