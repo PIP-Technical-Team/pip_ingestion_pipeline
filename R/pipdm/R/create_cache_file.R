@@ -33,8 +33,8 @@ create_cache_file <- function(pipeline_inventory,
   tool <- match.arg(tool)
 
   # orrespondence file
-  crr_dir <- glue::glue("{cache_svy_dir}_crr_inventory/")
-  crr_filename <- glue::glue("{crr_dir}crr_inventory.fst")
+  crr_dir      <- fs::path(cache_svy_dir, "_crr_inventory")
+  crr_filename <- fs::path(crr_dir, "crr_inventory", ext = "fst")
 
   # Get all survey ids
   if (verbose) {
@@ -73,7 +73,7 @@ create_cache_file <- function(pipeline_inventory,
 
   # Early return
   if (nrow(new_svy_ids) == 0) {
-    if (!(file.exists(crr_filename))) {
+    if (!(fs::file_exists(crr_filename))) {
       cli::cli_alert_warning("Correspondence inventory file not found.
                            It will be created",
         wrap = TRUE
@@ -87,9 +87,7 @@ create_cache_file <- function(pipeline_inventory,
       )
     }
 
-    crr <- fst::read_fst(crr_filename,
-      as.data.table = TRUE
-    )
+    crr <- fst::read_fst(crr_filename, as.data.table = TRUE)
 
     return(invisible(list(
       processed_data = "No data processed",
