@@ -2,8 +2,13 @@
 
 # remotes::install_github("PIP-Technical-Team/pipload",
 #                         dependencies = FALSE)
+
+# 
 # remotes::install_github("PIP-Technical-Team/pipload@fix_paths",
 #                         dependencies = FALSE)
+
+
+
 # remotes::install_github("PIP-Technical-Team/wbpip@synth_vector",
 #                        dependencies = FALSE)
 # remotes::install_github("PIP-Technical-Team/wbpip",
@@ -13,7 +18,8 @@
 
 # Load packages
 source("./_packages.R")
-options(joyn.verbose = FALSE) # make sure joyn does not display messages
+options(joyn.verbose = FALSE, # make sure joyn does not display messages
+        pipload.verbose = FALSE) 
 
 # Load R files
 purrr::walk(fs::dir_ls(path = "./R", 
@@ -115,6 +121,7 @@ cache_inventory <-
     load               = TRUE, 
     verbose            = TRUE
   )
+
 # to filter temporarily
 # cache_inventory 
 #   <- cache_inventory[grepl("^(CHN|IDN)", survey_id)

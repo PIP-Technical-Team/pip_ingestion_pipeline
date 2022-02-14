@@ -69,11 +69,12 @@ pip_update_cache_inventory <- function(
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   time <- format(Sys.time(), "%Y%m%d%H%M%S") # find a way to account for time zones
 
-  crr_dir      <- glue::glue("{cache_svy_dir}_crr_inventory/")
-  crr_filename <- glue::glue("{crr_dir}crr_inventory")
-  crr_vintage  <- glue::glue("{crr_dir}vintage/crr_inventory_{time}")
+  
+  crr_dir      <- fs::path(cache_svy_dir, "_crr_inventory")
+  crr_filename <- fs::path(crr_dir, "crr_inventory")
+  crr_vintage  <- fs::path(crr_dir, "vintage", paste0("crr_inventory_", time))
 
-  crr_fst <- glue::glue("{crr_filename}.fst")
+  crr_fst <- fs::path(crr_filename, ext = "fst")
 
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   # Current inventory   ---------
@@ -124,11 +125,11 @@ pip_update_cache_inventory <- function(
 
     # fst
     fst::write_fst(crr, crr_fst)
-    fst::write_fst(crr, glue::glue("{crr_vintage}.fst"))
+    fst::write_fst(crr, fs::path(crr_vintage, ext = "fst"))
 
     # dta
-    haven::write_dta(crr, glue::glue("{crr_filename}.dta"))
-    haven::write_dta(crr, glue::glue("{crr_vintage}.dta"))
+    haven::write_dta(crr, fs::path(crr_filename, ext = "dta"))
+    haven::write_dta(crr, fs::path(crr_vintage,  ext = "dta"))
 
     if (isTRUE(verbose)) {
       cli::cli_alert_info("file {.url {crr_fst}} has been updated. You

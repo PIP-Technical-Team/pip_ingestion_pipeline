@@ -35,10 +35,10 @@ find_new_svy_data <- function(cache_id,
   #--------- find data whose SVY id has changed ---------
 
   # load correspondence inventory
-  crr_dir <- glue::glue("{cache_svy_dir}_crr_inventory/")
-
-  if (file.exists(glue::glue("{crr_dir}crr_inventory.fst"))) {
-    crr_inv <- fst::read_fst(glue::glue("{crr_dir}crr_inventory.fst"))
+  crr_dir <- fs::path(cache_svy_dir, "_crr_inventory/")
+  crr_inv_file <- fs::path(crr_dir, "crr_inventory", ext = "fst")
+  if (file.exists(crr_inv_file)) {
+    crr_inv <- fst::read_fst(crr_inv_file)
     data.table::setDT(crr_inv)
 
     chd_svy <-
