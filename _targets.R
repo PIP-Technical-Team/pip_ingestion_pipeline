@@ -89,8 +89,11 @@ pipeline_inventory <-
 # pipeline_inventory <-
 #    pipeline_inventory[country_code == 'PHL' & surveyid_year == 2000]
 
+
+cts_filter <- c('COL', 'IND', "CHN")
 pipeline_inventory <-
-   pipeline_inventory[country_code == 'COL']
+   pipeline_inventory[country_code %in% cts_filter
+                      ][!(country_code == 'CHN' & surveyid_year >= 2017)]
 
 ## --- Create cache files ----
 
@@ -128,7 +131,9 @@ cache_inventory <-
 #        ][gsub("([A-Z]+)_([0-9]+)_(.*)", "\\2", survey_id) > 2010
 #        ]
 
-cache_inventory <- cache_inventory[grepl("^(COL)", survey_id)]
+reg <- paste0("^(", paste(cts_filter, collapse = "|"),")")
+
+cache_inventory <- cache_inventory[grepl(reg, survey_id)]
 
 
 cache_ids <- get_cache_id(cache_inventory)
@@ -139,7 +144,7 @@ cache   <- mp_cache(cache_dir = cache_dir,
                       save      = FALSE, 
                       gls       = gls)
 
-selected_files <- which(grepl("^(COL)", names(cache)))
+selected_files <- which(grepl(reg, names(cache)))
 cache <- cache[selected_files]
 
 
@@ -366,14 +371,14 @@ list(
   tar_target(aux_out_files,
              aux_out_files_fun(gls$OUT_AUX_DIR_PC, aux_names)
   ),
-  tar_files(aux_out_dir, aux_out_files),
-  
   tar_target(aux_out,
              fst::write_fst(x        = aux_clean,
-                            path     = aux_out_dir,
+                            path     = aux_out_files,
                             compress = gls$FST_COMP_LVL),
-             pattern   = map(aux_clean, aux_out_dir),
+             pattern   = map(aux_clean, aux_out_files),
              iteration = "list"),
+  
+  tar_files(aux_out_dir, aux_out_files),
   
   ### Save additional AUX files ----
   
@@ -383,7 +388,7 @@ list(
     save_aux_data(
       dl_aux$countries %>% 
         data.table::setnames('pcn_region_code', 'region_code'),
-      paste0(gls$OUT_AUX_DIR_PC, "countries.fst"),
+      fs::path(gls$OUT_AUX_DIR_PC, "countries.fst"),
       compress = TRUE
     ),
     format = 'file',
@@ -394,7 +399,7 @@ list(
     regions_out,
     save_aux_data(
       dl_aux$regions,
-      paste0(gls$OUT_AUX_DIR_PC, "regions.fst"),
+      fs::path(gls$OUT_AUX_DIR_PC, "regions.fst"),
       compress = TRUE
     ),
     format = 'file',
@@ -405,7 +410,7 @@ list(
     country_profiles_out,
     save_aux_data(
       dl_aux$cp,
-      paste0(gls$OUT_AUX_DIR_PC, "country_profiles.rds"),
+      fs::path(gls$OUT_AUX_DIR_PC, "country_profiles.rds"),
       compress = TRUE
     ),
     format = 'file',
@@ -416,7 +421,7 @@ list(
     poverty_lines_out,
     save_aux_data(
       dl_aux$pl,
-      paste0(gls$OUT_AUX_DIR_PC, "poverty_lines.fst"),
+      fs::path(gls$OUT_AUX_DIR_PC, "poverty_lines.fst"),
       compress = TRUE
     ),
     format = 'file',
@@ -427,7 +432,7 @@ list(
     survey_metadata_out,
     save_aux_data(
       dl_aux$metadata,
-      paste0(gls$OUT_AUX_DIR_PC, "survey_metadata.rds"),
+      fs::path(gls$OUT_AUX_DIR_PC, "survey_metadata.rds"),
       compress = TRUE
     ),
     format = 'file',
@@ -438,7 +443,7 @@ list(
     indicators_out,
     save_aux_data(
       dl_aux$indicators,
-      paste0(gls$OUT_AUX_DIR_PC, "indicators.fst"),
+      fs::path(gls$OUT_AUX_DIR_PC, "indicators.fst"),
       compress = TRUE
     ),
     format = 'file',
@@ -449,7 +454,7 @@ list(
     pop_region_out,
     save_aux_data(
       dt_pop_region,
-      paste0(gls$OUT_AUX_DIR_PC, "pop_region.fst"),
+      fs::path(gls$OUT_AUX_DIR_PC, "pop_region.fst"),
       compress = TRUE
     ),
     format = 'file',
@@ -460,7 +465,7 @@ list(
     coverage_out,
     save_aux_data(
       dt_coverage,
-      paste0(gls$OUT_AUX_DIR_PC, "coverage.fst"),
+      fs::path(gls$OUT_AUX_DIR_PC, "coverage.fst"),
       compress = TRUE
     ),
     format = 'file',
@@ -471,7 +476,7 @@ list(
     censored_out,
     save_aux_data(
       dl_censored,
-      paste0(gls$OUT_AUX_DIR_PC, "censored.rds"),
+      fs::path(gls$OUT_AUX_DIR_PC, "censored.rds"),
       compress = TRUE
     ),
     format = 'file',
@@ -483,7 +488,7 @@ list(
     decomposition_out,
     save_aux_data(
       dt_decomposition,
-      paste0(gls$OUT_AUX_DIR_PC, "decomposition.fst"),
+      fs::path(gls$OUT_AUX_DIR_PC, "decomposition.fst"),
       compress = TRUE
     ),
     format = 'file',
@@ -494,7 +499,7 @@ list(
     framework_out,
     save_aux_data(
       dt_framework,
-      paste0(gls$OUT_AUX_DIR_PC, "framework.fst"),
+      fs::path(gls$OUT_AUX_DIR_PC, "framework.fst"),
       compress = TRUE
     ),
     format = 'file',
@@ -528,7 +533,7 @@ list(
     lorenz_out,
     save_aux_data(
       lorenz,
-      paste0(gls$OUT_AUX_DIR_PC, "lorenz.rds"),
+      fs::path(gls$OUT_AUX_DIR_PC, "lorenz.rds"),
       compress = TRUE
     ),
     format = 'file',
@@ -575,7 +580,11 @@ list(
   tar_target(
     data_timestamp_file,
     # format = 'file', 
-    writeLines(as.character(Sys.time()), paste0(gls$PIP_PIPE_DIR, "pc_data/data_update_timestamp.txt"))
+    writeLines(as.character(Sys.time()), 
+               fs::path(gls$PIP_PIPE_DIR, 
+                        "pc_data", 
+                        "data_update_timestamp", 
+                        ext = "txt"))
   )
   
 )
