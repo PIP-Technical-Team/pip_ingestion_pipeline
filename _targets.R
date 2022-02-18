@@ -31,7 +31,8 @@ purrr::walk(fs::dir_ls(path = "./R/pipdm/R",
 
 
 # Set-up global variables
-pipload::add_gls_to_env(out_dir = fs::path("y:/pip_ingestion_pipeline/temp/"))
+pipload::add_gls_to_env(vintage = "new",
+                        out_dir = fs::path("y:/pip_ingestion_pipeline/temp/"))
 
 # Check that the correct _targets store is used 
 if (identical(tar_config_get('store'),
@@ -56,14 +57,15 @@ tar_option_set(
 
 
 ## Load AUX data -----
-aux_tb <- prep_aux_data(gls$PIP_DATA_DIR)
+aux_tb <- prep_aux_data(maindir = gls$PIP_DATA_DIR)
 
-dl_aux <- lapply(aux_tb$auxname, function(x) {
-  pipload::pip_load_aux(measure     = x, 
-                        apply_label = FALSE,
-                        maindir     = gls$PIP_DATA_DIR, 
-                        verbose     = FALSE)
-})
+dl_aux <- purrr::map(.x = aux_tb$auxname, 
+                     .f = ~{
+                         pipload::pip_load_aux(measure     = .x, 
+                                               apply_label = FALSE,
+                                               maindir     = gls$PIP_DATA_DIR, 
+                                                 verbose     = FALSE)
+                         })
 names(dl_aux) <- aux_tb$auxname                
 
 

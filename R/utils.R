@@ -108,30 +108,40 @@ named_mean <- function(dt) {
   return(mvec)
 }
 
-prep_aux_data <- function(PIP_DATA_DIR) {
+prep_aux_data <- function(maindir = PIP_DATA_DIR) {
   
-  auxdir <- fs::path(PIP_DATA_DIR, "_aux/")
+  auxdir <- fs::path(maindir, "_aux/")
   
-  aux_files <- list.files(auxdir,
-                          pattern    = "[a-z]+\\.(rds|fst)",
-                          recursive  = TRUE,
-                          full.names = TRUE)
+  aux_dirs <- fs::dir_ls(auxdir,
+                         recurse = FALSE,
+                         type = "directory")
   
-  # remove double // in the middle of path
-  aux_files        <- gsub("(.+)//(.+)", "\\1/\\2", aux_files)
+  aux_indicators <- stringr::str_extract(aux_dirs, "[^/]+$")
+  aux_indicators   <-  tolower(unique(aux_indicators))
   
-  aux_indicators   <- gsub(auxdir, "", aux_files)
-  aux_indicators   <- gsub(".*[/]|([.].*)", "", aux_indicators)
-  names(aux_files) <- aux_indicators
+  # keep only those that exist
+  dd <-
+    purrr::map2_lgl(.x = aux_dirs,
+                .y = aux_indicators,
+                .f = ~{
+                  ffst <- fs::path(.x, .y, ext = "fst")
+                  frds <- fs::path(.x, .y, ext = "rds")
+                  
+                  f_exists <- purrr::map_lgl(c(ffst, frds), fs::file_exists)
+                  any(f_exists)
+                  
+                })
+  names(dd) <- aux_indicators
+  
+  aux_indicators <- aux_indicators[dd]
+  aux_dirs       <- aux_dirs[dd]
+  
+  names(aux_dirs) <- aux_indicators
   
   aux_tb <- data.table::data.table(
     auxname  = aux_indicators,
-    auxfiles = aux_files
+    auxfiles = aux_dirs
   )
-  
-  # filter 
-  aux_tb <- aux_tb[!(auxname %chin% 
-                       c("weo", "maddison", "cpicpi_vintage"))]
   
   return(aux_tb)
 }
