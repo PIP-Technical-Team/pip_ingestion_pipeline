@@ -87,13 +87,16 @@ pipeline_inventory <-
 
 # Uncomment for specific countries
 # pipeline_inventory <-
-#    pipeline_inventory[country_code == 'PHL' & surveyid_year == 2000]
+   # pipeline_inventory[country_code == 'PHL' & surveyid_year == 2000]
 
 
 cts_filter <- c('COL', 'IND', "CHN")
+# pipeline_inventory <-
+#    pipeline_inventory[country_code %in% cts_filter
+#                       ][!(country_code == 'CHN' & surveyid_year >= 2017)]
+
 pipeline_inventory <-
-   pipeline_inventory[country_code %in% cts_filter
-                      ][!(country_code == 'CHN' & surveyid_year >= 2017)]
+   pipeline_inventory[!(country_code == 'CHN' & surveyid_year >= 2017)]
 
 ## --- Create cache files ----
 
@@ -126,14 +129,13 @@ cache_inventory <-
   )
 
 # to filter temporarily
-# cache_inventory 
-#   <- cache_inventory[grepl("^(CHN|IDN)", survey_id)
-#        ][gsub("([A-Z]+)_([0-9]+)_(.*)", "\\2", survey_id) > 2010
-#        ]
-
-reg <- paste0("^(", paste(cts_filter, collapse = "|"),")")
-
-cache_inventory <- cache_inventory[grepl(reg, survey_id)]
+# cache_inventory  <- 
+#   cache_inventory[!(grepl("^(CHN)", survey_id) &
+#                       stringr::str_extract(survey_id, "([0-9]{4})") >= 2017)
+#                   ]
+# reg <- paste0("^(", paste(cts_filter, collapse = "|"),")")
+# 
+# cache_inventory <- cache_inventory[grepl(reg, survey_id)]
 
 
 cache_ids <- get_cache_id(cache_inventory)
@@ -143,10 +145,21 @@ cache   <- mp_cache(cache_dir = cache_dir,
                       load      = TRUE, 
                       save      = FALSE, 
                       gls       = gls)
+# 
+# selected_files <- which(grepl(reg, names(cache)))
+# cache <- cache[selected_files]
 
-selected_files <- which(grepl(reg, names(cache)))
-cache <- cache[selected_files]
 
+# remove CHN 2017 and 2018 manually
+# cache[grep("CHN_201[78]", names(cache), value = TRUE)] <- NULL
+
+# notify that cache has finished loading (please do NOT delete)
+if (requireNamespace("pushoverr")) {
+  pushoverr::pushover("Finished loading or creating cache list")
+}
+
+length(cache)
+length(cache_dir)
 
 # ---- Step 2: Run pipeline -----
 
