@@ -92,13 +92,13 @@ pipeline_inventory <-
    # pipeline_inventory[country_code == 'PHL' & surveyid_year == 2000]
 
 
-cts_filter <- c('COL', 'IND', "CHN")
-pipeline_inventory <-
-   pipeline_inventory[country_code %in% cts_filter
-                      ][!(country_code == 'CHN' & surveyid_year >= 2017)]
-
+# cts_filter <- c('COL', 'IND', "CHN")
 # pipeline_inventory <-
-#    pipeline_inventory[!(country_code == 'CHN' & surveyid_year >= 2017)]
+#    pipeline_inventory[country_code %in% cts_filter
+#                       ][!(country_code == 'CHN' & surveyid_year >= 2017)]
+
+pipeline_inventory <-
+   pipeline_inventory[!(country_code == 'CHN' & surveyid_year >= 2017)]
 
 ## --- Create cache files ----
 
@@ -131,13 +131,15 @@ cache_inventory <-
   )
 
 # to filter temporarily
-# cache_inventory  <- 
-#   cache_inventory[!(grepl("^(CHN)", survey_id) &
-#                       stringr::str_extract(survey_id, "([0-9]{4})") >= 2017)
-#                   ]
-reg <- paste0("^(", paste(cts_filter, collapse = "|"),")")
 
-cache_inventory <- cache_inventory[grepl(reg, survey_id)]
+cache_inventory  <-
+  cache_inventory[!(grepl("^(CHN)", survey_id) &
+                      stringr::str_extract(survey_id, "([0-9]{4})") >= 2017)
+                  ]
+
+# reg <- paste0("^(", paste(cts_filter, collapse = "|"),")")
+# 
+# cache_inventory <- cache_inventory[grepl(reg, survey_id)]
 
 
 cache_ids <- get_cache_id(cache_inventory)
@@ -151,9 +153,8 @@ cache   <- mp_cache(cache_dir = cache_dir,
 selected_files <- which(grepl(reg, names(cache)))
 cache <- cache[selected_files]
 
-
 # remove CHN 2017 and 2018 manually
-# cache[grep("CHN_201[78]", names(cache), value = TRUE)] <- NULL
+cache[grep("CHN_201[78]", names(cache), value = TRUE)] <- NULL
 
 # notify that cache has finished loading (please do NOT delete)
 if (requireNamespace("pushoverr")) {
@@ -172,30 +173,11 @@ list(
   
   ### Fetch GD survey means and convert them to daily values ----
   tar_target(
-    gd_means, {
-      
-      dt. <- joyn::merge(x          = cache_inventory,
-                         y          = dl_aux$gdm,
-                         by         = c("survey_id", "welfare_type"),
-                         match_type = "1:m",
-                         yvars      = c("survey_mean_lcu", "pop_data_level"),
-                         keep       = "left")
-      
-      data.table::setorder(dt., cache_id, pop_data_level)
-      
-      
-      gd_means        <- dt.[, survey_mean_lcu]
-      gd_means        <- gd_means * (12/365)
-      
-      names(gd_means) <- dt.[, cache_id]
-      ## convert to list by name
-      gd_means        <- split(unname(gd_means),names(gd_means)) 
-      
-      return(gd_means)
-      
-    }, 
+    gd_means, 
+    get_groupdata_means(cache_inventory = cache_inventory, 
+                        gdm            = dl_aux$gdm), 
     iteration = "list"
-  ) ,
+  ),
   
   ## Calculate LCU survey mean ----
   
