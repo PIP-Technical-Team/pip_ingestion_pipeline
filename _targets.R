@@ -300,13 +300,15 @@ list(
   
   # Create coverage table by region
   tar_target(
-    dt_coverage,
+    dl_coverage,
     db_create_coverage_table(
-      ref_year_table    = dt_ref_mean_pred,
-      pop_table         = dl_aux$pop,
-      ref_years         = gls$PIP_REF_YEARS,
-      special_countries = c("ARG", "CHN", "IDN", "IND"),
-      digits            = 2
+      ref_year_table        = dt_ref_mean_pred,
+      pop_table             = dl_aux$pop,
+      cl_table              = dl_aux$country_list,
+      incgrp_table          = dl_aux$income_groups, 
+      ref_years             = gls$PIP_REF_YEARS,
+      urban_rural_countries = c("ARG", "CHN", "IDN", "IND"),
+      digits                = 2
     )
   ),
   
@@ -317,8 +319,8 @@ list(
   tar_target(
     dl_censored,
     db_create_censoring_table(
-      censored = dl_aux$censoring,
-      coverage_table = dt_coverage,
+      censored           = dl_aux$censoring,
+      coverage_list      = dl_coverage,
       coverage_threshold = 50
     )
   ),
@@ -475,16 +477,36 @@ list(
     format = 'file',
   ),
   
-  # Coverage 
+  # Regional coverage 
   tar_target(
     coverage_out,
     save_aux_data(
-      dt_coverage,
-      fs::path(gls$OUT_AUX_DIR_PC, "coverage.fst"),
+      dl_coverage$region,
+      paste0(gls$OUT_AUX_DIR_PC, "region_coverage.fst"),
       compress = TRUE
     ),
     format = 'file',
   ),
+  
+  # Regional coverage 
+  tar_target(
+    coverage_out,
+    save_aux_data(
+      dl_coverage$incgrp,
+      paste0(gls$OUT_AUX_DIR_PC, "incgrp_coverage.fst"),
+      compress = TRUE
+    ),
+    format = 'file',
+  ),
+  
+  # Country year coverage
+  tar_target(
+    country_year_coverage_out,
+    save_aux_data(
+      dl_coverage$country_year_coverage,
+      paste0(gls$OUT_AUX_DIR_PC, "country_coverage.fst"),
+      compress = TRUE
+    ),
   
   # Censoring 
   tar_target(
