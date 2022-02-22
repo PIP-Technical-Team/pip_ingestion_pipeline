@@ -333,14 +333,16 @@ list(
       pop_table   = dl_aux$pop,
       cl_table    = dl_aux$country_list, 
       region_code = 'pcn_region_code',
-      pip_years   = gls$PIP_YEARS)),
+      pip_years   = gls$PIP_YEARS)
+  ),
   
   ### Create decomposition table ----
   
   tar_target(
     dt_decomposition,
     db_create_decomposition_table(
-      dsm_table = svy_mean_ppp_table)),
+      dsm_table = svy_mean_ppp_table)
+  ),
   
   ##  Clean AUX data ------
   
@@ -354,7 +356,8 @@ list(
   
   tar_target(aux_names,
              c("cpi", "gdp", "pop", "ppp", "pce"),
-             iteration = "list"),
+             iteration = "list"
+  ),
   
   tar_target(
     aux_clean,
@@ -505,8 +508,8 @@ list(
     save_aux_data(
       dl_coverage$country_year_coverage,
       paste0(gls$OUT_AUX_DIR_PC, "country_coverage.fst"),
-      compress = TRUE
-    ),
+      compress = TRUE)
+  ),
   
   # Censoring 
   tar_target(
