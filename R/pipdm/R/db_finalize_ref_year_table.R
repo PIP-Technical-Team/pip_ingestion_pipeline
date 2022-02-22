@@ -15,7 +15,7 @@ if (getRversion() >= "2.15.1") {
 #'
 #' @return data.table
 #' @keywords internal
-db_finalize_ref_year_table <- function(dt, pfw_table, pop_table) {
+db_finalize_ref_year_table <- function(dt, pop_table) {
 
   # CHECK inputs
   check_inputs_db_class(dt)
@@ -79,8 +79,8 @@ db_finalize_ref_year_table <- function(dt, pfw_table, pop_table) {
   # aggregated numbers
   dt$predicted_mean_ppp <- data.table::fifelse(
     dt$is_interpolated &
-      dt$pop_data_level == "national" &
-      dt$is_used_for_aggregation,
+      dt$reporting_level == "national" &
+      dt$is_used_for_line_up,
     NA_real_,
     dt$predicted_mean_ppp
   )
@@ -98,7 +98,7 @@ db_finalize_ref_year_table <- function(dt, pfw_table, pop_table) {
     "pce_data_level", "cpi_data_level",
     "ppp_data_level", "reporting_level", "distribution_type",
     "gd_type", "is_interpolated",
-    "is_used_for_aggregation",
+    "is_used_for_line_up", "is_used_for_aggregation",
     "estimation_type",
     "display_cp"
   )
@@ -112,6 +112,9 @@ db_finalize_ref_year_table <- function(dt, pfw_table, pop_table) {
     reporting_gdp = gdp
   )
 
+  # Recode class
+  dt$reporting_year <- as.integer(dt$reporting_year)
+
   # Add interpolation id
   dt <- dt %>%
     base::transform(
@@ -119,9 +122,9 @@ db_finalize_ref_year_table <- function(dt, pfw_table, pop_table) {
     )
 
   # change factors to characters
-  nn <- names(dt[, .SD, .SDcols = is.factor])
-  dt[, (nn) := lapply(.SD, as.character),
-         .SDcols = nn]
+  # nn <- names(dt[, .SD, .SDcols = is.factor])
+  # dt[, (nn) := lapply(.SD, as.character),
+  #        .SDcols = nn]
 
   # Sort rows
   data.table::setorder(dt, country_code, reporting_year, welfare_type, reporting_level)

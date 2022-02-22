@@ -122,20 +122,13 @@ db_create_dsm_table <- function(lcu_table,
   # Add is_interpolated column
   dt$is_interpolated <- FALSE
 
-  # Add is_used_for_aggregation column
-  # Temporary quick fix for is_used_for_aggregation column,
-  # see issue PIP-Technical-Team/TMP_pipeline#14
+  # Add is_used_for_line_up column
+  dt <- create_line_up_check(dt)
 
-  dt[, # create number of rows per cache_id
-     n_rl := .N,
-     by = cache_id
-     ][,
-       # variable for aggregate
-       is_used_for_aggregation := fifelse(n_rl > 1, TRUE, FALSE)
-     ][,
-       # remove counter
-       n_rl := NULL
-     ]
+  # Add is_used_for_aggregation column
+  dt[, n_rl := .N, by = cache_id]
+  dt[, is_used_for_aggregation := ifelse((dt$reporting_level %in% c("urban", "rural") & dt$n_rl == 2), TRUE, FALSE)]
+  dt$n_rl <- NULL
 
   # Select and order columns
   dt <- dt[, .SD,
@@ -151,8 +144,8 @@ db_create_dsm_table <- function(lcu_table,
         "gdp_data_level", "pce_data_level",
         "cpi_data_level", "ppp_data_level", "reporting_level",
         "distribution_type", "gd_type",
-        "is_interpolated", "is_used_for_aggregation",
-        "display_cp"
+        "is_interpolated", "is_used_for_line_up",
+        "is_used_for_aggregation", "display_cp"
       )
   ]
 
@@ -219,7 +212,8 @@ add_aggregated_mean <- function(dt) {
       distribution_type       = unique(distribution_type),
       gd_type                 = unique(gd_type),
       is_interpolated         = FALSE,
-      is_used_for_aggregation = TRUE,
+      is_used_for_line_up     = FALSE,
+      is_used_for_aggregation = FALSE,
       display_cp              = unique(display_cp)
 
     ),

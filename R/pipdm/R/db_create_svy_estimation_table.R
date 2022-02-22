@@ -93,7 +93,7 @@ db_create_svy_estimation_table <- function(dsm_table, dist_table, gdp_table, pce
     "cpi_data_level", "ppp_data_level",
     "distribution_type", "gd_type",
     "is_interpolated",
-    "is_used_for_aggregation",
+    "is_used_for_line_up", "is_used_for_aggregation",
     "estimation_type",
     "display_cp"
   )

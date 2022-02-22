@@ -3,6 +3,7 @@
 #' Save a cleaned version of the survey data in the cache survey data directory.
 #'
 #' @inheritParams db_create_ref_year_table
+#' @param pfw_table data.table: A table with the price framework file.
 #' @param pipeline_inventory data.table: Pipeline inventory table.
 #' @param pip_data_dir character: Input folder for the raw survey data.
 #' @param cache_svy_dir character: Output folder for the cached survey data.
@@ -33,8 +34,8 @@ create_cache_file <- function(pipeline_inventory,
   tool <- match.arg(tool)
 
   # orrespondence file
-  crr_dir      <- fs::path(cache_svy_dir, "_crr_inventory")
-  crr_filename <- fs::path(crr_dir, "crr_inventory", ext = "fst")
+  crr_dir <- glue::glue("{cache_svy_dir}_crr_inventory/")
+  crr_filename <- glue::glue("{crr_dir}crr_inventory.fst")
 
   # Get all survey ids
   if (verbose) {
@@ -73,7 +74,7 @@ create_cache_file <- function(pipeline_inventory,
 
   # Early return
   if (nrow(new_svy_ids) == 0) {
-    if (!(fs::file_exists(crr_filename))) {
+    if (!(file.exists(crr_filename))) {
       cli::cli_alert_warning("Correspondence inventory file not found.
                            It will be created",
         wrap = TRUE
@@ -87,7 +88,9 @@ create_cache_file <- function(pipeline_inventory,
       )
     }
 
-    crr <- fst::read_fst(crr_filename, as.data.table = TRUE)
+    crr <- fst::read_fst(crr_filename,
+      as.data.table = TRUE
+    )
 
     return(invisible(list(
       processed_data = "No data processed",

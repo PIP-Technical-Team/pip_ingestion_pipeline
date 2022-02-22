@@ -59,6 +59,9 @@ db_create_lkup_table <- function(dt, nac_table, ref_years, region_code) {
   # Add region_code column (based on argument input)
   dt$region_code <- dt[, .SD, .SDcols = region_code]
 
+  # Select rows relevant for the line-up
+  dt <- dt[is_used_for_line_up == TRUE]
+
   # Add reference year column
   dt <- dt %>% tidyr::expand_grid(reference_year = ref_years)
 

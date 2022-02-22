@@ -8,6 +8,7 @@
 #' @param compress numeric: Compression level used in `fst::write_fst()`.
 #' @inheritParams db_create_ref_year_table
 #' @inheritParams db_create_dsm_table
+#' @inheritParams create_cache_file
 #'
 #' @return data frame with status of process
 #' @export
