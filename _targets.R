@@ -93,12 +93,12 @@ pipeline_inventory <-
 
 
 cts_filter <- c('COL', 'IND', "CHN")
-# pipeline_inventory <-
-#    pipeline_inventory[country_code %in% cts_filter
-#                       ][!(country_code == 'CHN' & surveyid_year >= 2017)]
-
 pipeline_inventory <-
-   pipeline_inventory[!(country_code == 'CHN' & surveyid_year >= 2017)]
+   pipeline_inventory[country_code %in% cts_filter
+                      ][!(country_code == 'CHN' & surveyid_year >= 2017)]
+
+# pipeline_inventory <-
+#    pipeline_inventory[!(country_code == 'CHN' & surveyid_year >= 2017)]
 
 ## --- Create cache files ----
 
@@ -135,9 +135,9 @@ cache_inventory <-
 #   cache_inventory[!(grepl("^(CHN)", survey_id) &
 #                       stringr::str_extract(survey_id, "([0-9]{4})") >= 2017)
 #                   ]
-# reg <- paste0("^(", paste(cts_filter, collapse = "|"),")")
-# 
-# cache_inventory <- cache_inventory[grepl(reg, survey_id)]
+reg <- paste0("^(", paste(cts_filter, collapse = "|"),")")
+
+cache_inventory <- cache_inventory[grepl(reg, survey_id)]
 
 
 cache_ids <- get_cache_id(cache_inventory)
@@ -148,8 +148,8 @@ cache   <- mp_cache(cache_dir = cache_dir,
                       save      = FALSE, 
                       gls       = gls)
 # 
-# selected_files <- which(grepl(reg, names(cache)))
-# cache <- cache[selected_files]
+selected_files <- which(grepl(reg, names(cache)))
+cache <- cache[selected_files]
 
 
 # remove CHN 2017 and 2018 manually
@@ -226,11 +226,10 @@ list(
   
   tar_target(dt_ref_mean_pred,
              db_create_ref_year_table(
+               dsm_table = svy_mean_ppp_table,
                gdp_table = dl_aux$gdp,
                pce_table = dl_aux$pce,
                pop_table = dl_aux$pop,
-               pfw_table = dl_aux$pfw,
-               dsm_table = svy_mean_ppp_table,
                ref_years = gls$PIP_REF_YEARS,
                pip_years = gls$PIP_YEARS,
                region_code = 'pcn_region_code')),
@@ -482,7 +481,7 @@ list(
   
   # Regional coverage 
   tar_target(
-    coverage_out,
+    region_year_coverage_out,
     save_aux_data(
       dl_coverage$region,
       paste0(gls$OUT_AUX_DIR_PC, "region_coverage.fst"),
@@ -493,7 +492,7 @@ list(
   
   # Regional coverage 
   tar_target(
-    coverage_out,
+    incomeGroup_year_coverage_out,
     save_aux_data(
       dl_coverage$incgrp,
       paste0(gls$OUT_AUX_DIR_PC, "incgrp_coverage.fst"),
