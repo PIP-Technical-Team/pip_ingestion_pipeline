@@ -1,31 +1,38 @@
 # ---- Install packages ----
-# 
-# remotes::install_github("PIP-Technical-Team/pipload@manual_years_censoring",
+
+# remotes::install_github("PIP-Technical-Team/pipload",
 #                         dependencies = FALSE)
+
+# 
+# remotes::install_github("PIP-Technical-Team/pipload@fix_paths",
+#                         dependencies = FALSE)
+
+
 
 # remotes::install_github("PIP-Technical-Team/wbpip@synth_vector",
 #                        dependencies = FALSE)
 # remotes::install_github("PIP-Technical-Team/wbpip",
 #                        dependencies = FALSE)
-# remotes::install_github("PIP-Technical-Team/pipdm",
-#                         dependencies = FALSE)
-# remotes::install_github("PIP-Technical-Team/pipdm@development",
-#                         dependencies = FALSE)
-# remotes::install_github("PIP-Technical-Team/pipdm@chr2fct",
-#                         dependencies = FALSE)
 
 # ---- Start up ----
 
 # Load packages
 source("./_packages.R")
-options(joyn.verbose = FALSE) # make sure joyn does not display messages
+options(joyn.verbose = FALSE, # make sure joyn does not display messages
+        pipload.verbose = FALSE) 
 
 # Load R files
-lapply(list.files("./R", full.names = TRUE,
-                  pattern = "\\.R$"), source)
+purrr::walk(fs::dir_ls(path = "./R", 
+                  regexp = "\\.R$"), source)
+
+# Read pipdm functions
+purrr::walk(fs::dir_ls(path = "./R/pipdm/R", 
+                  regexp = "\\.R$"), source)
+
 
 # Set-up global variables
-pipload::add_gls_to_env()
+pipload::add_gls_to_env(vintage = "new",
+                        out_dir = fs::path("y:/pip_ingestion_pipeline/temp/"))
 
 # Check that the correct _targets store is used 
 if (identical(tar_config_get('store'),
@@ -40,7 +47,6 @@ tar_option_set(
   memory = 'transient',
   format = 'qs', #'fst_dt',
   imports  = c('pipload',
-               'pipdm',
                'wbpip')
 )
 
@@ -51,30 +57,28 @@ tar_option_set(
 
 
 ## Load AUX data -----
-aux_tb  <- prep_aux_data(gls$PIP_DATA_DIR)
-aux_ver <- rep(0, length(aux_tb$auxname))
+aux_tb <- prep_aux_data(maindir = gls$PIP_DATA_DIR)
 
-# aux_ver[which(aux_tb$auxname == "cpi")] <- -1 # remove for march update
-
-dl_aux <- purrr::map2(.x = aux_tb$auxname, 
-                      .y =  aux_ver,
-                      .f = ~ {
-  pipload::pip_load_aux(measure     = .x, 
-                        apply_label = FALSE,
-                        maindir     = gls$PIP_DATA_DIR, 
-                        verbose     = FALSE, 
-                        version     = .y )
-                        }
-  )
+dl_aux <- purrr::map(.x = aux_tb$auxname, 
+                     .f = ~{
+                         pipload::pip_load_aux(measure     = .x, 
+                                               apply_label = FALSE,
+                                               maindir     = gls$PIP_DATA_DIR, 
+                                                 verbose     = FALSE)
+                         })
 names(dl_aux) <- aux_tb$auxname                
 
 
 ## Load PIP inventory ----
 pip_inventory <- 
   pipload::pip_find_data(
-    inv_file = paste0(gls$PIP_DATA_DIR, '_inventory/inventory.fst'),
+    inv_file = fs::path(gls$PIP_DATA_DIR, '_inventory/inventory.fst'),
     filter_to_pc = TRUE,
     maindir = gls$PIP_DATA_DIR)
+
+# pip_inventory <- 
+#   pipload::pip_find_data(filter_to_pc = TRUE)
+
 
 
 ## Create pipeline inventory ----
@@ -82,15 +86,19 @@ pip_inventory <-
 pipeline_inventory <- 
   db_filter_inventory(dt        = pip_inventory,
                       pfw_table = dl_aux$pfw)
+
 # Uncomment for specific countries
+# pipeline_inventory <-
+   # pipeline_inventory[country_code == 'PHL' & surveyid_year == 2000]
 
 
-# Manuall remove CHN 2017 and 2018
+# cts_filter <- c('COL', 'IND', "CHN")
+# pipeline_inventory <-
+#    pipeline_inventory[country_code %in% cts_filter
+#                       ][!(country_code == 'CHN' & surveyid_year >= 2017)]
+
 pipeline_inventory <-
    pipeline_inventory[!(country_code == 'CHN' & surveyid_year >= 2017)]
-  
-# pipeline_inventory <-
-#    pipeline_inventory[country_code == 'PAK']
 
 ## --- Create cache files ----
 
@@ -123,10 +131,15 @@ cache_inventory <-
   )
 
 # to filter temporarily
-# cache_inventory 
-#   <- cache_inventory[grepl("^(CHN|IDN)", survey_id)
-#        ][gsub("([A-Z]+)_([0-9]+)_(.*)", "\\2", survey_id) > 2010
-#        ]
+
+cache_inventory  <-
+  cache_inventory[!(grepl("^(CHN)", survey_id) &
+                      stringr::str_extract(survey_id, "([0-9]{4})") >= 2017)
+                  ]
+
+# reg <- paste0("^(", paste(cts_filter, collapse = "|"),")")
+# 
+# cache_inventory <- cache_inventory[grepl(reg, survey_id)]
 
 
 cache_ids <- get_cache_id(cache_inventory)
@@ -134,18 +147,22 @@ cache_dir <- get_cache_files(cache_inventory)
 
 cache   <- mp_cache(cache_dir = cache_dir, 
                       load      = TRUE, 
-                      save      = TRUE, 
+                      save      = FALSE, 
                       gls       = gls)
+# 
+# selected_files <- which(grepl(reg, names(cache)))
+# cache <- cache[selected_files]
 
 # remove CHN 2017 and 2018 manually
 cache[grep("CHN_201[78]", names(cache), value = TRUE)] <- NULL
-
 
 # notify that cache has finished loading (please do NOT delete)
 if (requireNamespace("pushoverr")) {
   pushoverr::pushover("Finished loading or creating cache list")
 }
 
+length(cache)
+length(cache_dir)
 
 # ---- Step 2: Run pipeline -----
 
@@ -156,30 +173,11 @@ list(
   
   ### Fetch GD survey means and convert them to daily values ----
   tar_target(
-    gd_means, {
-      
-      dt. <- joyn::merge(x          = cache_inventory,
-                         y          = dl_aux$gdm,
-                         by         = c("survey_id", "welfare_type"),
-                         match_type = "1:m",
-                         yvars      = c("survey_mean_lcu", "pop_data_level"),
-                         keep       = "left")
-      
-      data.table::setorder(dt., cache_id, pop_data_level)
-      
-      
-      gd_means        <- dt.[, survey_mean_lcu]
-      gd_means        <- gd_means * (12/365)
-      
-      names(gd_means) <- dt.[, cache_id]
-      ## convert to list by name
-      gd_means        <- split(unname(gd_means),names(gd_means)) 
-      
-      return(gd_means)
-      
-    }, 
+    gd_means, 
+    get_groupdata_means(cache_inventory = cache_inventory, 
+                        gdm            = dl_aux$gdm), 
     iteration = "list"
-  ) ,
+  ),
   
   ## Calculate LCU survey mean ----
   
@@ -204,18 +202,16 @@ list(
              db_create_dsm_table(
                lcu_table = svy_mean_lcu_table,
                cpi_table = dl_aux$cpi,
-               ppp_table = dl_aux$ppp)
-             ),
+               ppp_table = dl_aux$ppp)),
   
   ## Create reference year table ------
   
   tar_target(dt_ref_mean_pred,
              db_create_ref_year_table(
+               dsm_table = svy_mean_ppp_table,
                gdp_table = dl_aux$gdp,
                pce_table = dl_aux$pce,
                pop_table = dl_aux$pop,
-               pfw_table = dl_aux$pfw,
-               dsm_table = svy_mean_ppp_table,
                ref_years = gls$PIP_REF_YEARS,
                pip_years = gls$PIP_YEARS,
                region_code = 'pcn_region_code')),
@@ -285,13 +281,15 @@ list(
   
   # Create coverage table by region
   tar_target(
-    dt_coverage,
+    dl_coverage,
     db_create_coverage_table(
-      ref_year_table    = dt_ref_mean_pred,
-      pop_table         = dl_aux$pop,
-      ref_years         = gls$PIP_REF_YEARS,
-      special_countries = c("ARG", "CHN", "IDN", "IND"),
-      digits            = 2
+      ref_year_table        = dt_ref_mean_pred,
+      pop_table             = dl_aux$pop,
+      cl_table              = dl_aux$country_list,
+      incgrp_table          = dl_aux$income_groups, 
+      ref_years             = gls$PIP_REF_YEARS,
+      urban_rural_countries = c("ARG", "CHN", "IDN", "IND"),
+      digits                = 2
     )
   ),
   
@@ -302,8 +300,8 @@ list(
   tar_target(
     dl_censored,
     db_create_censoring_table(
-      censored = dl_aux$censoring,
-      coverage_table = dt_coverage,
+      censored           = dl_aux$censoring,
+      coverage_list      = dl_coverage,
       coverage_threshold = 50
     )
   ),
@@ -316,14 +314,16 @@ list(
       pop_table   = dl_aux$pop,
       cl_table    = dl_aux$country_list, 
       region_code = 'pcn_region_code',
-      pip_years   = gls$PIP_YEARS)),
+      pip_years   = gls$PIP_YEARS)
+  ),
   
   ### Create decomposition table ----
   
   tar_target(
     dt_decomposition,
     db_create_decomposition_table(
-      dsm_table = svy_mean_ppp_table)),
+      dsm_table = svy_mean_ppp_table)
+  ),
   
   ##  Clean AUX data ------
   
@@ -337,7 +337,8 @@ list(
   
   tar_target(aux_names,
              c("cpi", "gdp", "pop", "ppp", "pce"),
-             iteration = "list"),
+             iteration = "list"
+  ),
   
   tar_target(
     aux_clean,
@@ -359,8 +360,8 @@ list(
   tar_target(
     survey_files,
     mp_survey_files(
-      cache           = cache,
-      cache_ids       = cache_ids,
+      dt              = cache,
+      cache_filename  = cache_ids,
       output_dir      = gls$OUT_SVY_DIR_PC,
       cols            = c('welfare', 'weight', 'area'),
       compress        = gls$FST_COMP_LVL)
@@ -371,14 +372,14 @@ list(
   tar_target(aux_out_files,
              aux_out_files_fun(gls$OUT_AUX_DIR_PC, aux_names)
   ),
-  tar_files(aux_out_dir, aux_out_files),
-  
   tar_target(aux_out,
              fst::write_fst(x        = aux_clean,
-                            path     = aux_out_dir,
+                            path     = aux_out_files,
                             compress = gls$FST_COMP_LVL),
-             pattern   = map(aux_clean, aux_out_dir),
+             pattern   = map(aux_clean, aux_out_files),
              iteration = "list"),
+  
+  tar_files(aux_out_dir, aux_out_files),
   
   ### Save additional AUX files ----
   
@@ -388,7 +389,7 @@ list(
     save_aux_data(
       dl_aux$countries %>% 
         data.table::setnames('pcn_region_code', 'region_code'),
-      paste0(gls$OUT_AUX_DIR_PC, "countries.fst"),
+      fs::path(gls$OUT_AUX_DIR_PC, "countries.fst"),
       compress = TRUE
     ),
     format = 'file',
@@ -399,7 +400,7 @@ list(
     regions_out,
     save_aux_data(
       dl_aux$regions,
-      paste0(gls$OUT_AUX_DIR_PC, "regions.fst"),
+      fs::path(gls$OUT_AUX_DIR_PC, "regions.fst"),
       compress = TRUE
     ),
     format = 'file',
@@ -410,7 +411,7 @@ list(
     country_profiles_out,
     save_aux_data(
       dl_aux$cp,
-      paste0(gls$OUT_AUX_DIR_PC, "country_profiles.rds"),
+      fs::path(gls$OUT_AUX_DIR_PC, "country_profiles.rds"),
       compress = TRUE
     ),
     format = 'file',
@@ -421,7 +422,7 @@ list(
     poverty_lines_out,
     save_aux_data(
       dl_aux$pl,
-      paste0(gls$OUT_AUX_DIR_PC, "poverty_lines.fst"),
+      fs::path(gls$OUT_AUX_DIR_PC, "poverty_lines.fst"),
       compress = TRUE
     ),
     format = 'file',
@@ -432,7 +433,7 @@ list(
     survey_metadata_out,
     save_aux_data(
       dl_aux$metadata,
-      paste0(gls$OUT_AUX_DIR_PC, "survey_metadata.rds"),
+      fs::path(gls$OUT_AUX_DIR_PC, "survey_metadata.rds"),
       compress = TRUE
     ),
     format = 'file',
@@ -443,7 +444,7 @@ list(
     indicators_out,
     save_aux_data(
       dl_aux$indicators,
-      paste0(gls$OUT_AUX_DIR_PC, "indicators.fst"),
+      fs::path(gls$OUT_AUX_DIR_PC, "indicators.fst"),
       compress = TRUE
     ),
     format = 'file',
@@ -454,29 +455,49 @@ list(
     pop_region_out,
     save_aux_data(
       dt_pop_region,
-      paste0(gls$OUT_AUX_DIR_PC, "pop_region.fst"),
+      fs::path(gls$OUT_AUX_DIR_PC, "pop_region.fst"),
       compress = TRUE
     ),
     format = 'file',
   ),
   
-  # Coverage 
+  # Regional coverage 
   tar_target(
-    coverage_out,
+    region_year_coverage_out,
     save_aux_data(
-      dt_coverage,
-      paste0(gls$OUT_AUX_DIR_PC, "coverage.fst"),
+      dl_coverage$region,
+      paste0(gls$OUT_AUX_DIR_PC, "region_coverage.fst"),
       compress = TRUE
     ),
     format = 'file',
+  ),
+  
+  # Regional coverage 
+  tar_target(
+    incomeGroup_year_coverage_out,
+    save_aux_data(
+      dl_coverage$incgrp,
+      paste0(gls$OUT_AUX_DIR_PC, "incgrp_coverage.fst"),
+      compress = TRUE
+    ),
+    format = 'file',
+  ),
+  
+  # Country year coverage
+  tar_target(
+    country_year_coverage_out,
+    save_aux_data(
+      dl_coverage$country_year_coverage,
+      paste0(gls$OUT_AUX_DIR_PC, "country_coverage.fst"),
+      compress = TRUE)
   ),
   
   # Censoring 
   tar_target(
     censored_out,
-    pipdm::save_aux_data(
+    save_aux_data(
       dl_censored,
-      paste0(gls$OUT_AUX_DIR_PC, "censored.rds"),
+      fs::path(gls$OUT_AUX_DIR_PC, "censored.rds"),
       compress = TRUE
     ),
     format = 'file',
@@ -488,7 +509,7 @@ list(
     decomposition_out,
     save_aux_data(
       dt_decomposition,
-      paste0(gls$OUT_AUX_DIR_PC, "decomposition.fst"),
+      fs::path(gls$OUT_AUX_DIR_PC, "decomposition.fst"),
       compress = TRUE
     ),
     format = 'file',
@@ -499,7 +520,7 @@ list(
     framework_out,
     save_aux_data(
       dt_framework,
-      paste0(gls$OUT_AUX_DIR_PC, "framework.fst"),
+      fs::path(gls$OUT_AUX_DIR_PC, "framework.fst"),
       compress = TRUE
     ),
     format = 'file',
@@ -533,7 +554,7 @@ list(
     lorenz_out,
     save_aux_data(
       lorenz,
-      paste0(gls$OUT_AUX_DIR_PC, "lorenz.rds"),
+      fs::path(gls$OUT_AUX_DIR_PC, "lorenz.rds"),
       compress = TRUE
     ),
     format = 'file',
@@ -580,7 +601,11 @@ list(
   tar_target(
     data_timestamp_file,
     # format = 'file', 
-    writeLines(as.character(Sys.time()), paste0(gls$PIP_PIPE_DIR, "pc_data/data_update_timestamp.txt"))
+    writeLines(as.character(Sys.time()), 
+               fs::path(gls$PIP_PIPE_DIR, 
+                        "pc_data", 
+                        "data_update_timestamp", 
+                        ext = "txt"))
   )
   
 )

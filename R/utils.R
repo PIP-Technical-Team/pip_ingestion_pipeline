@@ -2,21 +2,27 @@ save_estimations <- function(dt, dir, name,
                              time = format(Sys.time(), "%Y%m%d%H%M%S"), 
                              compress) {
   
+  vintage     <- paste0(name, "_", time)
+  vintage_dir <- fs::path(dir,"_vintage")
+  if (!fs::dir_exists(vintage_dir)) {
+    fs::dir_create(vintage_dir)
+  }
+  
   fst::write_fst(x        = dt,
-                 path     = paste0(dir, name, ".fst"),
+                 path     = fs::path(dir, name, ext = "fst"),
                  compress = compress)
   
   fst::write_fst(x        = dt,
-                 path     = paste0(dir,"_vintage/", name, "_", time, ".fst"),
+                 path     = fs::path(vintage_dir, vintage, ext = "fst"),
                  compress = compress)
   
   haven::write_dta(data     = dt,
-                   path     = paste0(dir, name, ".dta"))
+                   path     = fs::path(dir, name, ext = "dta"))
   
   haven::write_dta(data     = dt,
-                   path     = paste0(dir,"_vintage/", name, "_", time, ".dta"))
+                   path     = fs::path(vintage_dir,vintage, ext = "dta"))
   
-  return(paste0(dir, name, ".fst"))
+  return(fs::path(dir, name, ext = "fst"))
 }
 
 create_input_folder_structure <- function(dir) {
@@ -24,28 +30,28 @@ create_input_folder_structure <- function(dir) {
   # Create sub directories if needed 
   
   # _aux folder
-  if (!dir.exists(paste0(dir, '_aux')))
-    dir.create(paste0(dir, '_aux'))
+  if (!dir.exists(fs::path(dir, '_aux')))
+    dir.create(fs::path(dir, '_aux'))
   
   # _inventory folder 
-  if (!dir.exists(paste0(dir, '_inventory')))
-    dir.create(paste0(dir, '_inventory'))
+  if (!dir.exists(fs::path(dir, '_inventory')))
+    dir.create(fs::path(dir, '_inventory'))
   
   # _log folders 
-  if (!dir.exists(paste0(dir, '_log')))
-    dir.create(paste0(dir, '_log'))
-  if (!dir.exists(paste0(dir, '_log/info')))
-    dir.create(paste0(dir, '_log/info'))
-  if (!dir.exists(paste0(dir, '_log/info/vintage')))
-    dir.create(paste0(dir, '_log/info/vintage'))
+  if (!dir.exists(fs::path(dir, '_log')))
+    dir.create(fs::path(dir, '_log'))
+  if (!dir.exists(fs::path(dir, '_log/info')))
+    dir.create(fs::path(dir, '_log/info'))
+  if (!dir.exists(fs::path(dir, '_log/info/vintage')))
+    dir.create(fs::path(dir, '_log/info/vintage'))
   
   # Create other files if needed 
   
   # Create empty _log/info .dtasig files  
-  if (!file.exists(paste0(dir, '_log/info/pip_info_gd.dtasig')))
-    file.create(paste0(dir, '_log/info/pip_info_gd.dtasig'))
-  if (!file.exists(paste0(dir, '_log/info/pip_info_md.dtasig')))
-    file.create(paste0(dir, '_log/info/pip_info_md.dtasig'))
+  if (!file.exists(fs::path(dir, '_log/info/pip_info_gd.dtasig')))
+    file.create(fs::path(dir, '_log/info/pip_info_gd.dtasig'))
+  if (!file.exists(fs::path(dir, '_log/info/pip_info_md.dtasig')))
+    file.create(fs::path(dir, '_log/info/pip_info_md.dtasig'))
   
 }
 
@@ -55,20 +61,20 @@ check_missing_input_files <- function(dir) {
   # The most recent version of this file needs to be 
   # manually downloaded from IMF's webpage. 
   weo_path <- '_aux/weo/WEO_[0-9]{4}-[0-9]{2}-[0-9]{2}.xls'
-  if (!file.exists(paste0(dir, weo_path)))
+  if (!file.exists(fs::path(dir, weo_path)))
     rlang::abort('WEO_[YYYY-MM-DD].xls file not found.')
   
   # Check that _the_ 2021-01-14 version of NAS special.xlsx
   # ia available. The use of this specific file is currently
   # hardcoded in pipaux::pip_gdp_update and pipaux::pip_pce_update. 
   nas_path <- '_aux/sna/NAS special_2021-01-14.xlsx'
-  if (!file.exists(paste0(dir, nas_path)))
+  if (!file.exists(fs::path(dir, nas_path)))
     rlang::abort('NAS special_2021-01-14.xlsx file not found.')
   
 }
 
 cache_inventory_path <- function(CACHE_SVY_DIR){
-  paste0(CACHE_SVY_DIR, "_crr_inventory/crr_inventory.fst")
+  fs::path(CACHE_SVY_DIR, "_crr_inventory/crr_inventory.fst")
 }
 
 get_cache_files <- function(x) {
@@ -85,7 +91,7 @@ get_survey_id <- function(x) {
 
 
 aux_out_files_fun <- function(OUT_AUX_DIR, aux_names) {
-  purrr::map_chr(aux_names, ~ paste0(OUT_AUX_DIR, .x, ".fst"))
+  purrr::map_chr(aux_names, ~ fs::path(OUT_AUX_DIR, .x,  ext = "fst"))
 }
 
 temp_cleaning_ref_table <- function(dt) {
@@ -102,30 +108,40 @@ named_mean <- function(dt) {
   return(mvec)
 }
 
-prep_aux_data <- function(PIP_DATA_DIR) {
+prep_aux_data <- function(maindir = PIP_DATA_DIR) {
   
-  auxdir <- paste0(PIP_DATA_DIR, "_aux/")
+  auxdir <- fs::path(maindir, "_aux/")
   
-  aux_files <- list.files(auxdir,
-                          pattern    = "[a-z]+\\.(rds|fst)",
-                          recursive  = TRUE,
-                          full.names = TRUE)
+  aux_dirs <- fs::dir_ls(auxdir,
+                         recurse = FALSE,
+                         type = "directory")
   
-  # remove double // in the middle of path
-  aux_files        <- gsub("(.+)//(.+)", "\\1/\\2", aux_files)
+  aux_indicators <- stringr::str_extract(aux_dirs, "[^/]+$")
+  aux_indicators   <-  tolower(unique(aux_indicators))
   
-  aux_indicators   <- gsub(auxdir, "", aux_files)
-  aux_indicators   <- gsub(".*[/]|([.].*)", "", aux_indicators)
-  names(aux_files) <- aux_indicators
+  # keep only those that exist
+  dd <-
+    purrr::map2_lgl(.x = aux_dirs,
+                .y = aux_indicators,
+                .f = ~{
+                  ffst <- fs::path(.x, .y, ext = "fst")
+                  frds <- fs::path(.x, .y, ext = "rds")
+                  
+                  f_exists <- purrr::map_lgl(c(ffst, frds), fs::file_exists)
+                  any(f_exists)
+                  
+                })
+  names(dd) <- aux_indicators
+  
+  aux_indicators <- aux_indicators[dd]
+  aux_dirs       <- aux_dirs[dd]
+  
+  names(aux_dirs) <- aux_indicators
   
   aux_tb <- data.table::data.table(
     auxname  = aux_indicators,
-    auxfiles = aux_files
+    auxfiles = aux_dirs
   )
-  
-  # filter 
-  aux_tb <- aux_tb[!(auxname %chin% 
-                       c("weo", "maddison", "cpicpi_vintage"))]
   
   return(aux_tb)
 }
@@ -165,3 +181,27 @@ create_framework <- function(pfw) {
   return(pfw)
 }
 
+
+get_groupdata_means <- function(cache_inventory, 
+                                gdm) {
+  
+  dt. <- joyn::merge(x          = cache_inventory,
+                     y          = gdm,
+                     by         = c("survey_id", "welfare_type"),
+                     match_type = "1:m",
+                     yvars      = c("survey_mean_lcu", "pop_data_level"),
+                     keep       = "left")
+  
+  data.table::setorder(dt., cache_id, pop_data_level)
+  
+  
+  gd_means        <- dt.[, survey_mean_lcu]
+  gd_means        <- gd_means * (12/365)
+  
+  names(gd_means) <- dt.[, cache_id]
+  ## convert to list by name
+  gd_means        <- split(unname(gd_means),names(gd_means)) 
+  
+  return(gd_means)
+
+}
