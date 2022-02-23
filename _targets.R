@@ -150,8 +150,8 @@ cache   <- mp_cache(cache_dir = cache_dir,
                       save      = FALSE, 
                       gls       = gls)
 # 
-selected_files <- which(grepl(reg, names(cache)))
-cache <- cache[selected_files]
+# selected_files <- which(grepl(reg, names(cache)))
+# cache <- cache[selected_files]
 
 # remove CHN 2017 and 2018 manually
 cache[grep("CHN_201[78]", names(cache), value = TRUE)] <- NULL
