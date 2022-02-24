@@ -360,11 +360,11 @@ list(
   tar_target(
     survey_files,
     mp_survey_files(
-      dt              = cache,
-      cache_filename  = cache_ids,
-      output_dir      = gls$OUT_SVY_DIR_PC,
-      cols            = c('welfare', 'weight', 'area'),
-      compress        = gls$FST_COMP_LVL)
+      cache       = cache,
+      cache_ids   = cache_ids,
+      output_dir  = gls$OUT_SVY_DIR_PC,
+      cols        = c('welfare', 'weight', 'area'),
+      compress    = gls$FST_COMP_LVL)
   ),
   
   ### Save basic AUX data ----
