@@ -1,1 +1,1 @@
-All the documentation of this repository is available in chapter 3 (?) of the Technical [PIP manual](https://pip-technical-team.github.io/PIPmanual/)
+All the documentation of this repository is available in [chapter 9](https://pip-technical-team.github.io/PIPmanual/pcpipeline.html#pcpipeline) of the Technical [PIP manual](https://pip-technical-team.github.io/PIPmanual/)
