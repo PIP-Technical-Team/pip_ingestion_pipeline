@@ -113,7 +113,7 @@ db_finalize_ref_year_table <- function(dt, pop_table) {
   )
 
   # Recode class
-  dt$reporting_year <- as.integer(dt$reporting_year)
+  dt$reporting_year <- as.numeric(dt$reporting_year)
 
   # Add interpolation id
   dt <- dt %>%
