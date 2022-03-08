@@ -1,13 +1,7 @@
 # ---- Install packages ----
 
-# remotes::install_github("PIP-Technical-Team/pipload",
+# remotes::install_github("PIP-Technical-Team/pipload@dev",
 #                         dependencies = FALSE)
-
-# 
-# remotes::install_github("PIP-Technical-Team/pipload@fix_paths",
-#                         dependencies = FALSE)
-
-
 
 # remotes::install_github("PIP-Technical-Team/wbpip@synth_vector",
 #                        dependencies = FALSE)
@@ -68,6 +62,8 @@ dl_aux <- purrr::map(.x = aux_tb$auxname,
                          })
 names(dl_aux) <- aux_tb$auxname                
 
+# temporal change. 
+dl_aux$pop$year <- as.numeric(dl_aux$pop$year)
 
 ## Load PIP inventory ----
 pip_inventory <- 
@@ -87,6 +83,39 @@ pipeline_inventory <-
   db_filter_inventory(dt        = pip_inventory,
                       pfw_table = dl_aux$pfw)
 
+# 
+# di <-
+#   c(
+#     "ALB_2017_SILC-C_D1_INC_GPWG",
+#     "ALB_2018_HBS_D1_CON_GPWG",
+#     "ALB_2018_SILC-C_D1_INC_GPWG",
+#     "ALB_2019_HBS_D1_CON_GPWG",
+#     "ALB_2019_SILC-C_D1_INC_GPWG",
+#     "ARG_2020_EPHC-S2_D2_INC_GPWG",
+#     "ARM_2020_ILCS_D1_CON_GPWG",
+#     "AUT_2020_EU-SILC_D1_INC_GPWG",
+#     "BEL_2020_EU-SILC_D1_INC_GPWG",
+#     "BEN_2018_EHCVM_D1_CON_GPWG",
+#     "BFA_2018_EHCVM_D1_CON_GPWG",
+#     "BGR_2020_EU-SILC_D1_INC_GPWG",
+#     "BLR_2020_HHS_D1_CON_GPWG",
+#     "BOL_2020_EH_D1_INC_GPWG",
+#     "BRA_2020_PNADC-E5_D1_INC_GPWG",
+#     "CHL_2020_CASEN_D1_INC_GPWG",
+#     "CIV_2018_EHCVM_D1_CON_GPWG",
+#     "COL_2020_GEIH_D1_INC_GPWG",
+#     "CRI_2020_ENAHO_D1_INC_GPWG",
+#     "CYP_2020_EU-SILC_D1_INC_GPWG",
+#     "CZE_2020_EU-SILC_D1_INC_GPWG",
+#     "DNK_2020_EU-SILC_D1_INC_GPWG",
+#     "DOM_2020_ECNFT-Q03_D1_INC_GPWG",
+#     "ECU_2020_ENEMDU_D1_INC_GPWG"
+#   )
+# 
+# pipeline_inventory <- 
+#   pipeline_inventory[cache_id %chin% di]
+# 
+
 # Uncomment for specific countries
 # pipeline_inventory <-
    # pipeline_inventory[country_code == 'PHL' & surveyid_year == 2000]
@@ -97,8 +126,17 @@ pipeline_inventory <-
 #    pipeline_inventory[country_code %in% cts_filter
 #                       ][!(country_code == 'CHN' & surveyid_year >= 2017)]
 
-pipeline_inventory <-
-   pipeline_inventory[!(country_code == 'CHN' & surveyid_year >= 2017)]
+# pipeline_inventory <-
+#    pipeline_inventory[!(country_code == 'CHN' & surveyid_year >= 2017)]
+
+
+# pipeline_inventory <-
+#    pipeline_inventory[country_code == 'CHN' & surveyid_year == 2019]
+
+# 
+# pipeline_inventory <-
+#    pipeline_inventory[country_code == 'CRI' & surveyid_year == 1989]
+
 
 ## --- Create cache files ----
 
@@ -131,11 +169,11 @@ cache_inventory <-
   )
 
 # to filter temporarily
-
-cache_inventory  <-
-  cache_inventory[!(grepl("^(CHN)", survey_id) &
-                      stringr::str_extract(survey_id, "([0-9]{4})") >= 2017)
-                  ]
+# 
+# cache_inventory  <-
+#   cache_inventory[!(grepl("^(CHN)", survey_id) &
+#                       stringr::str_extract(survey_id, "([0-9]{4})") >= 2017)
+#                   ]
 
 # reg <- paste0("^(", paste(cts_filter, collapse = "|"),")")
 # 
@@ -154,7 +192,7 @@ cache   <- mp_cache(cache_dir = cache_dir,
 # cache <- cache[selected_files]
 
 # remove CHN 2017 and 2018 manually
-cache[grep("CHN_201[78]", names(cache), value = TRUE)] <- NULL
+# cache[grep("CHN_201[78]", names(cache), value = TRUE)] <- NULL
 
 # notify that cache has finished loading (please do NOT delete)
 if (requireNamespace("pushoverr")) {
