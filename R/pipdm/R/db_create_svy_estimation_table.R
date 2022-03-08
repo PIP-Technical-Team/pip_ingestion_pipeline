@@ -79,7 +79,7 @@ db_create_svy_estimation_table <- function(dsm_table, dist_table, gdp_table, pce
   cols <- c(
     "survey_id", "cache_id", "region_code", "wb_region_code",
     "country_code", "reporting_year", "surveyid_year",
-    "survey_year", "survey_acronym", "survey_coverage",
+    "survey_year", "survey_time", "survey_acronym", "survey_coverage",
     "survey_comparability", "comparable_spell", "welfare_type",
     "reporting_level",
     # "mean", "median", "mld", "gini",
