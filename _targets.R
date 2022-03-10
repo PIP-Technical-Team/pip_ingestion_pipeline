@@ -1,5 +1,5 @@
 # ---- Install packages ----
-
+# 
 # remotes::install_github("PIP-Technical-Team/pipload@dev",
 #                         dependencies = FALSE)
 
@@ -187,7 +187,7 @@ cache   <- mp_cache(cache_dir = cache_dir,
                       load      = TRUE, 
                       save      = FALSE, 
                       gls       = gls)
-# 
+ 
 # selected_files <- which(grepl(reg, names(cache)))
 # cache <- cache[selected_files]
 
@@ -391,9 +391,10 @@ list(
     create_framework(dl_aux$pfw)
   ),
   
+  #~~~~~~~~~~~~~~~~~~~~~~
   ## Save data ---- 
   
-  ### Save survey data ------
+  ### survey data ------
   
   tar_target(
     survey_files,
@@ -405,7 +406,7 @@ list(
       compress    = gls$FST_COMP_LVL)
   ),
   
-  ### Save basic AUX data ----
+  ### Basic AUX data ----
   
   tar_target(aux_out_files,
              aux_out_files_fun(gls$OUT_AUX_DIR_PC, aux_names)
@@ -419,7 +420,7 @@ list(
   
   tar_files(aux_out_dir, aux_out_files),
   
-  ### Save additional AUX files ----
+  ### Additional AUX files ----
   
   # Countries
   tar_target(
@@ -499,12 +500,14 @@ list(
     format = 'file',
   ),
   
+  ### Coverage files ----
+  
   # Regional coverage 
   tar_target(
     region_year_coverage_out,
     save_aux_data(
       dl_coverage$region,
-      paste0(gls$OUT_AUX_DIR_PC, "region_coverage.fst"),
+      fs::path(gls$OUT_AUX_DIR_PC, "region_coverage.fst"),
       compress = TRUE
     ),
     format = 'file',
@@ -515,7 +518,7 @@ list(
     incomeGroup_year_coverage_out,
     save_aux_data(
       dl_coverage$incgrp,
-      paste0(gls$OUT_AUX_DIR_PC, "incgrp_coverage.fst"),
+      fs::path(gls$OUT_AUX_DIR_PC, "incgrp_coverage.fst"),
       compress = TRUE
     ),
     format = 'file',
@@ -526,7 +529,7 @@ list(
     country_year_coverage_out,
     save_aux_data(
       dl_coverage$country_year_coverage,
-      paste0(gls$OUT_AUX_DIR_PC, "country_coverage.fst"),
+      fs::path(gls$OUT_AUX_DIR_PC, "country_coverage.fst"),
       compress = TRUE)
   ),
   
@@ -564,7 +567,7 @@ list(
     format = 'file',
   ),
   
-  ### Save estimation tables -------
+  ### Estimation tables -------
   
   tar_target(
     prod_ref_estimation_file,
@@ -586,7 +589,7 @@ list(
                      compress = gls$FST_COMP_LVL)
   ),
   
-  ### Save Lorenz list ----
+  ###  Lorenz list ----
   
   tar_target(
     lorenz_out,
@@ -598,7 +601,7 @@ list(
     format = 'file',
   ),
   
-  ### Save dist stats table ----
+  ### Dist stats table ----
   
   tar_target(
     dist_file,
@@ -610,7 +613,7 @@ list(
                      compress = gls$FST_COMP_LVL)
   ),
   
-  ### Save survey means table ----
+  ###Survey means table ----
   
   tar_target(
     survey_mean_file,
@@ -622,7 +625,7 @@ list(
                      compress = gls$FST_COMP_LVL)
   ),
   
-  ### Save interpolated means table ----
+  ### Interpolated means table ----
   
   tar_target(
     interpolated_means_file,
@@ -634,7 +637,7 @@ list(
                      compress = gls$FST_COMP_LVL)
   ),
   
-  ### Save data timestamp file ----
+  ### Data timestamp file ----
   
   tar_target(
     data_timestamp_file,
