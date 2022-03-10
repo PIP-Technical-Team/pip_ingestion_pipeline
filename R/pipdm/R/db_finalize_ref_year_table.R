@@ -80,7 +80,7 @@ db_finalize_ref_year_table <- function(dt, pop_table) {
   dt$predicted_mean_ppp <- data.table::fifelse(
     dt$is_interpolated &
       dt$reporting_level == "national" &
-      dt$is_used_for_line_up,
+      dt$is_used_for_aggregation,
     NA_real_,
     dt$predicted_mean_ppp
   )
