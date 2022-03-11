@@ -161,7 +161,7 @@ cache_dir <- get_cache_files(cache_inventory)
 
 cache   <- mp_cache(cache_dir = cache_dir, 
                       load      = TRUE, 
-                      save      = TRUE, 
+                      save      = FALSE, 
                       gls       = gls)
  
 # selected_files <- which(grepl(reg, names(cache)))
