@@ -114,6 +114,13 @@
       "Repository": "CRAN",
       "Hash": "b7d8d8ee39869c18d8846a184dd8a1af"
     },
+    "brio": {
+      "Package": "brio",
+      "Version": "1.1.2",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "2f01e16ff9571fe70381c7b9ae560dc4"
+    },
     "bs4Dash": {
       "Package": "bs4Dash",
       "Version": "2.0.3",
@@ -253,6 +260,13 @@
       "Source": "Repository",
       "Repository": "CRAN",
       "Hash": "28763d08fadd0b733e3cee9dab4e12fe"
+    },
+    "diffobj": {
+      "Package": "diffobj",
+      "Version": "0.3.5",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "bcaa8b95f8d7d01a5dedfd959ce88ab8"
     },
     "digest": {
       "Package": "digest",
@@ -666,30 +680,17 @@
       "RemoteSha": "1c6b97f0aa007c4c8213be140f3943972ff6bebb",
       "Hash": "b81e59e72dd2d6bc32ba98541bca66f8"
     },
-    "pipdm": {
-      "Package": "pipdm",
-      "Version": "0.0.12.9001",
-      "Source": "GitHub",
-      "Remotes": "github::PIP-Technical-Team/pipload,\ngithub::PIP-Technical-Team/wbpip",
-      "RemoteType": "github",
-      "RemoteHost": "api.github.com",
-      "RemoteRepo": "pipdm",
-      "RemoteUsername": "PIP-Technical-Team",
-      "RemoteRef": "HEAD",
-      "RemoteSha": "f28ac2206d00643c22eebb371cb7b6c60af622fc",
-      "Hash": "f4a32efc0eb6c5091307d1a3083f3e98"
-    },
     "pipload": {
       "Package": "pipload",
-      "Version": "0.1.8.9003",
+      "Version": "0.1.17",
       "Source": "GitHub",
       "RemoteType": "github",
       "RemoteHost": "api.github.com",
       "RemoteRepo": "pipload",
       "RemoteUsername": "PIP-Technical-Team",
-      "RemoteRef": "manual_years_censoring",
-      "RemoteSha": "1fb8695c473bf990a7359c9057475b4da98a0004",
-      "Hash": "d0807c6003ea1604f45754a2f1dd8054"
+      "RemoteRef": "dev",
+      "RemoteSha": "ce8727a805f44882a8cbf1a6d4fff7b44a0758ca",
+      "Hash": "ee7bedd05ffd4a5de4a76a8faf115b7c"
     },
     "pkgconfig": {
       "Package": "pkgconfig",
@@ -697,6 +698,20 @@
       "Source": "Repository",
       "Repository": "CRAN",
       "Hash": "01f28d4278f15c76cddbea05899c5d6f"
+    },
+    "pkgload": {
+      "Package": "pkgload",
+      "Version": "1.2.3",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "302276471121c41f47380243b82d5882"
+    },
+    "praise": {
+      "Package": "praise",
+      "Version": "1.0.0",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "a555924add98c99d2f411e37e7d25e9f"
     },
     "prettyunits": {
       "Package": "prettyunits",
@@ -781,6 +796,13 @@
       "Source": "Repository",
       "Repository": "CRAN",
       "Hash": "c66b930d20bb6d858cd18e1cebcfae5c"
+    },
+    "rematch2": {
+      "Package": "rematch2",
+      "Version": "2.1.2",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "76c9e04c712a05848ae7a23d2f170a40"
     },
     "renv": {
       "Package": "renv",
@@ -915,6 +937,13 @@
       "Repository": "CRAN",
       "Hash": "857c34fc118c677cf6bf39e9816faf5c"
     },
+    "testthat": {
+      "Package": "testthat",
+      "Version": "3.1.0",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "89e55ebe4f5ddd7f43f0f2bc6d96c950"
+    },
     "tibble": {
       "Package": "tibble",
       "Version": "3.1.5",
@@ -1005,6 +1034,13 @@
       "Source": "Repository",
       "Repository": "CRAN",
       "Hash": "ac6ef9ebf3f60eb8f2fe5f0c829e3a08"
+    },
+    "waldo": {
+      "Package": "waldo",
+      "Version": "0.3.1",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "ad8cfff5694ac5b3c354f8f2044bd976"
     },
     "wbpip": {
       "Package": "wbpip",
