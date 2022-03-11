@@ -25,9 +25,11 @@ purrr::walk(fs::dir_ls(path = "./R/pipdm/R",
 
 
 # Set-up global variables
-pipload::add_gls_to_env(vintage = "new",
-                        out_dir = fs::path("y:/pip_ingestion_pipeline/temp/"))
+pipload::add_gls_to_env(vintage = "20220408")
 
+# pipload::add_gls_to_env(vintage = "new",
+#                         out_dir = fs::path("y:/pip_ingestion_pipeline/temp/"))
+# 
 # Check that the correct _targets store is used 
 if (identical(tar_config_get('store'),
               paste0(gls$PIP_PIPE_DIR, 'pc_data/_targets/'))
@@ -83,38 +85,12 @@ pipeline_inventory <-
   db_filter_inventory(dt        = pip_inventory,
                       pfw_table = dl_aux$pfw)
 
+
+# pipeline_inventory <-
+#   pipeline_inventory[grepl("HTI_2012", cache_id)]
 # 
-# di <-
-#   c(
-#     "ALB_2017_SILC-C_D1_INC_GPWG",
-#     "ALB_2018_HBS_D1_CON_GPWG",
-#     "ALB_2018_SILC-C_D1_INC_GPWG",
-#     "ALB_2019_HBS_D1_CON_GPWG",
-#     "ALB_2019_SILC-C_D1_INC_GPWG",
-#     "ARG_2020_EPHC-S2_D2_INC_GPWG",
-#     "ARM_2020_ILCS_D1_CON_GPWG",
-#     "AUT_2020_EU-SILC_D1_INC_GPWG",
-#     "BEL_2020_EU-SILC_D1_INC_GPWG",
-#     "BEN_2018_EHCVM_D1_CON_GPWG",
-#     "BFA_2018_EHCVM_D1_CON_GPWG",
-#     "BGR_2020_EU-SILC_D1_INC_GPWG",
-#     "BLR_2020_HHS_D1_CON_GPWG",
-#     "BOL_2020_EH_D1_INC_GPWG",
-#     "BRA_2020_PNADC-E5_D1_INC_GPWG",
-#     "CHL_2020_CASEN_D1_INC_GPWG",
-#     "CIV_2018_EHCVM_D1_CON_GPWG",
-#     "COL_2020_GEIH_D1_INC_GPWG",
-#     "CRI_2020_ENAHO_D1_INC_GPWG",
-#     "CYP_2020_EU-SILC_D1_INC_GPWG",
-#     "CZE_2020_EU-SILC_D1_INC_GPWG",
-#     "DNK_2020_EU-SILC_D1_INC_GPWG",
-#     "DOM_2020_ECNFT-Q03_D1_INC_GPWG",
-#     "ECU_2020_ENEMDU_D1_INC_GPWG"
-#   )
-# 
-# pipeline_inventory <- 
-#   pipeline_inventory[cache_id %chin% di]
-# 
+# pipeline_inventory <-
+#   pipeline_inventory[grepl("^NIC", cache_id)]
 
 # Uncomment for specific countries
 # pipeline_inventory <-
@@ -185,7 +161,7 @@ cache_dir <- get_cache_files(cache_inventory)
 
 cache   <- mp_cache(cache_dir = cache_dir, 
                       load      = TRUE, 
-                      save      = FALSE, 
+                      save      = TRUE, 
                       gls       = gls)
  
 # selected_files <- which(grepl(reg, names(cache)))

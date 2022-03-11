@@ -62,11 +62,7 @@ process_svy_data_to_cache <- function(survey_id,
       # Clean data   ---------
       # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-      # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-      ## Standard cleaning --------
-
-      df <- db_clean_data(df)
-
+      
       #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
       ## check if there is alternative welfare to use --------
 
@@ -111,7 +107,12 @@ process_svy_data_to_cache <- function(survey_id,
 
       # stadanrdize and change weflare type
       df[, welfare_type := wt]
-
+      
+      # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+      ## Standard cleaning --------
+      
+      df <- db_clean_data(df)
+      
 
       #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
       # additional variables   ---------
