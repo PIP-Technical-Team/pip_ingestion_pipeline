@@ -40,7 +40,7 @@ gls <- pipload::pip_create_globals(
 # 
 # Check that the correct _targets store is used 
 if (!identical(fs::path(tar_config_get('store')),
-              fs::path(gls$PIP_PIPE_DIR, 'pc_data/_targets'))) {
+               fs::path(gls$PIP_PIPE_DIR, 'pc_data/_targets'))) {
   stop('The store specified in _targets.yaml doesn\'t match with the pipeline directory')
 }
 
@@ -49,8 +49,8 @@ tar_option_set(
   garbage_collection = TRUE,
   memory = 'transient',
   format = 'qs', #'fst_dt',
-  imports  = c('pipload',
-               'wbpip'), 
+  # imports  = c('pipload',
+  #              'wbpip'), 
   workspace_on_error = TRUE
 )
 
@@ -97,7 +97,9 @@ m_av <- ppp_v[ppp_year == py & ppp_rv == m_rv,
 
 dl_aux$ppp <- dl_aux$ppp[ppp_year == py 
                          & release_version    == m_rv
-                         & adaptation_version == m_av]
+                         & adaptation_version == m_av
+                         ][, 
+                           ppp_default := TRUE]
 
 
 
