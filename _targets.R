@@ -26,21 +26,16 @@ purrr::walk(fs::dir_ls(path = "./R/pipdm/R",
 
 # Set-up global variables
 
-gls <- pipload::pip_create_globals(
-  root_dir   = Sys.getenv("PIP_ROOT_DIR"), 
-  out_dir    = fs::path("y:/pip_ingestion_pipeline/temp/"),
-  vintage    = c("new", "test"), 
-  create_dir = TRUE
-  )
-
 # pipload::add_gls_to_env(vintage = "20220408")
 
 # pipload::add_gls_to_env(vintage = "new",
 #                         out_dir = fs::path("y:/pip_ingestion_pipeline/temp/"))
 # 
 # Check that the correct _targets store is used 
+
+tdir <- "//w1wbgencifs01/pip/pip_ingestion_pipeline"
 if (identical(fs::path(tar_config_get('store')),
-             fs::path(gls$PIP_PIPE_DIR, 'pc_data/_targets'))
+             fs::path(tdir, 'pc_data/_targets'))
     ) {
   stop('The store specified in _targets.yaml doesn\'t match with the pipeline directory')
 }
