@@ -45,15 +45,6 @@ if (identical(fs::path(tar_config_get('store')),
   stop('The store specified in _targets.yaml doesn\'t match with the pipeline directory')
 }
 
-# Set targets options 
-tar_option_set(
-  garbage_collection = TRUE,
-  memory = 'transient',
-  # format = 'qs', #'fst_dt',
-  imports  = c('pipload',
-               'wbpip'), 
-  workspace_on_error = TRUE
-)
 
 # Set future plan (for targets::tar_make_future)
 # plan(multisession)
