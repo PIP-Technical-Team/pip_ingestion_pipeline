@@ -67,6 +67,33 @@ names(dl_aux) <- aux_tb$auxname
 # temporal change. 
 dl_aux$pop$year <- as.numeric(dl_aux$pop$year)
 
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+## Select PPP year --------
+
+py <- 2017
+
+vars     <- c("ppp_year", "release_version", "adaptation_version")
+ppp_v    <- unique(dl_aux$ppp[, ..vars], by = vars)
+data.table::setnames(x = ppp_v,
+                     old = c("release_version", "adaptation_version"),
+                     new = c("ppp_rv", "ppp_av"))
+
+# max release version
+m_rv <- ppp_v[ppp_year == py, max(ppp_rv)]
+
+# max adaptation year
+m_av <- ppp_v[ppp_year == py & ppp_rv == m_rv, 
+              max(ppp_av)]
+
+
+dl_aux$ppp <- dl_aux$ppp[ppp_year == py 
+                         & release_version    == m_rv
+                         & adaptation_version == m_av]
+
+
+
+
 ## Load PIP inventory ----
 pip_inventory <- 
   pipload::pip_find_data(
@@ -85,10 +112,10 @@ pipeline_inventory <-
   db_filter_inventory(dt        = pip_inventory,
                       pfw_table = dl_aux$pfw)
 
-
-# pipeline_inventory <-
-#   pipeline_inventory[grepl("HTI_2012", cache_id)]
 # 
+# pipeline_inventory <-
+#   pipeline_inventory[grepl("UGA_2019", cache_id)] 
+
 # pipeline_inventory <-
 #   pipeline_inventory[grepl("^NIC", cache_id)]
 

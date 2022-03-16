@@ -132,7 +132,7 @@ process_svy_data_to_cache <- function(survey_id,
 
       # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
       ## Deflate data --------
-      ppp_table <- ppp_table[ppp_default == TRUE]
+      # ppp_table <- ppp_table[ppp_default == TRUE]
 
       # Merge survey table with PPP (left join)
       df <- joyn::merge(df, ppp_table,
