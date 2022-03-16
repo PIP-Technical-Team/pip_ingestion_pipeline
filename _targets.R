@@ -76,37 +76,10 @@ names(dl_aux) <- aux_tb$auxname
 # temporal change. 
 dl_aux$pop$year <- as.numeric(dl_aux$pop$year)
 
+gdm <- as.data.frame(dl_aux$gdm)
 
+gdm <- data.frame(a = 1, b  = 2)
 
-
-## Load PIP inventory ----
-pip_inventory <- 
-  pipload::pip_find_data(
-    inv_file = fs::path(gls$PIP_DATA_DIR, '_inventory/inventory.fst'),
-    filter_to_pc = TRUE,
-    maindir = gls$PIP_DATA_DIR)
-
-
-
-## Create pipeline inventory ----
-
-pipeline_inventory <- 
-  db_filter_inventory(dt        = pip_inventory,
-                      pfw_table = dl_aux$pfw)
-
-
-## bring cache our of pipeline -----
-
-cache_inventory <- 
-  pip_update_cache_inventory(
-    pipeline_inventory = pipeline_inventory,
-    pip_data_dir       = gls$PIP_DATA_DIR,
-    cache_svy_dir      = gls$CACHE_SVY_DIR_PC,
-    tool               = "PC", 
-    save               = FALSE, 
-    load               = TRUE, 
-    verbose            = TRUE
-  )
 
 
 # ---- Step 2: Run pipeline -----
@@ -119,6 +92,6 @@ list(
   ### Fetch GD survey means and convert them to daily values ----
   tar_target(
     gd_means, 
-    3 + 5)
+    gdm)
 )
 
