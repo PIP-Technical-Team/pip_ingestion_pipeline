@@ -68,7 +68,7 @@ dl_aux <- purrr::map(.x = aux_tb$auxname,
                          pipload::pip_load_aux(measure     = .x, 
                                                apply_label = FALSE,
                                                maindir     = gls$PIP_DATA_DIR, 
-                                                 verbose     = FALSE)
+                                               verbose     = FALSE)
                          })
 names(dl_aux) <- aux_tb$auxname                
 
