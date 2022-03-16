@@ -33,13 +33,6 @@ purrr::walk(fs::dir_ls(path = "./R/pipdm/R",
 # 
 # Check that the correct _targets store is used 
 
-tdir <- "//w1wbgencifs01/pip/pip_ingestion_pipeline"
-if (identical(fs::path(tar_config_get('store')),
-             fs::path(tdir, 'pc_data/_targets'))
-    ) {
-  stop('The store specified in _targets.yaml doesn\'t match with the pipeline directory')
-}
-
 
 # Set future plan (for targets::tar_make_future)
 # plan(multisession)
