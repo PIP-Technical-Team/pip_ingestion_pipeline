@@ -51,7 +51,8 @@ tar_option_set(
   memory = 'transient',
   format = 'qs', #'fst_dt',
   imports  = c('pipload',
-               'wbpip')
+               'wbpip'), 
+  workspace_on_error = TRUE
 )
 
 # Set future plan (for targets::tar_make_future)
