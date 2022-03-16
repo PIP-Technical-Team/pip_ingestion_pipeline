@@ -25,7 +25,15 @@ purrr::walk(fs::dir_ls(path = "./R/pipdm/R",
 
 
 # Set-up global variables
-pipload::add_gls_to_env(vintage = "20220408")
+
+gls <- pipload::pip_create_globals(
+  root_dir   = Sys.getenv("PIP_ROOT_DIR"), 
+  out_dir    = fs::path("y:/pip_ingestion_pipeline/temp/"),
+  vintage    = c("new", "test"), 
+  create_dir = TRUE
+  )
+
+# pipload::add_gls_to_env(vintage = "20220408")
 
 # pipload::add_gls_to_env(vintage = "new",
 #                         out_dir = fs::path("y:/pip_ingestion_pipeline/temp/"))
@@ -112,9 +120,9 @@ pipeline_inventory <-
   db_filter_inventory(dt        = pip_inventory,
                       pfw_table = dl_aux$pfw)
 
-# 
+
 # pipeline_inventory <-
-#   pipeline_inventory[grepl("UGA_2019", cache_id)] 
+#   pipeline_inventory[grepl("UGA_2019", cache_id)]
 
 # pipeline_inventory <-
 #   pipeline_inventory[grepl("^NIC", cache_id)]
