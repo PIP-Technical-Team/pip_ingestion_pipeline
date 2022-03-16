@@ -49,7 +49,7 @@ if (identical(tar_config_get('store'),
 tar_option_set(
   garbage_collection = TRUE,
   memory = 'transient',
-  format = 'qs', #'fst_dt',
+  # format = 'qs', #'fst_dt',
   imports  = c('pipload',
                'wbpip'), 
   workspace_on_error = TRUE
@@ -60,23 +60,6 @@ tar_option_set(
 
 # ---- Step 1: Prepare data ----
 
-
-## Load AUX data -----
-aux_tb <- prep_aux_data(maindir = gls$PIP_DATA_DIR)
-
-dl_aux <- purrr::map(.x = aux_tb$auxname, 
-                     .f = ~{
-                         pipload::pip_load_aux(measure     = .x, 
-                                               apply_label = FALSE,
-                                               maindir     = gls$PIP_DATA_DIR, 
-                                               verbose     = FALSE)
-                         })
-names(dl_aux) <- aux_tb$auxname                
-
-# temporal change. 
-dl_aux$pop$year <- as.numeric(dl_aux$pop$year)
-
-gdm <- as.data.frame(dl_aux$gdm)
 
 gdm <- data.frame(a = 1, b  = 2)
 
