@@ -17,11 +17,11 @@ options(joyn.verbose = FALSE, # make sure joyn does not display messages
 
 # Load R files
 purrr::walk(fs::dir_ls(path = "./R", 
-                  regexp = "\\.R$"), source)
+                       regexp = "\\.R$"), source)
 
 # Read pipdm functions
 purrr::walk(fs::dir_ls(path = "./R/pipdm/R", 
-                  regexp = "\\.R$"), source)
+                       regexp = "\\.R$"), source)
 
 
 # Set-up global variables
@@ -31,7 +31,7 @@ gls <- pipload::pip_create_globals(
   out_dir    = fs::path("y:/pip_ingestion_pipeline/temp/"),
   vintage    = c("new", "test"), 
   create_dir = TRUE
-  )
+)
 
 # pipload::add_gls_to_env(vintage = "20220408")
 
@@ -39,9 +39,8 @@ gls <- pipload::pip_create_globals(
 #                         out_dir = fs::path("y:/pip_ingestion_pipeline/temp/"))
 # 
 # Check that the correct _targets store is used 
-if (identical(tar_config_get('store'),
-              paste0(gls$PIP_PIPE_DIR, 'pc_data/_targets/'))
-    ) {
+if (!identical(fs::path(tar_config_get('store')),
+               fs::path(gls$PIP_PIPE_DIR, 'pc_data/_targets'))) {
   stop('The store specified in _targets.yaml doesn\'t match with the pipeline directory')
 }
 
@@ -50,8 +49,8 @@ tar_option_set(
   garbage_collection = TRUE,
   memory = 'transient',
   format = 'qs', #'fst_dt',
-  imports  = c('pipload',
-               'wbpip'), 
+  # imports  = c('pipload',
+  #              'wbpip'), 
   workspace_on_error = TRUE
 )
 
@@ -66,11 +65,11 @@ aux_tb <- prep_aux_data(maindir = gls$PIP_DATA_DIR)
 
 dl_aux <- purrr::map(.x = aux_tb$auxname, 
                      .f = ~{
-                         pipload::pip_load_aux(measure     = .x, 
-                                               apply_label = FALSE,
-                                               maindir     = gls$PIP_DATA_DIR, 
-                                               verbose     = FALSE)
-                         })
+                       pipload::pip_load_aux(measure     = .x, 
+                                             apply_label = FALSE,
+                                             maindir     = gls$PIP_DATA_DIR, 
+                                             verbose     = FALSE)
+                     })
 names(dl_aux) <- aux_tb$auxname                
 
 # temporal change. 
@@ -98,7 +97,9 @@ m_av <- ppp_v[ppp_year == py & ppp_rv == m_rv,
 
 dl_aux$ppp <- dl_aux$ppp[ppp_year == py 
                          & release_version    == m_rv
-                         & adaptation_version == m_av]
+                         & adaptation_version == m_av
+                         ][, 
+                           ppp_default := TRUE]
 
 
 
@@ -130,7 +131,7 @@ pipeline_inventory <-
 
 # Uncomment for specific countries
 # pipeline_inventory <-
-   # pipeline_inventory[country_code == 'PHL' & surveyid_year == 2000]
+# pipeline_inventory[country_code == 'PHL' & surveyid_year == 2000]
 
 
 # cts_filter <- c('COL', 'IND', "CHN")
@@ -196,10 +197,10 @@ cache_ids <- get_cache_id(cache_inventory)
 cache_dir <- get_cache_files(cache_inventory)
 
 cache   <- mp_cache(cache_dir = cache_dir, 
-                      load      = TRUE, 
-                      save      = FALSE, 
-                      gls       = gls)
- 
+                    load      = TRUE, 
+                    save      = FALSE, 
+                    gls       = gls)
+
 # selected_files <- which(grepl(reg, names(cache)))
 # cache <- cache[selected_files]
 
@@ -213,6 +214,7 @@ if (requireNamespace("pushoverr")) {
 
 length(cache)
 length(cache_dir)
+
 
 # ---- Step 2: Run pipeline -----
 
@@ -662,4 +664,5 @@ list(
   )
   
 )
+
 
