@@ -33,6 +33,12 @@ purrr::walk(fs::dir_ls(path = "./R/pipdm/R",
 # 
 # Check that the correct _targets store is used 
 
+tdir <- "//w1wbgencifs01/pip/pip_ingestion_pipeline"
+
+cli::cli_text("targets store: {fs::path(tar_config_get('store'))}")
+cli::cli_text("globals store: {fs::path(tdir, 'pc_data/_targets')}")
+
+
 
 # Set future plan (for targets::tar_make_future)
 # plan(multisession)
