@@ -682,15 +682,15 @@
     },
     "pipload": {
       "Package": "pipload",
-      "Version": "0.1.17",
+      "Version": "0.1.19",
       "Source": "GitHub",
       "RemoteType": "github",
       "RemoteHost": "api.github.com",
       "RemoteRepo": "pipload",
       "RemoteUsername": "PIP-Technical-Team",
       "RemoteRef": "dev",
-      "RemoteSha": "ce8727a805f44882a8cbf1a6d4fff7b44a0758ca",
-      "Hash": "ee7bedd05ffd4a5de4a76a8faf115b7c"
+      "RemoteSha": "44b99274df9caef5faa0db43c24ab652e4b83553",
+      "Hash": "77399ec5ccccce71c15278a15a1b0491"
     },
     "pkgconfig": {
       "Package": "pkgconfig",
