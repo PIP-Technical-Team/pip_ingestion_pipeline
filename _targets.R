@@ -39,8 +39,8 @@ gls <- pipload::pip_create_globals(
 #                         out_dir = fs::path("y:/pip_ingestion_pipeline/temp/"))
 # 
 # Check that the correct _targets store is used 
-if (identical(tar_config_get('store'),
-              paste0(gls$PIP_PIPE_DIR, 'pc_data/_targets/'))
+if (identical(fs::path(tar_config_get('store')),
+             fs::path(gls$PIP_PIPE_DIR, 'pc_data/_targets'))
     ) {
   stop('The store specified in _targets.yaml doesn\'t match with the pipeline directory')
 }
