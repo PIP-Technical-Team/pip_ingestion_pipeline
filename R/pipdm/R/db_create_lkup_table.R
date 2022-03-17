@@ -118,15 +118,15 @@ db_create_lkup_table <- function(dt, nac_table, ref_years, region_code) {
     )
 
   # Remove reference year rows where both GDP and PCE are missing
-  na_check <- is.na(dt$gdp) & is.na(dt$pce)
-  if (any(na_check)) {
+  dt[, na_check := any(is.na(gdp) & is.na(pce)), by = list(country_code_index, nac_data_level_index)]
+  if (any(dt$na_check)) {
+    n <- sum(dt[, sum(na_check), by = list(country_code_index, nac_data_level_index)]$V1!=0)
     msg <- sprintf(
-      "Info: %s country-year(s) are missing both GDP and PCE values. These rows were removed.",
-      sum(na_check)
+      "Info: %s country-data_level(s) are missing both GDP and PCE values. These observations were removed.",
+      sum(n)
     )
     rlang::inform(msg)
-    dt <- dt[!na_check, ]
+    dt <- dt[!(na_check)]
   }
-
   return(dt)
 }
