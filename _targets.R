@@ -24,14 +24,30 @@ purrr::walk(fs::dir_ls(path = "./R/pipdm/R",
                        regexp = "\\.R$"), source)
 
 
-# Set-up global variables
+
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Select PPP year   ---------
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+py <- 2017  # PPP year 
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Load globals   ---------
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
 
 gls <- pipload::pip_create_globals(
   root_dir   = Sys.getenv("PIP_ROOT_DIR"), 
-  out_dir    = fs::path("y:/pip_ingestion_pipeline/temp/"),
-  vintage    = c("new", "test"), 
+  # out_dir    = fs::path("y:/pip_ingestion_pipeline/temp/"),
+  vintage    = list(ppp_year = py, identity = "INT"), 
   create_dir = TRUE
 )
+
+
+cli::cli_text("Vintage directory {.file {gls$vintage_dir}}")
 
 # pipload::add_gls_to_env(vintage = "20220408")
 
@@ -39,6 +55,7 @@ gls <- pipload::pip_create_globals(
 #                         out_dir = fs::path("y:/pip_ingestion_pipeline/temp/"))
 # 
 # Check that the correct _targets store is used 
+
 if (!identical(fs::path(tar_config_get('store')),
                fs::path(gls$PIP_PIPE_DIR, 'pc_data/_targets'))) {
   stop('The store specified in _targets.yaml doesn\'t match with the pipeline directory')
@@ -79,8 +96,6 @@ dl_aux$pop$year <- as.numeric(dl_aux$pop$year)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ## Select PPP year --------
 
-py <- 2017
-
 vars     <- c("ppp_year", "release_version", "adaptation_version")
 ppp_v    <- unique(dl_aux$ppp[, ..vars], by = vars)
 data.table::setnames(x = ppp_v,
@@ -102,8 +117,16 @@ dl_aux$ppp <- dl_aux$ppp[ppp_year == py
                            ppp_default := TRUE]
 
 
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+## Select the right CPI --------
+
+cpivar <- paste0("cpi", py)
+
+dl_aux$cpi[, cpi := get(cpivar)]
 
 
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ## Load PIP inventory ----
 pip_inventory <- 
   pipload::pip_find_data(
@@ -161,7 +184,7 @@ status_cache_files_creation <-
     cache_svy_dir      = gls$CACHE_SVY_DIR_PC,
     compress           = gls$FST_COMP_LVL,
     force              = FALSE,
-    verbose            = FALSE,
+    verbose            = TRUE,
     cpi_table          = dl_aux$cpi,
     ppp_table          = dl_aux$ppp, 
     pfw_table          = dl_aux$pfw, 
@@ -199,7 +222,8 @@ cache_dir <- get_cache_files(cache_inventory)
 cache   <- mp_cache(cache_dir = cache_dir, 
                     load      = TRUE, 
                     save      = FALSE, 
-                    gls       = gls)
+                    gls       = gls, 
+                    py        = py)
 
 # selected_files <- which(grepl(reg, names(cache)))
 # cache <- cache[selected_files]

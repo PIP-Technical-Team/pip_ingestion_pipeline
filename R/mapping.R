@@ -4,16 +4,30 @@ mp_svy_mean_lcu <- function(cache, gd_means) {
 }
 
 
+#' Create list of cache files
+#'
+#' @param cache_dir character: direcoty path of cache files
+#' @param load logical: whether to load the list of cache files
+#' @param save logical: whether to create the list again and save it
+#' @param gls list: globals from `pip_create_globals()`
+#' @param py numeric: PPP year. 
+#'
+#' @return
+#' @export
+#'
+#' @examples
 mp_cache <- 
   function(cache_dir = NULL, 
            load = TRUE, 
            save = FALSE, 
-           gls  = pipload::pip_create_globals(Sys.getenv("PIP_ROOT_DIR"))) {
+           gls, 
+           py) {
     
     dir <- fs::path(gls$PIP_PIPE_DIR, "pc_data/cache/global_list/")
     
     # global_file <- paste0(dir, "global_list.rds")
-    global_file <- fs::path(dir, "global_list", ext = "qs")
+    global_name <- paste0("global_list_", py)
+    global_file <- fs::path(dir, global_name , ext = "qs")
     
     if (isTRUE(save)) {
       
@@ -70,6 +84,14 @@ mp_cache <-
   }
 
 
+#' Title
+#'
+#' @param cache 
+#'
+#' @return
+#' @export
+#'
+#' @examples
 mp_lorenz <- function(cache) {
   d <- purrr::map(cache, db_compute_lorenz)
   purrr::keep(d, ~!is.null(.x))
@@ -81,6 +103,17 @@ mp_lorenz <- function(cache) {
 
 
 
+#' Title
+#'
+#' @param dt 
+#' @param mean_table 
+#' @param pop_table 
+#' @param cache_id 
+#'
+#' @return
+#' @export
+#'
+#' @examples
 mp_dl_dist_stats <- function(dt         ,
                              mean_table ,
                              pop_table  ,
