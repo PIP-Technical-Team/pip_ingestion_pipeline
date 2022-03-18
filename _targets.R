@@ -681,8 +681,8 @@ list(
     data_timestamp_file,
     # format = 'file', 
     writeLines(as.character(Sys.time()), 
-               fs::path(gls$PIP_PIPE_DIR, 
-                        "pc_data", 
+               fs::path(gls$OUT_DIR_PC, 
+                        gls$vintage_dir, 
                         "data_update_timestamp", 
                         ext = "txt"))
   )
