@@ -42,7 +42,9 @@ py <- 2017  # PPP year
 gls <- pipload::pip_create_globals(
   root_dir   = Sys.getenv("PIP_ROOT_DIR"), 
   # out_dir    = fs::path("y:/pip_ingestion_pipeline/temp/"),
-  vintage    = list(ppp_year = py, identity = "INT"), 
+  vintage    = list(release = "20220317", 
+                    ppp_year = py, 
+                    identity = "INT"), 
   create_dir = TRUE
 )
 
@@ -133,9 +135,6 @@ pip_inventory <-
     inv_file = fs::path(gls$PIP_DATA_DIR, '_inventory/inventory.fst'),
     filter_to_pc = TRUE,
     maindir = gls$PIP_DATA_DIR)
-
-# pip_inventory <- 
-#   pipload::pip_find_data(filter_to_pc = TRUE)
 
 
 
@@ -663,6 +662,16 @@ list(
                      compress = gls$FST_COMP_LVL)
   ),
   
+  tar_target(
+    survey_mean_file_aux,
+    format = 'file', 
+    save_estimations(dt       = svy_mean_ppp_table, 
+                     dir      = gls$OUT_AUX_DIR_PC, 
+                     name     = "survey_means", 
+                     time     = gls$TIME, 
+                     compress = gls$FST_COMP_LVL)
+  ),
+  
   ### Interpolated means table ----
   
   tar_target(
@@ -670,6 +679,16 @@ list(
     format = 'file', 
     save_estimations(dt       = dt_ref_mean_pred, 
                      dir      = gls$OUT_EST_DIR_PC, 
+                     name     = "interpolated_means", 
+                     time     = gls$TIME, 
+                     compress = gls$FST_COMP_LVL)
+  ),
+  
+  tar_target(
+    interpolated_means_file_aux,
+    format = 'file', 
+    save_estimations(dt       = dt_ref_mean_pred, 
+                     dir      = gls$OUT_AUX_DIR_PC, 
                      name     = "interpolated_means", 
                      time     = gls$TIME, 
                      compress = gls$FST_COMP_LVL)
