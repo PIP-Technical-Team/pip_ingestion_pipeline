@@ -140,10 +140,8 @@ db_create_coverage_table <- function(ref_year_table,
   # Income group coverage
   out_inc <- dt %>%
     dplyr::filter(incgroup_historical %in% c("Low income", "Lower middle income")) %>%
-    dplyr::group_by(reporting_year, incgroup_historical) %>%
-    dplyr::summarise(coverage = stats::weighted.mean(coverage, pop)) %>%
     dplyr::group_by(reporting_year) %>%
-    dplyr::summarise(coverage = mean(coverage)) %>%
+    dplyr::summarise(coverage = stats::weighted.mean(coverage, pop)) %>%
     dplyr::mutate(incgroup_historical = "LIC/LMIC") %>%
     data.table::as.data.table()
   out_inc <-  out_inc[, c('reporting_year', 'incgroup_historical', 'coverage')]
