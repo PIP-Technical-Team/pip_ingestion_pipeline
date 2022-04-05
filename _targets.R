@@ -604,6 +604,17 @@ list(
     format = 'file',
   ),
   
+  # Dictionary
+  tar_target(
+    dictionary_out,
+    save_aux_data(
+      dl_aux$dictionary,
+      fs::path(gls$OUT_AUX_DIR_PC, "dictionary.fst"),
+      compress = TRUE
+    ),
+    format = 'file',
+  ),
+  
   ### Estimation tables -------
   
   tar_target(
