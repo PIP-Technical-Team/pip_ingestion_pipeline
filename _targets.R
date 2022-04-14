@@ -1,7 +1,7 @@
 # ---- Install packages ----
 # 
-# remotes::install_github("PIP-Technical-Team/pipload@dev",
-#                         dependencies = FALSE)
+remotes::install_github("PIP-Technical-Team/pipload@dev",
+                        dependencies = FALSE)
 
 # remotes::install_github("PIP-Technical-Team/wbpip@synth_vector",
 #                        dependencies = FALSE)
@@ -42,9 +42,9 @@ py <- 2011  # PPP year
 gls <- pipload::pip_create_globals(
   root_dir   = Sys.getenv("PIP_ROOT_DIR"), 
   # out_dir    = fs::path("y:/pip_ingestion_pipeline/temp/"),
-  vintage    = list(release = "20220408", 
+  vintage    = list(release = "20220331", 
                     ppp_year = py, 
-                    identity = "PROD"), 
+                    identity = "INT"), 
   create_dir = TRUE
 )
 
