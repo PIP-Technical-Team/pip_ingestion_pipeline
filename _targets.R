@@ -1,7 +1,7 @@
 # ---- Install packages ----
 # 
-remotes::install_github("PIP-Technical-Team/pipload@dev",
-                        dependencies = FALSE)
+# remotes::install_github("PIP-Technical-Team/pipload@dev",
+#                         dependencies = FALSE)
 
 # remotes::install_github("PIP-Technical-Team/wbpip@synth_vector",
 #                        dependencies = FALSE)
@@ -31,7 +31,7 @@ purrr::walk(fs::dir_ls(path = "./R/pipdm/R",
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
-py <- 2011  # PPP year 
+py <- 2017  # PPP year 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Load globals   ---------
@@ -42,7 +42,7 @@ py <- 2011  # PPP year
 gls <- pipload::pip_create_globals(
   root_dir   = Sys.getenv("PIP_ROOT_DIR"), 
   # out_dir    = fs::path("y:/pip_ingestion_pipeline/temp/"),
-  vintage    = list(release = "20220331", 
+  vintage    = list(release = "20220414", 
                     ppp_year = py, 
                     identity = "INT"), 
   create_dir = TRUE
@@ -81,15 +81,33 @@ tar_option_set(
 
 ## Load AUX data -----
 aux_tb <- prep_aux_data(maindir = gls$PIP_DATA_DIR)
+# filter 
+aux_tb <- aux_tb[!(auxname %chin% c("maddison"))]
 
-dl_aux <- purrr::map(.x = aux_tb$auxname, 
-                     .f = ~{
-                       pipload::pip_load_aux(measure     = .x, 
-                                             apply_label = FALSE,
-                                             maindir     = gls$PIP_DATA_DIR, 
-                                             verbose     = FALSE)
-                     })
-names(dl_aux) <- aux_tb$auxname                
+aux_ver <- rep("00", length(aux_tb$auxname))
+
+# aux_ver[which(aux_tb$auxname == "cpi")] <- -1 # remove for march update
+
+dl_aux <- purrr::map2(.x = aux_tb$auxname, 
+                      .y =  aux_ver,
+                      .f = ~ {
+                        pipload::pip_load_aux(measure     = .x, 
+                                              apply_label = FALSE,
+                                              maindir     = gls$PIP_DATA_DIR, 
+                                              verbose     = FALSE, 
+                                              version     = .y )
+                      }
+)
+
+names(dl_aux) <- aux_tb$auxname    
+
+aux_versions <- purrr::map_df(aux_tb$auxname, ~{
+  y <- attr(dl_aux[[.x]], "version")
+  w <- data.table(aux = .x, 
+                  version = y)
+  w
+})
+
 
 # temporal change. 
 dl_aux$pop$year <- as.numeric(dl_aux$pop$year)
@@ -198,7 +216,7 @@ cache_inventory <-
     pip_data_dir       = gls$PIP_DATA_DIR,
     cache_svy_dir      = gls$CACHE_SVY_DIR_PC,
     tool               = "PC", 
-    save               = FALSE, 
+    save               = TRUE, 
     load               = TRUE, 
     verbose            = TRUE
   )
@@ -220,7 +238,7 @@ cache_dir <- get_cache_files(cache_inventory)
 
 cache   <- mp_cache(cache_dir = cache_dir, 
                     load      = TRUE, 
-                    save      = FALSE, 
+                    save      = TRUE, 
                     gls       = gls, 
                     py        = py)
 
@@ -679,6 +697,16 @@ list(
     save_estimations(dt       = svy_mean_ppp_table, 
                      dir      = gls$OUT_AUX_DIR_PC, 
                      name     = "survey_means", 
+                     time     = gls$TIME, 
+                     compress = gls$FST_COMP_LVL)
+  ),
+  
+  tar_target(
+    aux_versions_out,
+    format = 'file', 
+    save_estimations(dt       = aux_versions, 
+                     dir      = gls$OUT_AUX_DIR_PC, 
+                     name     = "aux_versions", 
                      time     = gls$TIME, 
                      compress = gls$FST_COMP_LVL)
   ),
