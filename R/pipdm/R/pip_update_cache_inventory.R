@@ -92,14 +92,12 @@ pip_update_cache_inventory <- function(
       }
 
       # Update values with new information
-      crr <- joyn::merge(crr, cci,
+      crr <- joyn::merge(cci, crr, 
                          by            = "cache_id",
                          match_type    = "1:1",
                          update_values = TRUE,
                          reportvar     = FALSE,
-                         verbose       = FALSE,
-                         keep          = "inner"
-      )
+                         verbose       = FALSE)
 
       # remove information that is not longer necessary
       # crr <- joyn::merge(crr, cch,
