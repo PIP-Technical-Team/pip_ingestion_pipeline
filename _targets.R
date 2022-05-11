@@ -31,7 +31,7 @@ purrr::walk(fs::dir_ls(path = "./R/pipdm/R",
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
-py <- 2017  # PPP year 
+py <- 2011  # PPP year 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Load globals   ---------
@@ -42,7 +42,7 @@ py <- 2017  # PPP year
 gls <- pipload::pip_create_globals(
   root_dir   = Sys.getenv("PIP_ROOT_DIR"), 
   # out_dir    = fs::path("y:/pip_ingestion_pipeline/temp/"),
-  vintage    = list(release = "20220414", 
+  vintage    = list(release = "20220504", 
                     ppp_year = py, 
                     identity = "INT"), 
   create_dir = TRUE
@@ -68,8 +68,6 @@ tar_option_set(
   garbage_collection = TRUE,
   memory = 'transient',
   format = 'qs', #'fst_dt',
-  # imports  = c('pipload',
-  #              'wbpip'), 
   workspace_on_error = TRUE
 )
 
@@ -164,7 +162,10 @@ pipeline_inventory <-
 
 
 # pipeline_inventory <-
-#   pipeline_inventory[grepl("UGA_2019", cache_id)]
+#   pipeline_inventory[grepl("^ALB_2012", cache_id)]
+
+# pipeline_inventory <-
+#   pipeline_inventory[grepl("^IND_201[5-9]", cache_id)]
 
 # pipeline_inventory <-
 #   pipeline_inventory[grepl("^NIC", cache_id)]
@@ -216,7 +217,7 @@ cache_inventory <-
     pip_data_dir       = gls$PIP_DATA_DIR,
     cache_svy_dir      = gls$CACHE_SVY_DIR_PC,
     tool               = "PC", 
-    save               = TRUE, 
+    save               = FALSE, 
     load               = TRUE, 
     verbose            = TRUE
   )
@@ -242,6 +243,7 @@ cache   <- mp_cache(cache_dir = cache_dir,
                     gls       = gls, 
                     py        = py)
 
+cache <- purrr::compact(cache)
 # selected_files <- which(grepl(reg, names(cache)))
 # cache <- cache[selected_files]
 
@@ -253,8 +255,11 @@ if (requireNamespace("pushoverr")) {
   pushoverr::pushover("Finished loading or creating cache list")
 }
 
-length(cache)
-length(cache_dir)
+stopifnot(
+   "Lengths of cache list and cache directory are not the same" = 
+     length(cache) == length(cache_dir)
+)
+
 
 
 # ---- Step 2: Run pipeline -----

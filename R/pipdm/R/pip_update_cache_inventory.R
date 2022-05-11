@@ -100,12 +100,12 @@ pip_update_cache_inventory <- function(
                          verbose       = FALSE)
 
       # remove information that is not longer necessary
-      # crr <- joyn::merge(crr, cch,
-      #                    by            = "cache_id",
-      #                    match_type    = "1:1",
-      #                    verbose       = FALSE,
-      #                    keep          = "inner",
-      #                    reportvar     = FALSE )
+      crr <- joyn::merge(crr, cch,
+                         by            = "cache_id",
+                         match_type    = "1:1",
+                         verbose       = FALSE,
+                         keep          = "inner",
+                         reportvar     = FALSE )
 
     } else {
       if (verbose) {
