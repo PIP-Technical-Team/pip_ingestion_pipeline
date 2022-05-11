@@ -31,7 +31,7 @@ purrr::walk(fs::dir_ls(path = "./R/pipdm/R",
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
-py <- 2017  # PPP year 
+py <- 2011  # PPP year 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Load globals   ---------
@@ -42,7 +42,9 @@ py <- 2017  # PPP year
 gls <- pipload::pip_create_globals(
   root_dir   = Sys.getenv("PIP_ROOT_DIR"), 
   # out_dir    = fs::path("y:/pip_ingestion_pipeline/temp/"),
-  vintage    = list(ppp_year = py, identity = "INT"), 
+  vintage    = list(release = "20220504", 
+                    ppp_year = py, 
+                    identity = "INT"), 
   create_dir = TRUE
 )
 
@@ -66,8 +68,6 @@ tar_option_set(
   garbage_collection = TRUE,
   memory = 'transient',
   format = 'qs', #'fst_dt',
-  # imports  = c('pipload',
-  #              'wbpip'), 
   workspace_on_error = TRUE
 )
 
@@ -79,15 +79,33 @@ tar_option_set(
 
 ## Load AUX data -----
 aux_tb <- prep_aux_data(maindir = gls$PIP_DATA_DIR)
+# filter 
+aux_tb <- aux_tb[!(auxname %chin% c("maddison"))]
 
-dl_aux <- purrr::map(.x = aux_tb$auxname, 
-                     .f = ~{
-                       pipload::pip_load_aux(measure     = .x, 
-                                             apply_label = FALSE,
-                                             maindir     = gls$PIP_DATA_DIR, 
-                                             verbose     = FALSE)
-                     })
-names(dl_aux) <- aux_tb$auxname                
+aux_ver <- rep("00", length(aux_tb$auxname))
+
+# aux_ver[which(aux_tb$auxname == "cpi")] <- -1 # remove for march update
+
+dl_aux <- purrr::map2(.x = aux_tb$auxname, 
+                      .y =  aux_ver,
+                      .f = ~ {
+                        pipload::pip_load_aux(measure     = .x, 
+                                              apply_label = FALSE,
+                                              maindir     = gls$PIP_DATA_DIR, 
+                                              verbose     = FALSE, 
+                                              version     = .y )
+                      }
+)
+
+names(dl_aux) <- aux_tb$auxname    
+
+aux_versions <- purrr::map_df(aux_tb$auxname, ~{
+  y <- attr(dl_aux[[.x]], "version")
+  w <- data.table(aux = .x, 
+                  version = y)
+  w
+})
+
 
 # temporal change. 
 dl_aux$pop$year <- as.numeric(dl_aux$pop$year)
@@ -134,9 +152,6 @@ pip_inventory <-
     filter_to_pc = TRUE,
     maindir = gls$PIP_DATA_DIR)
 
-# pip_inventory <- 
-#   pipload::pip_find_data(filter_to_pc = TRUE)
-
 
 
 ## Create pipeline inventory ----
@@ -147,7 +162,10 @@ pipeline_inventory <-
 
 
 # pipeline_inventory <-
-#   pipeline_inventory[grepl("UGA_2019", cache_id)]
+#   pipeline_inventory[grepl("^ALB_2012", cache_id)]
+
+# pipeline_inventory <-
+#   pipeline_inventory[grepl("^IND_201[5-9]", cache_id)]
 
 # pipeline_inventory <-
 #   pipeline_inventory[grepl("^NIC", cache_id)]
@@ -221,10 +239,11 @@ cache_dir <- get_cache_files(cache_inventory)
 
 cache   <- mp_cache(cache_dir = cache_dir, 
                     load      = TRUE, 
-                    save      = FALSE, 
+                    save      = TRUE, 
                     gls       = gls, 
                     py        = py)
 
+cache <- purrr::compact(cache)
 # selected_files <- which(grepl(reg, names(cache)))
 # cache <- cache[selected_files]
 
@@ -236,8 +255,11 @@ if (requireNamespace("pushoverr")) {
   pushoverr::pushover("Finished loading or creating cache list")
 }
 
-length(cache)
-length(cache_dir)
+stopifnot(
+   "Lengths of cache list and cache directory are not the same" = 
+     length(cache) == length(cache_dir)
+)
+
 
 
 # ---- Step 2: Run pipeline -----
@@ -605,6 +627,17 @@ list(
     format = 'file',
   ),
   
+  # Dictionary
+  tar_target(
+    dictionary_out,
+    save_aux_data(
+      dl_aux$dictionary,
+      fs::path(gls$OUT_AUX_DIR_PC, "dictionary.fst"),
+      compress = TRUE
+    ),
+    format = 'file',
+  ),
+  
   ### Estimation tables -------
   
   tar_target(
@@ -663,6 +696,26 @@ list(
                      compress = gls$FST_COMP_LVL)
   ),
   
+  tar_target(
+    survey_mean_file_aux,
+    format = 'file', 
+    save_estimations(dt       = svy_mean_ppp_table, 
+                     dir      = gls$OUT_AUX_DIR_PC, 
+                     name     = "survey_means", 
+                     time     = gls$TIME, 
+                     compress = gls$FST_COMP_LVL)
+  ),
+  
+  tar_target(
+    aux_versions_out,
+    format = 'file', 
+    save_estimations(dt       = aux_versions, 
+                     dir      = gls$OUT_AUX_DIR_PC, 
+                     name     = "aux_versions", 
+                     time     = gls$TIME, 
+                     compress = gls$FST_COMP_LVL)
+  ),
+  
   ### Interpolated means table ----
   
   tar_target(
@@ -675,14 +728,24 @@ list(
                      compress = gls$FST_COMP_LVL)
   ),
   
+  tar_target(
+    interpolated_means_file_aux,
+    format = 'file', 
+    save_estimations(dt       = dt_ref_mean_pred, 
+                     dir      = gls$OUT_AUX_DIR_PC, 
+                     name     = "interpolated_means", 
+                     time     = gls$TIME, 
+                     compress = gls$FST_COMP_LVL)
+  ),
+  
   ### Data timestamp file ----
   
   tar_target(
     data_timestamp_file,
     # format = 'file', 
     writeLines(as.character(Sys.time()), 
-               fs::path(gls$PIP_PIPE_DIR, 
-                        "pc_data", 
+               fs::path(gls$OUT_DIR_PC, 
+                        gls$vintage_dir, 
                         "data_update_timestamp", 
                         ext = "txt"))
   )

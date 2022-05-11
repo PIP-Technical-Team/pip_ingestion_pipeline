@@ -133,7 +133,7 @@ id_dist_stats <- function(dt) {
   dl <- split(dt, f = list(dt$imputation_id))
 
   # Compute stats by group
-  dl_stats <- purrr::map(dl, function(x) wbpip:::md_dist_stats(x, mean = NULL))
+  dl_stats <- purrr::map(dl, md_dist_stats)
 
   # Aggregate quantiles
   q         <- purrr::map(dl_stats, function(x) x$quantiles)

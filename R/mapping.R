@@ -42,8 +42,23 @@ mp_cache <-
       cli::cli_progress_step("Creating list")
       y <- purrr::map(.x = cli::cli_progress_along(ch_names), 
                       .f = ~{
-                        fst::read_fst(path = cache_dir[.x],
-                                      as.data.table = TRUE)
+                        tryCatch(
+                          expr = {
+                            # Your code...
+                            fst::read_fst(path = cache_dir[.x],
+                                          as.data.table = TRUE)
+                          }, # end of expr section
+                          
+                          error = function(e) {
+                            NULL
+                          }, # end of error section
+                          
+                          warning = function(w) {
+                            NULL
+                          } # end of finally section
+                          
+                        ) # End of trycatch
+                        
                       })
       
       names(y) <- ch_names

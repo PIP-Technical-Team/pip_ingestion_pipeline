@@ -35,6 +35,9 @@ create_cache_file <- function(pipeline_inventory,
 
   # orrespondence file
   crr_dir      <- fs::path(cache_svy_dir, "_crr_inventory")
+  if (!fs::dir_exists(crr_dir)) {
+    fs::dir_create(fs::path(crr_dir, "vintage"), recurse = TRUE)
+  }
   crr_filename <- fs::path(crr_dir, "crr_inventory", ext = "fst")
   
 
@@ -48,8 +51,8 @@ create_cache_file <- function(pipeline_inventory,
   # real new files
   if (!force) {
     new_svy_ids <- find_new_svy_data(
-      cache_id      = pipeline_inventory$cache_id,
-      filename      = pipeline_inventory$filename,
+      pipeline_inventory = pipeline_inventory,
+      pip_data_dir       = pip_data_dir,
       tool          = tool,
       cache_svy_dir = cache_svy_dir
     )
