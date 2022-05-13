@@ -31,7 +31,7 @@ purrr::walk(fs::dir_ls(path = "./R/pipdm/R",
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
-py <- 2011  # PPP year 
+py <- 2017  # PPP year 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Load globals   ---------
@@ -160,9 +160,9 @@ pipeline_inventory <-
   db_filter_inventory(dt        = pip_inventory,
                       pfw_table = dl_aux$pfw)
 
-
+# 
 # pipeline_inventory <-
-#   pipeline_inventory[grepl("^ALB_2012", cache_id)]
+#   pipeline_inventory[grepl("^(IRQ)", cache_id)]
 
 # pipeline_inventory <-
 #   pipeline_inventory[grepl("^IND_201[5-9]", cache_id)]
@@ -239,7 +239,7 @@ cache_dir <- get_cache_files(cache_inventory)
 
 cache   <- mp_cache(cache_dir = cache_dir, 
                     load      = TRUE, 
-                    save      = TRUE, 
+                    save      = FALSE, 
                     gls       = gls, 
                     py        = py)
 

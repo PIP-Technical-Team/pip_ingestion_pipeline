@@ -20,7 +20,7 @@ db_clean_aux <- function(dt, name, pip_years) {
     dt$year <- floor(dt$survey_year)
 
     # Remove duplicates
-    dt <- unique(dt)
+    dt <- unique(dt,  by = c("country_code", "data_level", "year"))
   }
 
   if (name == "ppp") {
@@ -34,10 +34,10 @@ db_clean_aux <- function(dt, name, pip_years) {
   dt <- dt[dt$year %in% pip_years, ]
 
   # Reshape to wide format
-  dt <- data.table::dcast(
-    dt, country_code + data_level ~ year,
-    value.var = name
-  )
+  dt <- dcast(data =  dt,
+              formula =  country_code + data_level ~ year,
+              value.var = name, 
+              fill = NA)
 
   return(dt)
 }
