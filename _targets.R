@@ -31,18 +31,16 @@ purrr::walk(fs::dir_ls(path = "./R/pipdm/R",
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
-py <- 2017  # PPP year 
+py <- 2011  # PPP year 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Load globals   ---------
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-
-
 gls <- pipload::pip_create_globals(
   root_dir   = Sys.getenv("PIP_ROOT_DIR"), 
   # out_dir    = fs::path("y:/pip_ingestion_pipeline/temp/"),
-  vintage    = list(release = "20220504", 
+  vintage    = list(release = "20220609", 
                     ppp_year = py, 
                     identity = "INT"), 
   create_dir = TRUE
@@ -153,16 +151,17 @@ pip_inventory <-
     maindir = gls$PIP_DATA_DIR)
 
 
-
 ## Create pipeline inventory ----
+
 
 pipeline_inventory <- 
   db_filter_inventory(dt        = pip_inventory,
                       pfw_table = dl_aux$pfw)
 
-# 
+
 # pipeline_inventory <-
-#   pipeline_inventory[grepl("^(IRQ)", cache_id)]
+#   pipeline_inventory[grepl("^SOM", cache_id)]
+# 
 
 # pipeline_inventory <-
 #   pipeline_inventory[grepl("^IND_201[5-9]", cache_id)]
@@ -233,7 +232,7 @@ cache_inventory <-
 # 
 # cache_inventory <- cache_inventory[grepl(reg, survey_id)]
 
-
+cache_ppp <- gls$cache_ppp
 cache_ids <- get_cache_id(cache_inventory)
 cache_dir <- get_cache_files(cache_inventory)
 
@@ -241,7 +240,7 @@ cache   <- mp_cache(cache_dir = cache_dir,
                     load      = TRUE, 
                     save      = FALSE, 
                     gls       = gls, 
-                    py        = py)
+                    cache_ppp = cache_ppp)
 
 cache <- purrr::compact(cache)
 # selected_files <- which(grepl(reg, names(cache)))
@@ -386,7 +385,7 @@ list(
       cl_table              = dl_aux$country_list,
       incgrp_table          = dl_aux$income_groups, 
       ref_years             = gls$PIP_REF_YEARS,
-      urban_rural_countries = c("ARG", "CHN", "IDN", "IND"),
+      urban_rural_countries = c("ARG", "CHN", "IDN", "IND", "SUR"),
       digits                = 2
     )
   ),

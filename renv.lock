@@ -886,6 +886,14 @@
       "Hash": "0bde42ee282efb18c7c4e63822f5b4f7",
       "Requirements": []
     },
+    "logger": {
+      "Package": "logger",
+      "Version": "0.2.2",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "c269b06beb2bbadb0d058c0e6fa4ec3d",
+      "Requirements": []
+    },
     "lubridate": {
       "Package": "lubridate",
       "Version": "1.8.0",
@@ -1023,6 +1031,37 @@
         "processx"
       ]
     },
+    "pipapi": {
+      "Package": "pipapi",
+      "Version": "1.0.0.9000",
+      "Source": "GitHub",
+      "Remotes": "PIP-Technical-Team/wbpip@master",
+      "RemoteType": "github",
+      "RemoteHost": "api.github.com",
+      "RemoteRepo": "pipapi",
+      "RemoteUsername": "PIP-technical-team",
+      "RemoteRef": "dev",
+      "RemoteSha": "095602803066d024ca5daf1e9b23749b4a2b60e8",
+      "Hash": "65e1d3bb1e01b216ae9bfe4e66acfa8d",
+      "Requirements": [
+        "cachem",
+        "data.table",
+        "fs",
+        "fst",
+        "future",
+        "glue",
+        "logger",
+        "magrittr",
+        "memoise",
+        "plumber",
+        "promises",
+        "rappdirs",
+        "readr",
+        "urltools",
+        "wbpip",
+        "yaml"
+      ]
+    },
     "pipaux": {
       "Package": "pipaux",
       "Version": "0.0.5",
@@ -1058,15 +1097,15 @@
     },
     "pipload": {
       "Package": "pipload",
-      "Version": "0.1.23",
+      "Version": "0.1.24",
       "Source": "GitHub",
       "RemoteType": "github",
       "RemoteHost": "api.github.com",
       "RemoteRepo": "pipload",
       "RemoteUsername": "PIP-Technical-Team",
       "RemoteRef": "dev",
-      "RemoteSha": "4e85d0d35ce5cb4997a81b5ef2ea201d5b562736",
-      "Hash": "938940a4d79dacf1317b3c537a413639",
+      "RemoteSha": "e6a292fa005f4d3a1d9e3d1afbf7990b21ac0fd3",
+      "Hash": "0c9d6ddc1811c65d4da99b8091f62ceb",
       "Requirements": [
         "cli",
         "data.table",
@@ -1109,6 +1148,29 @@
         "rprojroot",
         "rstudioapi",
         "withr"
+      ]
+    },
+    "plumber": {
+      "Package": "plumber",
+      "Version": "1.1.0",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "a367cf9e97db99014056d75f3a05b86c",
+      "Requirements": [
+        "R6",
+        "crayon",
+        "ellipsis",
+        "httpuv",
+        "jsonlite",
+        "lifecycle",
+        "magrittr",
+        "mime",
+        "promises",
+        "rlang",
+        "sodium",
+        "stringi",
+        "swagger",
+        "webutils"
       ]
     },
     "praise": {
@@ -1268,6 +1330,14 @@
       "Requirements": [
         "tibble"
       ]
+    },
+    "remotes": {
+      "Package": "remotes",
+      "Version": "2.4.2",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "227045be9aee47e6dda9bb38ac870d67",
+      "Requirements": []
     },
     "renv": {
       "Package": "renv",
@@ -1429,6 +1499,14 @@
         "stringr"
       ]
     },
+    "sodium": {
+      "Package": "sodium",
+      "Version": "1.2.0",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "07060494360a48fc8a2e282f0dc8f2cf",
+      "Requirements": []
+    },
     "sourcetools": {
       "Package": "sourcetools",
       "Version": "0.1.7",
@@ -1467,6 +1545,14 @@
         "magrittr",
         "stringi"
       ]
+    },
+    "swagger": {
+      "Package": "swagger",
+      "Version": "3.33.1",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "f28d25ed70c903922254157c11b0081d",
+      "Requirements": []
     },
     "sys": {
       "Package": "sys",
@@ -1618,6 +1704,16 @@
         "xfun"
       ]
     },
+    "triebeard": {
+      "Package": "triebeard",
+      "Version": "0.3.0",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "847a9d113b78baca4a9a8639609ea228",
+      "Requirements": [
+        "Rcpp"
+      ]
+    },
     "tzdb": {
       "Package": "tzdb",
       "Version": "0.2.0",
@@ -1626,6 +1722,17 @@
       "Hash": "5e069fb033daf2317bd628d3100b75c5",
       "Requirements": [
         "cpp11"
+      ]
+    },
+    "urltools": {
+      "Package": "urltools",
+      "Version": "1.7.3",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "e86a704261a105f4703f653e05defa3e",
+      "Requirements": [
+        "Rcpp",
+        "triebeard"
       ]
     },
     "usethis": {
@@ -1788,6 +1895,17 @@
         "stringr",
         "tibble",
         "tidyr"
+      ]
+    },
+    "webutils": {
+      "Package": "webutils",
+      "Version": "1.1",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "75d8b5b05fe22659b54076563f83f26a",
+      "Requirements": [
+        "curl",
+        "jsonlite"
       ]
     },
     "whisker": {

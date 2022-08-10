@@ -20,7 +20,7 @@ db_clean_aux <- function(dt, name, pip_years) {
     dt$year <- floor(dt$survey_year)
 
     # Remove duplicates
-    dt <- unique(dt,  by = c("country_code", "data_level", "year"))
+    dt <- unique(dt,  by = c("country_code", "cpi_data_level", "year"))
   }
 
   if (name == "ppp") {
