@@ -487,8 +487,7 @@ list(
   tar_target(
     countries_out,
     save_aux_data(
-      dl_aux$countries %>% 
-        data.table::setnames('pcn_region_code', 'region_code'),
+      dl_aux$countries,
       fs::path(gls$OUT_AUX_DIR_PC, "countries.fst"),
       compress = TRUE
     ),
