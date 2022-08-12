@@ -27,11 +27,13 @@ purrr::walk(fs::dir_ls(path = "./R/pipdm/R",
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Select PPP year   ---------
+# Select Defaults   ---------
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
-py <- 2011  # PPP year 
+py <- 2017  # PPP year
+
+branch <- "DEV"
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Load globals   ---------
@@ -40,9 +42,9 @@ py <- 2011  # PPP year
 gls <- pipload::pip_create_globals(
   root_dir   = Sys.getenv("PIP_ROOT_DIR"), 
   # out_dir    = fs::path("y:/pip_ingestion_pipeline/temp/"),
-  vintage    = list(release = "20220609", 
+  vintage    = list(release = "20220810", 
                     ppp_year = py, 
-                    identity = "INT"), 
+                    identity = "TEST"), 
   create_dir = TRUE
 )
 
