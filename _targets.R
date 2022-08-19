@@ -494,6 +494,17 @@ list(
     format = 'file',
   ),
   
+  # Countries with missing data
+  tar_target(
+    missing_data_out,
+    save_aux_data(
+      dl_aux$missing_data,
+      fs::path(gls$OUT_AUX_DIR_PC, "missing_data.fst"),
+      compress = TRUE
+    ),
+    format = 'file',
+  ),
+  
   # Regions
   tar_target(
     regions_out,
