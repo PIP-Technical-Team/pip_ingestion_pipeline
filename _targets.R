@@ -44,7 +44,7 @@ gls <- pipload::pip_create_globals(
   # out_dir    = fs::path("y:/pip_ingestion_pipeline/temp/"),
   vintage    = list(release = "20220810", 
                     ppp_year = py, 
-                    identity = "TEST"), 
+                    identity = "PROD"), 
   create_dir = TRUE
 )
 
