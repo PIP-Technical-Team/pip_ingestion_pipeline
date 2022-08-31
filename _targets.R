@@ -143,6 +143,13 @@ cpivar <- paste0("cpi", py)
 dl_aux$cpi[, cpi := get(cpivar)]
 
 
+#--------------------------
+## Select right Poverty lines table ------
+
+dl_aux$pl <- dl_aux$pl[ppp_year == py
+                       ][, 
+                         ppp_year := NULL]
+
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ## Load PIP inventory ----
@@ -500,6 +507,17 @@ list(
     save_aux_data(
       dl_aux$missing_data,
       fs::path(gls$OUT_AUX_DIR_PC, "missing_data.fst"),
+      compress = TRUE
+    ),
+    format = 'file',
+  ),
+  
+  # Country List
+  tar_target(
+    country_list_out,
+    save_aux_data(
+      dl_aux$country_list,
+      fs::path(gls$OUT_AUX_DIR_PC, "country_list.fst"),
       compress = TRUE
     ),
     format = 'file',
