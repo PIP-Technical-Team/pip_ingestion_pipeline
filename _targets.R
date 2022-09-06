@@ -24,14 +24,12 @@ purrr::walk(fs::dir_ls(path = "./R/pipdm/R",
                        regexp = "\\.R$"), source)
 
 
-
-
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Select Defaults   ---------
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
-py <- 2017  # PPP year
+py <- 2011  # PPP year
 
 branch <- "DEV"
 
@@ -771,7 +769,14 @@ list(
                         gls$vintage_dir, 
                         "data_update_timestamp", 
                         ext = "txt"))
+  ), 
+  
+  ### convert AUX files  to qs ---------
+  tar_target(
+    aux_qs_out, 
+    convert_to_qs(dir = gls$OUT_AUX_DIR_PC)
   )
+  
   
 )
 

@@ -51,7 +51,7 @@ convert_to_qs <- function(dir = gls$OUT_AUX_DIR_PC) {
   
   #   ____________________________________________________________________________
   #   Return                                                                  ####
-  return(saved)
+  return(invisible(saved))
   
 }
 
