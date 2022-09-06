@@ -42,7 +42,7 @@ branch <- "DEV"
 gls <- pipload::pip_create_globals(
   root_dir   = Sys.getenv("PIP_ROOT_DIR"), 
   # out_dir    = fs::path("y:/pip_ingestion_pipeline/temp/"),
-  vintage    = list(release = "20220810", 
+  vintage    = list(release = "20220909", 
                     ppp_year = py, 
                     identity = "PROD"), 
   create_dir = TRUE
@@ -143,7 +143,7 @@ cpivar <- paste0("cpi", py)
 dl_aux$cpi[, cpi := get(cpivar)]
 
 
-#--------------------------
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ## Select right Poverty lines table ------
 
 dl_aux$pl <- dl_aux$pl[ppp_year == py
@@ -188,16 +188,9 @@ pipeline_inventory <-
 #    pipeline_inventory[country_code %in% cts_filter
 #                       ][!(country_code == 'CHN' & surveyid_year >= 2017)]
 
-# pipeline_inventory <-
-#    pipeline_inventory[!(country_code == 'CHN' & surveyid_year >= 2017)]
-
 
 # pipeline_inventory <-
-#    pipeline_inventory[country_code == 'CHN' & surveyid_year == 2019]
-
-# 
-# pipeline_inventory <-
-#    pipeline_inventory[country_code == 'CRI' & surveyid_year == 1989]
+#    pipeline_inventory[country_code == 'ALB' & surveyid_year == 2016]
 
 
 ## --- Create cache files ----
@@ -252,6 +245,7 @@ cache   <- mp_cache(cache_dir = cache_dir,
                     cache_ppp = cache_ppp)
 
 cache <- purrr::compact(cache)
+
 # selected_files <- which(grepl(reg, names(cache)))
 # cache <- cache[selected_files]
 

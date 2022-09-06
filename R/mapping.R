@@ -29,6 +29,12 @@ mp_cache <-
     global_name <- paste0("global_list_", cache_ppp)
     global_file <- fs::path(dir, global_name , ext = "qs")
     
+    if (!fs::file_exists(global_file)) {
+      save <- TRUE
+      cli::cli_alert("file {.file {global_file}} does not exist. 
+                     It will be created and saved")
+    }
+    
     if (isTRUE(save)) {
       
       if (is.null(cache_dir)) {
