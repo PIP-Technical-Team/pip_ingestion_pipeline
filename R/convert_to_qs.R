@@ -56,6 +56,72 @@ convert_to_qs <- function(dir = gls$OUT_AUX_DIR_PC) {
 }
 
 
+
+#' Load file by extension and save it as qs
+#'
+#' @param path character: path of original file
+#' @param ... additional parameters to `qs::qsave()`
+#'
+#' @return
+#' @export
+#'
+#' @examples
+load_and_qsave <- function(path, ...) {
+  
+  #   ____________________________________________________________________________
+  #   on.exit                                                                 ####
+  on.exit({
+    
+  })
+  
+  #   ____________________________________________________________________________
+  #   Defenses                                                                ####
+  stopifnot( exprs = {
+    
+  }
+  )
+  
+  #   ____________________________________________________________________________
+  #   Early returns                                                           ####
+  if (FALSE) {
+    return()
+  }
+  
+  #   ____________________________________________________________________________
+  #   Computations                                                            ####
+  saved <- 
+    tryCatch(
+      expr = {
+        df <- load_by_ext(path = path)
+        path_qs <- 
+          fs::path_ext_remove(path) |> 
+          fs::path(ext = "qs")
+        
+        qs::qsave(df, path_qs, , ...)
+        "saved"
+        
+      }, # end of expr section
+      
+      error = function(e) {
+        glue::glue("error: {e$message}")
+      }, # end of error section
+      
+      warning = function(w) {
+        glue::glue("warning: {w$message}")
+      }
+      
+    ) # End of trycatch
+  
+  
+  #   ____________________________________________________________________________
+  #   Return                                                                  ####
+  return(invisible(saved))
+  
+}
+
+
+
+
 #' Load according to extension
 #'
 #' @param path character: file path
@@ -131,6 +197,13 @@ load_by_ext <- function(path, ...) {
           
           yaml::read_yaml(path, ...)
           
+        } else if (tolower(ext) == "rds") {
+          
+          readr::read_rds(path, ...)
+          
+        } else {
+          msg <- paste("format", ext, "not available")
+          stop(msg)
         }
         
       )
@@ -164,66 +237,3 @@ load_by_ext <- function(path, ...) {
 }
 
 
-
-
-#' Load file by extension and save it as qs
-#'
-#' @param path character: path of original file
-#' @param ... additional parameters to `qs::qsave()`
-#'
-#' @return
-#' @export
-#'
-#' @examples
-load_and_qsave <- function(path, ...) {
-
-#   ____________________________________________________________________________
-#   on.exit                                                                 ####
-  on.exit({
-    
-  })
-
-#   ____________________________________________________________________________
-#   Defenses                                                                ####
-  stopifnot( exprs = {
-      
-    }
-  )
-
-#   ____________________________________________________________________________
-#   Early returns                                                           ####
-  if (FALSE) {
-    return()
-  }
-
-#   ____________________________________________________________________________
-#   Computations                                                            ####
-  saved <- 
-    tryCatch(
-      expr = {
-        df <- load_by_ext(path = path)
-        path_qs <- 
-          fs::path_ext_remove(path) |> 
-          fs::path(ext = "qs", ...)
-        
-        qs::qsave(df, path_qs)
-        "saved"
-        
-      }, # end of expr section
-      
-      error = function(e) {
-        glue::glue("error: {e$message}")
-      }, # end of error section
-      
-      warning = function(w) {
-        glue::glue("warning: {w$message}")
-      }
-      
-    ) # End of trycatch
-  
-
-#   ____________________________________________________________________________
-#   Return                                                                  ####
-  return(invisible(saved))
-
-}

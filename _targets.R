@@ -29,7 +29,7 @@ purrr::walk(fs::dir_ls(path = "./R/pipdm/R",
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
-py <- 2011  # PPP year
+py <- 2017  # PPP year
 
 branch <- "DEV"
 
@@ -148,6 +148,31 @@ dl_aux$pl <- dl_aux$pl[ppp_year == py
                        ][, 
                          ppp_year := NULL]
 
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+## Select right Country Profile ------
+
+
+dl_aux$cp <-
+  lapply(dl_aux$cp,
+         \(.) { # for each list *key indicators and charts
+           lapply(.,
+                  \(x) { # for each table inside each list
+                    if ("ppp_year" %in% names(x)) {
+                      x <-
+                        x[ppp_year == py][,
+                                          ppp_year := NULL]
+                    }
+                    x
+                  })
+         })
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+## Select right indicators ------
+
+dl_aux$indicators <- 
+  dl_aux$indicators[ppp_year == py
+                    ][, ppp_year := NULL
+                      ]
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ## Load PIP inventory ----
@@ -231,6 +256,9 @@ cache_inventory <-
 # reg <- paste0("^(", paste(cts_filter, collapse = "|"),")")
 # 
 # cache_inventory <- cache_inventory[grepl(reg, survey_id)]
+
+
+## Load or create cache list -----------
 
 cache_ppp <- gls$cache_ppp
 cache_ids <- get_cache_id(cache_inventory)
