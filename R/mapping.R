@@ -10,7 +10,7 @@ mp_svy_mean_lcu <- function(cache, gd_means) {
 #' @param load logical: whether to load the list of cache files
 #' @param save logical: whether to create the list again and save it
 #' @param gls list: globals from `pip_create_globals()`
-#' @param py numeric: PPP year. 
+#' @param cache_ppp numeric: PPP year. 
 #'
 #' @return
 #' @export
@@ -21,13 +21,19 @@ mp_cache <-
            load = TRUE, 
            save = FALSE, 
            gls, 
-           py) {
+           cache_ppp) {
     
     dir <- fs::path(gls$PIP_PIPE_DIR, "pc_data/cache/global_list/")
     
     # global_file <- paste0(dir, "global_list.rds")
-    global_name <- paste0("global_list_", py)
+    global_name <- paste0("global_list_", cache_ppp)
     global_file <- fs::path(dir, global_name , ext = "qs")
+    
+    if (!fs::file_exists(global_file)) {
+      save <- TRUE
+      cli::cli_alert("file {.file {global_file}} does not exist. 
+                     It will be created and saved")
+    }
     
     if (isTRUE(save)) {
       

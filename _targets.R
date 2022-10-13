@@ -24,27 +24,25 @@ purrr::walk(fs::dir_ls(path = "./R/pipdm/R",
                        regexp = "\\.R$"), source)
 
 
-
-
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Select PPP year   ---------
+# Select Defaults   ---------
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
-py <- 2011  # PPP year 
+py <- 2017  # PPP year
+
+branch <- "DEV"
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Load globals   ---------
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-
-
 gls <- pipload::pip_create_globals(
   root_dir   = Sys.getenv("PIP_ROOT_DIR"), 
   # out_dir    = fs::path("y:/pip_ingestion_pipeline/temp/"),
-  vintage    = list(release = "20220504", 
+  vintage    = list(release = "20220909", 
                     ppp_year = py, 
-                    identity = "INT"), 
+                    identity = "PROD"), 
   create_dir = TRUE
 )
 
@@ -143,6 +141,38 @@ cpivar <- paste0("cpi", py)
 dl_aux$cpi[, cpi := get(cpivar)]
 
 
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+## Select right Poverty lines table ------
+
+dl_aux$pl <- dl_aux$pl[ppp_year == py
+                       ][, 
+                         ppp_year := NULL]
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+## Select right Country Profile ------
+
+
+dl_aux$cp <-
+  lapply(dl_aux$cp,
+         \(.) { # for each list *key indicators and charts
+           lapply(.,
+                  \(x) { # for each table inside each list
+                    if ("ppp_year" %in% names(x)) {
+                      x <-
+                        x[ppp_year == py][,
+                                          ppp_year := NULL]
+                    }
+                    x
+                  })
+         })
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+## Select right indicators ------
+
+dl_aux$indicators <- 
+  dl_aux$indicators[ppp_year == py
+                    ][, ppp_year := NULL
+                      ]
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ## Load PIP inventory ----
@@ -153,8 +183,8 @@ pip_inventory <-
     maindir = gls$PIP_DATA_DIR)
 
 
-
 ## Create pipeline inventory ----
+
 
 pipeline_inventory <- 
   db_filter_inventory(dt        = pip_inventory,
@@ -162,7 +192,8 @@ pipeline_inventory <-
 
 
 # pipeline_inventory <-
-#   pipeline_inventory[grepl("^ALB_2012", cache_id)]
+#   pipeline_inventory[grepl("^SOM", cache_id)]
+# 
 
 # pipeline_inventory <-
 #   pipeline_inventory[grepl("^IND_201[5-9]", cache_id)]
@@ -180,16 +211,9 @@ pipeline_inventory <-
 #    pipeline_inventory[country_code %in% cts_filter
 #                       ][!(country_code == 'CHN' & surveyid_year >= 2017)]
 
-# pipeline_inventory <-
-#    pipeline_inventory[!(country_code == 'CHN' & surveyid_year >= 2017)]
-
 
 # pipeline_inventory <-
-#    pipeline_inventory[country_code == 'CHN' & surveyid_year == 2019]
-
-# 
-# pipeline_inventory <-
-#    pipeline_inventory[country_code == 'CRI' & surveyid_year == 1989]
+#    pipeline_inventory[country_code == 'ALB' & surveyid_year == 2016]
 
 
 ## --- Create cache files ----
@@ -234,16 +258,20 @@ cache_inventory <-
 # cache_inventory <- cache_inventory[grepl(reg, survey_id)]
 
 
+## Load or create cache list -----------
+
+cache_ppp <- gls$cache_ppp
 cache_ids <- get_cache_id(cache_inventory)
 cache_dir <- get_cache_files(cache_inventory)
 
 cache   <- mp_cache(cache_dir = cache_dir, 
                     load      = TRUE, 
-                    save      = TRUE, 
+                    save      = FALSE, 
                     gls       = gls, 
-                    py        = py)
+                    cache_ppp = cache_ppp)
 
 cache <- purrr::compact(cache)
+
 # selected_files <- which(grepl(reg, names(cache)))
 # cache <- cache[selected_files]
 
@@ -386,7 +414,7 @@ list(
       cl_table              = dl_aux$country_list,
       incgrp_table          = dl_aux$income_groups, 
       ref_years             = gls$PIP_REF_YEARS,
-      urban_rural_countries = c("ARG", "CHN", "IDN", "IND"),
+      urban_rural_countries = c("ARG", "CHN", "IDN", "IND", "SUR"),
       digits                = 2
     )
   ),
@@ -486,9 +514,30 @@ list(
   tar_target(
     countries_out,
     save_aux_data(
-      dl_aux$countries %>% 
-        data.table::setnames('pcn_region_code', 'region_code'),
+      dl_aux$countries,
       fs::path(gls$OUT_AUX_DIR_PC, "countries.fst"),
+      compress = TRUE
+    ),
+    format = 'file',
+  ),
+  
+  # Countries with missing data
+  tar_target(
+    missing_data_out,
+    save_aux_data(
+      dl_aux$missing_data,
+      fs::path(gls$OUT_AUX_DIR_PC, "missing_data.fst"),
+      compress = TRUE
+    ),
+    format = 'file',
+  ),
+  
+  # Country List
+  tar_target(
+    country_list_out,
+    save_aux_data(
+      dl_aux$country_list,
+      fs::path(gls$OUT_AUX_DIR_PC, "country_list.fst"),
       compress = TRUE
     ),
     format = 'file',
@@ -748,7 +797,14 @@ list(
                         gls$vintage_dir, 
                         "data_update_timestamp", 
                         ext = "txt"))
+  ), 
+  
+  ### convert AUX files  to qs ---------
+  tar_target(
+    aux_qs_out, 
+    convert_to_qs(dir = gls$OUT_AUX_DIR_PC)
   )
+  
   
 )
 
