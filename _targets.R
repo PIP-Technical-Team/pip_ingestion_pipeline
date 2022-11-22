@@ -29,7 +29,7 @@ purrr::walk(fs::dir_ls(path = "./R/pipdm/R",
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
-py <- 2017  # PPP year
+py <- 2011  # PPP year
 
 branch <- "DEV"
 
@@ -40,9 +40,9 @@ branch <- "DEV"
 gls <- pipload::pip_create_globals(
   root_dir   = Sys.getenv("PIP_ROOT_DIR"), 
   # out_dir    = fs::path("y:/pip_ingestion_pipeline/temp/"),
-  vintage    = list(release = "20221012", 
+  vintage    = list(release = "20220909", 
                     ppp_year = py, 
-                    identity = "TEST"), 
+                    identity = "PROD"), 
   create_dir = TRUE
 )
 
@@ -165,14 +165,6 @@ dl_aux$cp <-
                     x
                   })
          })
-
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-## Select right indicators ------
-
-dl_aux$indicators <- 
-  dl_aux$indicators[ppp_year == py
-                    ][, ppp_year := NULL
-                      ]
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ## Load PIP inventory ----
