@@ -1035,14 +1035,14 @@
       "Package": "pipapi",
       "Version": "1.0.0.9000",
       "Source": "GitHub",
-      "Remotes": "PIP-Technical-Team/wbpip@master",
       "RemoteType": "github",
+      "Remotes": "PIP-Technical-Team/wbpip@master",
       "RemoteHost": "api.github.com",
       "RemoteRepo": "pipapi",
       "RemoteUsername": "PIP-technical-team",
       "RemoteRef": "dev",
       "RemoteSha": "095602803066d024ca5daf1e9b23749b4a2b60e8",
-      "Hash": "65e1d3bb1e01b216ae9bfe4e66acfa8d",
+      "Hash": "b41a376540c6edc82035a2d7545ac406",
       "Requirements": [
         "cachem",
         "data.table",
@@ -1093,6 +1093,30 @@
         "tidyfast",
         "wbstats",
         "yaml"
+      ]
+    },
+    "pipfun": {
+      "Package": "pipfun",
+      "Version": "0.0.0.9002",
+      "Source": "GitHub",
+      "RemoteType": "github",
+      "RemoteHost": "api.github.com",
+      "RemoteRepo": "pipfun",
+      "RemoteUsername": "PIP-Technical-team",
+      "RemoteRef": "HEAD",
+      "RemoteSha": "5ad8771f6769c2023042d89acc2912247872f895",
+      "Hash": "0ce972505894f68f429cded545561515",
+      "Requirements": [
+        "cli",
+        "data.table",
+        "digest",
+        "fs",
+        "fst",
+        "glue",
+        "haven",
+        "purrr",
+        "qs",
+        "readr"
       ]
     },
     "pipload": {
@@ -1341,10 +1365,10 @@
     },
     "renv": {
       "Package": "renv",
-      "Version": "0.15.4",
+      "Version": "0.16.0",
       "Source": "Repository",
       "Repository": "CRAN",
-      "Hash": "c1078316e1d4f70275fc1ea60c0bc431",
+      "Hash": "c9e8442ab69bc21c9697ecf856c1e6c7",
       "Requirements": []
     },
     "rlang": {
@@ -1860,12 +1884,12 @@
       "Version": "0.0.3",
       "Source": "GitHub",
       "RemoteType": "github",
-      "RemoteUsername": "PIP-Technical-Team",
-      "RemoteRepo": "wbpip",
-      "RemoteRef": "HEAD",
-      "RemoteSha": "7785b07e23e4d82b901ce8437f7b4e1850976375",
       "RemoteHost": "api.github.com",
-      "Hash": "f6c9d349ca2974d70c3422b114279442",
+      "RemoteRepo": "wbpip",
+      "RemoteUsername": "PIP-Technical-Team",
+      "RemoteRef": "vectorize_spl",
+      "RemoteSha": "d4cbcc1a357743e155629048f839acc1bba438a1",
+      "Hash": "996ece31abe6079b3b829db7d9b9bcc1",
       "Requirements": [
         "MASS",
         "assertthat",
@@ -1873,7 +1897,6 @@
         "collapse",
         "data.table",
         "dplyr",
-        "purrr",
         "rlang"
       ]
     },

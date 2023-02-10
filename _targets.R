@@ -3,8 +3,9 @@
 # remotes::install_github("PIP-Technical-Team/pipload@dev",
 #                         dependencies = FALSE)
 
-# remotes::install_github("PIP-Technical-Team/wbpip@synth_vector",
+# remotes::install_github("PIP-Technical-Team/wbpip@vectorize_spl",
 #                        dependencies = FALSE)
+
 # remotes::install_github("PIP-Technical-Team/wbpip",
 #                        dependencies = FALSE)
 
@@ -29,20 +30,20 @@ purrr::walk(fs::dir_ls(path = "./R/pipdm/R",
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
-py <- 2017  # PPP year
+py <- 2011  # PPP year
 
-branch <- "DEV"
+branch <- "main"
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Load globals   ---------
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-gls <- pipload::pip_create_globals(
+gls <- pipfun::pip_create_globals(
   root_dir   = Sys.getenv("PIP_ROOT_DIR"), 
   # out_dir    = fs::path("y:/pip_ingestion_pipeline/temp/"),
-  vintage    = list(release = "20220909", 
+  vintage    = list(release = "20221012", 
                     ppp_year = py, 
-                    identity = "PROD"), 
+                    identity = "TEST"), 
   create_dir = TRUE
 )
 
@@ -66,7 +67,8 @@ tar_option_set(
   garbage_collection = TRUE,
   memory = 'transient',
   format = 'qs', #'fst_dt',
-  workspace_on_error = TRUE
+  workspace_on_error = TRUE, 
+  error = "stop" 
 )
 
 # Set future plan (for targets::tar_make_future)
@@ -166,14 +168,6 @@ dl_aux$cp <-
                   })
          })
 
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-## Select right indicators ------
-
-dl_aux$indicators <- 
-  dl_aux$indicators[ppp_year == py
-                    ][, ppp_year := NULL
-                      ]
-
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ## Load PIP inventory ----
 pip_inventory <- 
@@ -263,6 +257,7 @@ cache_inventory <-
 cache_ppp <- gls$cache_ppp
 cache_ids <- get_cache_id(cache_inventory)
 cache_dir <- get_cache_files(cache_inventory)
+names(cache_dir) <-  cache_ids
 
 cache   <- mp_cache(cache_dir = cache_dir, 
                     load      = TRUE, 
@@ -402,6 +397,19 @@ list(
                gdp_table = dl_aux$gdp,
                pce_table = dl_aux$pce)
   ),
+  
+  # Get median
+  tar_target(dt_lineup_median, 
+             db_compute_lineup_median(
+               ref_lkup = dt_prod_ref_estimation, 
+               cache    = cache)
+             ),
+  
+  tar_target(dt_spl, 
+             db_compute_spl(dt = dt_lineup_median, 
+                            ppp_year = py)
+             ),
+  
   
   ### Create coverage table -------
   
@@ -687,6 +695,17 @@ list(
     format = 'file',
   ),
   
+  # Dictionary
+  tar_target(
+    spl_out,
+    save_aux_data(
+      dt_spl,
+      fs::path(gls$OUT_AUX_DIR_PC, "spl.fst"),
+      compress = TRUE
+    ),
+    format = 'file',
+  ),
+  
   ### Estimation tables -------
   
   tar_target(
@@ -705,6 +724,16 @@ list(
     save_estimations(dt       = dt_prod_svy_estimation, 
                      dir      = gls$OUT_EST_DIR_PC, 
                      name     = "prod_svy_estimation", 
+                     time     = gls$TIME, 
+                     compress = gls$FST_COMP_LVL)
+  ),
+  
+  tar_target(
+    lineup_median_file,
+    format = 'file', 
+    save_estimations(dt       = dt_lineup_median, 
+                     dir      = gls$OUT_EST_DIR_PC, 
+                     name     = "lineup_median", 
                      time     = gls$TIME, 
                      compress = gls$FST_COMP_LVL)
   ),
