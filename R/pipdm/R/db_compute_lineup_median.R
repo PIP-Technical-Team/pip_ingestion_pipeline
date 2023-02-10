@@ -1,9 +1,10 @@
 #' Compute lineup median for SPL calculations
 #'
-#' @param ref_lkup dataframe with estimations for referencia year. In the
+#' @param ref_lkup dataframe with estimations for reference year. In the
 #'   original pipeline it would be the target `dt_prod_ref_estimation` from the
 #'   function `db_create_ref_estimation_table()`
 #' @param cache list of cacha files
+#' @param ppp_year numeric: PPP year
 #'
 #' @return
 #' @export
@@ -87,10 +88,12 @@ db_compute_lineup_median <- function(ref_lkup,
 }
 
 
-#' Title
+#' Get the line up median
 #'
-#' @param ue one-row data frame with Unique Entries columns country_code,
-#'   reporting_year, welfare_type, and  reporting_level
+#' @param i index or names of list lue
+#' @param lue  list of one-row value from data.table (used `split()` to create )
+#' @param unique_vars character: unique vars used in `db_compute_lineup_median`
+#' @inheritParams db_compute_lineup_median
 #'
 #' @return
 #' @export
@@ -122,8 +125,10 @@ get_lineup_median <- function(i,
   }
 
 #   ____________________________________________________________________________
-#   Computations                                                            ####
+#   Computations                                                            ###
   ue <- lue[[i]]
+  
+  
   
   dt <- ref_lkup[ue,
                  on = unique_vars]
@@ -147,8 +152,7 @@ get_lineup_median <- function(i,
   names_out <- sprintf("df%s",
                        seq_along(ul$cache_id) - 1)
   names(svy_data) <- names_out
-  
-  
+ 
   
   tmp_stats <- wbpip:::prod_fg_compute_pip_stats(
     request_year           = ul[["reporting_year"]],

@@ -3,8 +3,9 @@
 # remotes::install_github("PIP-Technical-Team/pipload@dev",
 #                         dependencies = FALSE)
 
-# remotes::install_github("PIP-Technical-Team/wbpip@synth_vector",
+# remotes::install_github("PIP-Technical-Team/wbpip@vectorize_spl",
 #                        dependencies = FALSE)
+
 # remotes::install_github("PIP-Technical-Team/wbpip",
 #                        dependencies = FALSE)
 
@@ -29,20 +30,20 @@ purrr::walk(fs::dir_ls(path = "./R/pipdm/R",
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
-py <- 2011  # PPP year
+py <- 2017  # PPP year
 
-branch <- "DEV"
+branch <- "main"
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Load globals   ---------
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-gls <- pipload::pip_create_globals(
+gls <- pipfun::pip_create_globals(
   root_dir   = Sys.getenv("PIP_ROOT_DIR"), 
   # out_dir    = fs::path("y:/pip_ingestion_pipeline/temp/"),
-  vintage    = list(release = "20220909", 
+  vintage    = list(release = "20221012", 
                     ppp_year = py, 
-                    identity = "PROD"), 
+                    identity = "TEST"), 
   create_dir = TRUE
 )
 
@@ -66,7 +67,8 @@ tar_option_set(
   garbage_collection = TRUE,
   memory = 'transient',
   format = 'qs', #'fst_dt',
-  workspace_on_error = TRUE
+  workspace_on_error = TRUE, 
+  error = "stop" 
 )
 
 # Set future plan (for targets::tar_make_future)
@@ -396,11 +398,18 @@ list(
                pce_table = dl_aux$pce)
   ),
   
+  # Get median
   tar_target(dt_lineup_median, 
              db_compute_lineup_median(
                ref_lkup = dt_prod_ref_estimation, 
                cache    = cache)
              ),
+  
+  tar_target(dt_spl, 
+             db_compute_spl(dt = dt_lineup_median, 
+                            ppp_year = py)
+             ),
+  
   
   ### Create coverage table -------
   
@@ -681,6 +690,17 @@ list(
     save_aux_data(
       dl_aux$dictionary,
       fs::path(gls$OUT_AUX_DIR_PC, "dictionary.fst"),
+      compress = TRUE
+    ),
+    format = 'file',
+  ),
+  
+  # Dictionary
+  tar_target(
+    spl_out,
+    save_aux_data(
+      dt_spl,
+      fs::path(gls$OUT_AUX_DIR_PC, "spl.fst"),
       compress = TRUE
     ),
     format = 'file',
