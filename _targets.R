@@ -30,9 +30,9 @@ purrr::walk(fs::dir_ls(path = "./R/pipdm/R",
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
-py <- 2011  # PPP year
+py <- 2017  # PPP year
 
-branch <- "main"
+branch <- "DEV"
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Load globals   ---------
@@ -86,14 +86,15 @@ aux_ver <- rep("00", length(aux_tb$auxname))
 
 # aux_ver[which(aux_tb$auxname == "cpi")] <- -1 # remove for march update
 
-dl_aux <- purrr::map2(.x = aux_tb$auxname, 
+dl_aux <- purrr::map2(.x = aux_tb$auxname,
                       .y =  aux_ver,
                       .f = ~ {
                         pipload::pip_load_aux(measure     = .x, 
                                               apply_label = FALSE,
                                               maindir     = gls$PIP_DATA_DIR, 
                                               verbose     = FALSE, 
-                                              version     = .y )
+                                              version     = .y, 
+                                              branch      = branch)
                       }
 )
 

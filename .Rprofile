@@ -1,8 +1,9 @@
-source("renv/activate.R")
+# source("renv/activate.R")
 # ---- RENV ---- 
 
 library(targets)
 library(tarchetypes)
+library(gittargets)
 
 
 if (requireNamespace("gert", quietly = TRUE)) {
