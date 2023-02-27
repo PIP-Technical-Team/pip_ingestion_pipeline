@@ -158,12 +158,11 @@ mp_survey_files <- function(cache          ,
                             cols           ,
                             compress       ) {
   
-  x <- purrr::map2(.x = cache, 
-                   .y = cache_ids,
+  x <- purrr::map(.x = cli::cli_progress_along(cache_ids), 
                    .f = ~{
                      save_survey_data(
-                       dt              = .x,
-                       cache_filename  = .y,
+                       dt              = cache[[.x]],
+                       cache_filename  = cache_ids[[.x]],
                        output_dir      = output_dir,
                        cols            = cols,
                        compress        = compress) 

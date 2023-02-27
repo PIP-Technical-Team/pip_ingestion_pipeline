@@ -30,7 +30,7 @@ purrr::walk(fs::dir_ls(path = "./R/pipdm/R",
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
-py <- 2017  # PPP year
+py <- 2011  # PPP year
 
 branch <- "DEV"
 
@@ -47,6 +47,9 @@ gls <- pipfun::pip_create_globals(
   create_dir = TRUE
 )
 
+
+# to delete and modify in pipfun code
+# gls$FST_COMP_LVL <- 80
 
 cli::cli_text("Vintage directory {.file {gls$vintage_dir}}")
 
@@ -68,7 +71,7 @@ tar_option_set(
   memory = 'transient',
   format = 'qs', #'fst_dt',
   workspace_on_error = TRUE, 
-  error = "stop" 
+  error = "null" 
 )
 
 # Set future plan (for targets::tar_make_future)
@@ -274,7 +277,37 @@ cache <- purrr::compact(cache)
 # remove CHN 2017 and 2018 manually
 # cache[grep("CHN_201[78]", names(cache), value = TRUE)] <- NULL
 
-# notify that cache has finished loading (please do NOT delete)
+## remove all the surveyar that are not available in the PFW ----
+
+svy_in_pfw <- dl_aux$pfw[, link] 
+
+pattern <-  "([[:alnum:]]{3}_[[:digit:]]{4}_[[:alnum:]\\-]+)(.*)"
+cache_names <- 
+  names(cache) |> 
+  gsub(pattern = pattern, 
+       replacement = "\\1", 
+       x = _)
+
+cache_dir_names <- 
+  names(cache_dir) |> 
+  gsub(pattern = pattern, 
+       replacement = "\\1", 
+       x = _)
+
+to_drop_cache     <- which(!cache_names %in% svy_in_pfw)
+to_drop_cache_dir <- which(!cache_dir_names %in% svy_in_pfw)
+
+cache[to_drop_cache]         <- NULL
+cache_dir <- cache_dir[-to_drop_cache_dir]
+
+cache_inventory[,
+                cache_names := gsub(pattern = pattern, 
+                                     replacement = "\\1", 
+                                     x = cache_id)]
+
+cache_inventory <- cache_inventory[cache_names %chin% svy_in_pfw]
+
+## notify that cache has finished loading (please do NOT delete) ---
 if (requireNamespace("pushoverr")) {
   pushoverr::pushover("Finished loading or creating cache list")
 }
@@ -286,7 +319,12 @@ stopifnot(
 
 
 
-# ---- Step 2: Run pipeline -----
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Step 2: Run pipeline -----   ---------
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
 
 list(
   
@@ -493,15 +531,15 @@ list(
   
   ### survey data ------
   
-  tar_target(
-    survey_files,
-    mp_survey_files(
-      cache       = cache,
-      cache_ids   = cache_ids,
-      output_dir  = gls$OUT_SVY_DIR_PC,
-      cols        = c('welfare', 'weight', 'area'),
-      compress    = gls$FST_COMP_LVL)
-  ),
+  # tar_target(
+  #   survey_files,
+  #   mp_survey_files(
+  #     cache       = cache,
+  #     cache_ids   = cache_ids,
+  #     output_dir  = gls$OUT_SVY_DIR_PC,
+  #     cols        = c('welfare', 'weight', 'area'),
+  #     compress    = gls$FST_COMP_LVL)
+  # ),
   
   ### Basic AUX data ----
   
@@ -580,6 +618,16 @@ list(
     save_aux_data(
       dl_aux$pl,
       fs::path(gls$OUT_AUX_DIR_PC, "poverty_lines.fst"),
+      compress = TRUE
+    ),
+    format = 'file',
+  ),
+  
+  tar_target(
+    national_poverty_lines_out,
+    save_aux_data(
+      dl_aux$npl,
+      fs::path(gls$OUT_AUX_DIR_PC, "national_poverty_lines.fst"),
       compress = TRUE
     ),
     format = 'file',
