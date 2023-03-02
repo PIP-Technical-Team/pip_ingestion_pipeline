@@ -49,7 +49,7 @@ gls <- pipfun::pip_create_globals(
 
 
 # to delete and modify in pipfun code
-# gls$FST_COMP_LVL <- 80
+gls$FST_COMP_LVL <- 20
 
 cli::cli_text("Vintage directory {.file {gls$vintage_dir}}")
 
@@ -71,7 +71,7 @@ tar_option_set(
   memory = 'transient',
   format = 'qs', #'fst_dt',
   workspace_on_error = TRUE, 
-  error = "null" 
+  error = "stop"  # or "null"
 )
 
 # Set future plan (for targets::tar_make_future)
@@ -79,8 +79,8 @@ tar_option_set(
 
 # ---- Step 1: Prepare data ----
 
-
-## Load AUX data -----
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+##  AUX data -----
 aux_tb <- prep_aux_data(maindir = gls$PIP_DATA_DIR)
 # filter 
 aux_tb <- aux_tb[!(auxname %chin% c("maddison"))]
@@ -115,8 +115,7 @@ aux_versions <- purrr::map_df(aux_tb$auxname, ~{
 dl_aux$pop$year <- as.numeric(dl_aux$pop$year)
 
 
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-## Select PPP year --------
+### Select PPP year --------
 
 vars     <- c("ppp_year", "release_version", "adaptation_version")
 ppp_v    <- unique(dl_aux$ppp[, ..vars], by = vars)
@@ -139,23 +138,19 @@ dl_aux$ppp <- dl_aux$ppp[ppp_year == py
                            ppp_default := TRUE]
 
 
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-## Select the right CPI --------
+### Select the right CPI --------
 
 cpivar <- paste0("cpi", py)
 
 dl_aux$cpi[, cpi := get(cpivar)]
 
-
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-## Select right Poverty lines table ------
+### Select right Poverty lines table ------
 
 dl_aux$pl <- dl_aux$pl[ppp_year == py
                        ][, 
                          ppp_year := NULL]
 
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-## Select right Country Profile ------
+### Select right Country Profile ------
 
 
 dl_aux$cp <-
@@ -173,7 +168,7 @@ dl_aux$cp <-
          })
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-## Load PIP inventory ----
+##  PIP inventory ----
 pip_inventory <- 
   pipload::pip_find_data(
     inv_file = fs::path(gls$PIP_DATA_DIR, '_inventory/inventory.fst'),
@@ -181,13 +176,13 @@ pip_inventory <-
     maindir = gls$PIP_DATA_DIR)
 
 
-## Create pipeline inventory ----
-
+### pipeline inventory ----
 
 pipeline_inventory <- 
   db_filter_inventory(dt        = pip_inventory,
                       pfw_table = dl_aux$pfw)
 
+### Filter pipline inventory ---- 
 
 # pipeline_inventory <-
 #   pipeline_inventory[grepl("^SOM", cache_id)]
@@ -214,8 +209,10 @@ pipeline_inventory <-
 #    pipeline_inventory[country_code == 'ALB' & surveyid_year == 2016]
 
 
-## --- Create cache files ----
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+## Cache files ----
 
+### Create Cache files --------
 status_cache_files_creation <- 
   create_cache_file(
     pipeline_inventory = pipeline_inventory,
@@ -231,7 +228,7 @@ status_cache_files_creation <-
     pop_table          = dl_aux$pop)
 
 
-## bring cache our of pipeline -----
+### bring cache our of pipeline -----
 
 cache_inventory <- 
   pip_update_cache_inventory(
@@ -256,7 +253,7 @@ cache_inventory <-
 # cache_inventory <- cache_inventory[grepl(reg, survey_id)]
 
 
-## Load or create cache list -----------
+### Load or create cache list -----------
 
 cache_ppp <- gls$cache_ppp
 cache_ids <- get_cache_id(cache_inventory)
@@ -277,7 +274,8 @@ cache <- purrr::compact(cache)
 # remove CHN 2017 and 2018 manually
 # cache[grep("CHN_201[78]", names(cache), value = TRUE)] <- NULL
 
-## remove all the surveyar that are not available in the PFW ----
+
+### remove all the surveyar that are not available in the PFW ----
 
 svy_in_pfw <- dl_aux$pfw[, link] 
 
@@ -307,24 +305,22 @@ cache_inventory[,
 
 cache_inventory <- cache_inventory[cache_names %chin% svy_in_pfw]
 
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ## notify that cache has finished loading (please do NOT delete) ---
-if (requireNamespace("pushoverr")) {
-  pushoverr::pushover("Finished loading or creating cache list")
-}
-
 stopifnot(
    "Lengths of cache list and cache directory are not the same" = 
      length(cache) == length(cache_dir)
 )
 
+if (requireNamespace("pushoverr")) {
+  pushoverr::pushover("Finished loading or creating cache list")
+}
 
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Step 2: Run pipeline -----   ---------
+# Step 2: Run pipeline   ---------
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-
 
 list(
   

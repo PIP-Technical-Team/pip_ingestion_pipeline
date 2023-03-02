@@ -30,7 +30,7 @@ db_compute_survey_mean <- function(dt, gd_mean = NULL) {
     }, # end of expr section
 
     error = function(e) {
-      rlang::warn("Survey mean caluclation failed. Returning NULL.")
+     cli::cli_alert_danger("Survey mean caluclation failed. Returning NULL.")
 
       return(NULL)
     } # end of error
