@@ -30,7 +30,7 @@ purrr::walk(fs::dir_ls(path = "./R/pipdm/R",
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
-py <- 2011  # PPP year
+py <- 2017  # PPP year
 
 branch <- "DEV"
 
@@ -204,9 +204,8 @@ pipeline_inventory <-
 #    pipeline_inventory[country_code %in% cts_filter
 #                       ][!(country_code == 'CHN' & surveyid_year >= 2017)]
 
-
 # pipeline_inventory <-
-#    pipeline_inventory[country_code == 'ALB' & surveyid_year == 2016]
+#    pipeline_inventory[country_code == 'ALB' & surveyid_year == 2019]
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -304,6 +303,8 @@ cache_inventory[,
                                      x = cache_id)]
 
 cache_inventory <- cache_inventory[cache_names %chin% svy_in_pfw]
+
+cache_ids <- names(cache_dir)
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ## notify that cache has finished loading (please do NOT delete) ---
