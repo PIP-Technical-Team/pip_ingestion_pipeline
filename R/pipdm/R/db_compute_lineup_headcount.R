@@ -12,13 +12,14 @@
 #' @examples
 #' \dontrun{
 #' tar_load(dt_prod_ref_estimation)
-#' db_compute_lineup_median(ref_lkup = dt_prod_ref_estimation, cache = cache) # you must load the cache first
+#' db_compute_lineup_headcount(ref_lkup = dt_prod_ref_estimation, cache = cache) # you must load the cache first
 #' }
-db_compute_lineup_median <- function(ref_lkup, 
-                                     cache) {
-
-#   ____________________________________________________________________________
-#   Computations                                                            ####
+db_compute_lineup_headcount <- function(ref_lkup, 
+                                        cache, 
+                                        spl) {
+  
+  #   ____________________________________________________________________________
+  #   Computations                                                            ####
   ref_lkup <-
     ref_lkup[,
              data_interpolation_id := paste(cache_id,
@@ -48,23 +49,24 @@ db_compute_lineup_median <- function(ref_lkup,
   lue <- split(ue, 1:nrow(ue))
   # lue <- split(ue, 1:3)
   
-  poss_get_lineup_median = purrr::possibly(.f = get_lineup_median, 
+  poss_get_lineup_headcount = purrr::possibly(.f = get_lineup_headcount, 
                                            otherwise = NA)
   
-  medians <-
-    purrr::map_dbl(cli::cli_progress_along(lue),
-                   poss_get_lineup_median,
-                   lue         = lue,
-                   cache       = cache, 
-                   ref_lkup    = ref_lkup, 
-                   unique_vars = unique_vars)
+  spl_headcount <-
+    purrr::map_df(cli::cli_progress_along(lue),
+               poss_get_lineup_headcount,
+               lue         = lue,
+               cache       = cache, 
+               ref_lkup    = ref_lkup, 
+               unique_vars = unique_vars, 
+               spl         = spl)
   
-  ue[, median := medians]
+  # ue[, median := medians]
   
-#   ____________________________________________________________________________
-#   Return                                                                  ####
-  return(ue)
-
+  #   ____________________________________________________________________________
+  #   Return                                                                  ####
+  return(spl_headcount)
+  
 }
 
 
@@ -73,20 +75,22 @@ db_compute_lineup_median <- function(ref_lkup,
 #' @param i index or names of list lue
 #' @param lue  list of one-row value from data.table (used `split()` to create )
 #' @param unique_vars character: unique vars used in `db_compute_lineup_median`
+#' @param pov_line numeric: value of poverty line
 #' @inheritParams db_compute_lineup_median
 #'
 #' @return
 #' @export
 #'
 #' @examples
-get_lineup_median <- function(i, 
+get_lineup_headcount <- function(i, 
                               lue,
                               ref_lkup, 
                               cache, 
-                              unique_vars) {
-
-#   ____________________________________________________________________________
-#   Computations                                                            ###
+                              unique_vars,
+                              spl) {
+  
+  #   ____________________________________________________________________________
+  #   Computations                                                            ###
   ue <- lue[[i]]
   
   
@@ -94,11 +98,15 @@ get_lineup_median <- function(i,
   dt <- ref_lkup[ue,
                  on = unique_vars]
   
+  # poverty lines
+  out_dt <- spl[ue, on = unique_vars]
+  pov_line <- out_dt[, spl]
+  
   dt_vars <- names(dt)
   ul <- purrr::map(dt_vars,
-            ~ {
-              dt[, unique(get(.x))]
-            })
+                   ~ {
+                     dt[, unique(get(.x))]
+                   })
   
   names(ul) <- dt_vars
   
@@ -113,7 +121,7 @@ get_lineup_median <- function(i,
   names_out <- sprintf("df%s",
                        seq_along(ul$cache_id) - 1)
   names(svy_data) <- names_out
- 
+  
   
   tmp_stats <- wbpip:::prod_fg_compute_pip_stats(
     request_year           = ul[["reporting_year"]],
@@ -125,19 +133,18 @@ get_lineup_median <- function(i,
     survey_year            = dt[["survey_year"]],
     default_ppp            = ul[["ppp"]],
     distribution_type      = dt[["distribution_type"]],
-    poverty_line           = 2.15,
-    popshare               = .5,
+    poverty_line           = pov_line,
+    popshare               = NULL,
     ppp                    = NULL
   )
   
-  median <- tmp_stats$poverty_line
   
   
-
-#   ____________________________________________________________________________
-#   Return                                                                  ####
-  return(median)
-
+  #   ____________________________________________________________________________
+  #   Return                                                                  ####
+  out_dt[, spl_headcount := tmp_stats$headcount]
+  return(out_dt)
+  
 }
 
 

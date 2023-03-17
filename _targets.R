@@ -1,5 +1,7 @@
-# ---- Install packages ----
-# 
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Install packages ----
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 # remotes::install_github("PIP-Technical-Team/pipload@dev",
 #                         dependencies = FALSE)
 
@@ -9,7 +11,9 @@
 # remotes::install_github("PIP-Technical-Team/wbpip",
 #                        dependencies = FALSE)
 
-# ---- Start up ----
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Start up ----
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 # Load packages
 source("./_packages.R")
@@ -26,7 +30,7 @@ purrr::walk(fs::dir_ls(path = "./R/pipdm/R",
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Select Defaults   ---------
+# Select Defaults ---------
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
@@ -41,9 +45,9 @@ branch <- "DEV"
 gls <- pipfun::pip_create_globals(
   root_dir   = Sys.getenv("PIP_ROOT_DIR"), 
   # out_dir    = fs::path("y:/pip_ingestion_pipeline/temp/"),
-  vintage    = list(release = "20221012", 
+  vintage    = list(release = "20230328", 
                     ppp_year = py, 
-                    identity = "TEST"), 
+                    identity = "PROD"), 
   create_dir = TRUE
 )
 
@@ -205,7 +209,7 @@ pipeline_inventory <-
 #                       ][!(country_code == 'CHN' & surveyid_year >= 2017)]
 
 # pipeline_inventory <-
-#    pipeline_inventory[country_code == 'ALB' & surveyid_year == 2019]
+#    pipeline_inventory[country_code == 'PHL' & surveyid_year == 2021]
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -373,7 +377,7 @@ list(
                pip_years = gls$PIP_YEARS,
                region_code = 'pcn_region_code')),
   
-  ## Distributional stats ---- 
+  ## Distributional stats --1-- 
   
   # Calculate Lorenz curves (for microdata)
   tar_target(
@@ -434,18 +438,26 @@ list(
                pce_table = dl_aux$pce)
   ),
   
-  # Get median
+  ### Get lineup median -------
   tar_target(dt_lineup_median, 
              db_compute_lineup_median(
                ref_lkup = dt_prod_ref_estimation, 
                cache    = cache)
              ),
   
+  ### Get SPL  ----------
   tar_target(dt_spl, 
              db_compute_spl(dt = dt_lineup_median, 
                             ppp_year = py)
              ),
   
+  ### Get SPL headcount -------
+  tar_target(dt_spl_headcount, 
+             db_compute_lineup_headcount(
+               ref_lkup = dt_prod_ref_estimation, 
+               cache    = cache, 
+               spl      = dt_spl)
+  ),
   
   ### Create coverage table -------
   
@@ -528,15 +540,15 @@ list(
   
   ### survey data ------
   
-  # tar_target(
-  #   survey_files,
-  #   mp_survey_files(
-  #     cache       = cache,
-  #     cache_ids   = cache_ids,
-  #     output_dir  = gls$OUT_SVY_DIR_PC,
-  #     cols        = c('welfare', 'weight', 'area'),
-  #     compress    = gls$FST_COMP_LVL)
-  # ),
+  tar_target(
+    survey_files,
+    mp_survey_files(
+      cache       = cache,
+      cache_ids   = cache_ids,
+      output_dir  = gls$OUT_SVY_DIR_PC,
+      cols        = c('welfare', 'weight', 'area'),
+      compress    = gls$FST_COMP_LVL)
+  ),
   
   ### Basic AUX data ----
   
@@ -730,7 +742,7 @@ list(
     format = 'file',
   ),
   
-  # Dictionary
+  ### Dictionary -------------
   tar_target(
     dictionary_out,
     save_aux_data(
@@ -741,11 +753,11 @@ list(
     format = 'file',
   ),
   
-  # Dictionary
+  ### SPL  --------------
   tar_target(
     spl_out,
     save_aux_data(
-      dt_spl,
+      dt_spl_headcount,
       fs::path(gls$OUT_AUX_DIR_PC, "spl.fst"),
       compress = TRUE
     ),
@@ -874,7 +886,7 @@ list(
                         ext = "txt"))
   ), 
   
-  ### convert AUX files  to qs ---------
+  ## Convert AUX files  to qs ---------
   tar_target(
     aux_qs_out, 
     convert_to_qs(dir = gls$OUT_AUX_DIR_PC)
