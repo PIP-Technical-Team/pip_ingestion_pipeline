@@ -17,8 +17,8 @@
 db_compute_lineup_median <- function(ref_lkup, 
                                      cache) {
 
-#   ____________________________________________________________________________
-#   Computations                                                            ####
+#   ____________________________________________
+#   Computations                                            ####
   ref_lkup <-
     ref_lkup[,
              data_interpolation_id := paste(cache_id,
@@ -61,8 +61,8 @@ db_compute_lineup_median <- function(ref_lkup,
   
   ue[, median := medians]
   
-#   ____________________________________________________________________________
-#   Return                                                                  ####
+#   _________________________________________________________
+#   Return                                                  ####
   return(ue)
 
 }
@@ -85,8 +85,8 @@ get_lineup_median <- function(i,
                               cache, 
                               unique_vars) {
 
-#   ____________________________________________________________________________
-#   Computations                                                            ###
+#   ______________________________________________________________
+#   Computations                                                 ###
   ue <- lue[[i]]
   
   

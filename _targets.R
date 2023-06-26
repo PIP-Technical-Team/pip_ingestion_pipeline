@@ -36,6 +36,7 @@ purrr::walk(fs::dir_ls(path = "./R/pipdm/R",
 
 py <- 2017  # PPP year
 
+branch <- "main"
 branch <- "DEV"
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -96,12 +97,13 @@ aux_ver <- rep("00", length(aux_tb$auxname))
 dl_aux <- purrr::map2(.x = aux_tb$auxname,
                       .y =  aux_ver,
                       .f = ~ {
-                        pipload::pip_load_aux(measure     = .x, 
-                                              apply_label = FALSE,
-                                              maindir     = gls$PIP_DATA_DIR, 
-                                              verbose     = FALSE, 
-                                              version     = .y, 
-                                              branch      = branch)
+                        pipload::pip_load_aux(
+                          measure     = .x, 
+                          apply_label = FALSE,
+                          maindir     = gls$PIP_DATA_DIR, 
+                          verbose     = FALSE, 
+                          version     = .y, 
+                          branch      = branch)
                       }
 )
 
@@ -209,7 +211,7 @@ pipeline_inventory <-
 #                       ][!(country_code == 'CHN' & surveyid_year >= 2017)]
 
 # pipeline_inventory <-
-#    pipeline_inventory[country_code == 'PHL' & surveyid_year == 2021]
+#    pipeline_inventory[country_code == 'VEN']
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -459,7 +461,7 @@ list(
                spl      = dt_spl)
   ),
   
-  ### Create coverage table -------
+  ### Coverage table -------
   
   # Create coverage table by region
   tar_target(
@@ -476,7 +478,7 @@ list(
   ),
   
   
-  ### Create censoring table -------
+  ### Censoring table -------
   
   # Create censoring list
   tar_target(
@@ -708,7 +710,7 @@ list(
       compress = TRUE)
   ),
   
-  # Censoring 
+  ### Censored  -----
   tar_target(
     censored_out,
     save_aux_data(
@@ -891,8 +893,6 @@ list(
     aux_qs_out, 
     convert_to_qs(dir = gls$OUT_AUX_DIR_PC)
   )
-  
-  
 )
 
 
