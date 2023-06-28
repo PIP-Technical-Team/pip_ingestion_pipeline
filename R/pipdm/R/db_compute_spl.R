@@ -12,24 +12,12 @@ db_compute_spl <- function(dt,
                            median_var = "median") {
 
 #   ____________________________________________________
-#   on.exit                                         ####
-  on.exit({
-    
-  })
-
-#   ____________________________________________________
 #   Defenses                                        ####
   stopifnot( exprs = {
     is.data.frame(dt)
     median_var %in% names(dt)
     }
   )
-
-#   ____________________________________________________
-#   Early returns                                   ####
-  if (FALSE) {
-    return()
-  }
 
 #   ____________________________________________________
 #   Computations                                     ####

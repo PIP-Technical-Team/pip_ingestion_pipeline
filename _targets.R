@@ -1,5 +1,7 @@
-# ---- Install packages ----
-# 
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Install packages ----
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 # remotes::install_github("PIP-Technical-Team/pipload@dev",
 #                         dependencies = FALSE)
 
@@ -9,7 +11,9 @@
 # remotes::install_github("PIP-Technical-Team/wbpip",
 #                        dependencies = FALSE)
 
-# ---- Start up ----
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Start up ----
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 # Load packages
 source("./_packages.R")
@@ -26,13 +30,14 @@ purrr::walk(fs::dir_ls(path = "./R/pipdm/R",
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Select Defaults   ---------
+# Select Defaults ---------
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
-py <- 2011  # PPP year
+py <- 2017  # PPP year
 
 branch <- "main"
+branch <- "DEV"
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Load globals   ---------
@@ -41,12 +46,15 @@ branch <- "main"
 gls <- pipfun::pip_create_globals(
   root_dir   = Sys.getenv("PIP_ROOT_DIR"), 
   # out_dir    = fs::path("y:/pip_ingestion_pipeline/temp/"),
-  vintage    = list(release = "20221012", 
+  vintage    = list(release = "20230328", 
                     ppp_year = py, 
-                    identity = "TEST"), 
+                    identity = "PROD"), 
   create_dir = TRUE
 )
 
+
+# to delete and modify in pipfun code
+gls$FST_COMP_LVL <- 20
 
 cli::cli_text("Vintage directory {.file {gls$vintage_dir}}")
 
@@ -68,7 +76,7 @@ tar_option_set(
   memory = 'transient',
   format = 'qs', #'fst_dt',
   workspace_on_error = TRUE, 
-  error = "stop" 
+  error = "stop"  # or "null"
 )
 
 # Set future plan (for targets::tar_make_future)
@@ -76,8 +84,8 @@ tar_option_set(
 
 # ---- Step 1: Prepare data ----
 
-
-## Load AUX data -----
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+##  AUX data -----
 aux_tb <- prep_aux_data(maindir = gls$PIP_DATA_DIR)
 # filter 
 aux_tb <- aux_tb[!(auxname %chin% c("maddison"))]
@@ -86,14 +94,16 @@ aux_ver <- rep("00", length(aux_tb$auxname))
 
 # aux_ver[which(aux_tb$auxname == "cpi")] <- -1 # remove for march update
 
-dl_aux <- purrr::map2(.x = aux_tb$auxname, 
+dl_aux <- purrr::map2(.x = aux_tb$auxname,
                       .y =  aux_ver,
                       .f = ~ {
-                        pipload::pip_load_aux(measure     = .x, 
-                                              apply_label = FALSE,
-                                              maindir     = gls$PIP_DATA_DIR, 
-                                              verbose     = FALSE, 
-                                              version     = .y )
+                        pipload::pip_load_aux(
+                          measure     = .x, 
+                          apply_label = FALSE,
+                          maindir     = gls$PIP_DATA_DIR, 
+                          verbose     = FALSE, 
+                          version     = .y, 
+                          branch      = branch)
                       }
 )
 
@@ -111,8 +121,7 @@ aux_versions <- purrr::map_df(aux_tb$auxname, ~{
 dl_aux$pop$year <- as.numeric(dl_aux$pop$year)
 
 
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-## Select PPP year --------
+### Select PPP year --------
 
 vars     <- c("ppp_year", "release_version", "adaptation_version")
 ppp_v    <- unique(dl_aux$ppp[, ..vars], by = vars)
@@ -135,23 +144,19 @@ dl_aux$ppp <- dl_aux$ppp[ppp_year == py
                            ppp_default := TRUE]
 
 
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-## Select the right CPI --------
+### Select the right CPI --------
 
 cpivar <- paste0("cpi", py)
 
 dl_aux$cpi[, cpi := get(cpivar)]
 
-
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-## Select right Poverty lines table ------
+### Select right Poverty lines table ------
 
 dl_aux$pl <- dl_aux$pl[ppp_year == py
                        ][, 
                          ppp_year := NULL]
 
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-## Select right Country Profile ------
+### Select right Country Profile ------
 
 
 dl_aux$cp <-
@@ -169,7 +174,7 @@ dl_aux$cp <-
          })
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-## Load PIP inventory ----
+##  PIP inventory ----
 pip_inventory <- 
   pipload::pip_find_data(
     inv_file = fs::path(gls$PIP_DATA_DIR, '_inventory/inventory.fst'),
@@ -177,13 +182,13 @@ pip_inventory <-
     maindir = gls$PIP_DATA_DIR)
 
 
-## Create pipeline inventory ----
-
+### pipeline inventory ----
 
 pipeline_inventory <- 
   db_filter_inventory(dt        = pip_inventory,
                       pfw_table = dl_aux$pfw)
 
+### Filter pipline inventory ---- 
 
 # pipeline_inventory <-
 #   pipeline_inventory[grepl("^SOM", cache_id)]
@@ -205,13 +210,14 @@ pipeline_inventory <-
 #    pipeline_inventory[country_code %in% cts_filter
 #                       ][!(country_code == 'CHN' & surveyid_year >= 2017)]
 
-
 # pipeline_inventory <-
-#    pipeline_inventory[country_code == 'ALB' & surveyid_year == 2016]
+#    pipeline_inventory[country_code == 'VEN']
 
 
-## --- Create cache files ----
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+## Cache files ----
 
+### Create Cache files --------
 status_cache_files_creation <- 
   create_cache_file(
     pipeline_inventory = pipeline_inventory,
@@ -227,7 +233,7 @@ status_cache_files_creation <-
     pop_table          = dl_aux$pop)
 
 
-## bring cache our of pipeline -----
+### bring cache our of pipeline -----
 
 cache_inventory <- 
   pip_update_cache_inventory(
@@ -252,7 +258,7 @@ cache_inventory <-
 # cache_inventory <- cache_inventory[grepl(reg, survey_id)]
 
 
-## Load or create cache list -----------
+### Load or create cache list -----------
 
 cache_ppp <- gls$cache_ppp
 cache_ids <- get_cache_id(cache_inventory)
@@ -273,19 +279,55 @@ cache <- purrr::compact(cache)
 # remove CHN 2017 and 2018 manually
 # cache[grep("CHN_201[78]", names(cache), value = TRUE)] <- NULL
 
-# notify that cache has finished loading (please do NOT delete)
-if (requireNamespace("pushoverr")) {
-  pushoverr::pushover("Finished loading or creating cache list")
-}
 
+### remove all the surveyar that are not available in the PFW ----
+
+svy_in_pfw <- dl_aux$pfw[, link] 
+
+pattern <-  "([[:alnum:]]{3}_[[:digit:]]{4}_[[:alnum:]\\-]+)(.*)"
+cache_names <- 
+  names(cache) |> 
+  gsub(pattern = pattern, 
+       replacement = "\\1", 
+       x = _)
+
+cache_dir_names <- 
+  names(cache_dir) |> 
+  gsub(pattern = pattern, 
+       replacement = "\\1", 
+       x = _)
+
+to_drop_cache     <- which(!cache_names %in% svy_in_pfw)
+to_drop_cache_dir <- which(!cache_dir_names %in% svy_in_pfw)
+
+cache[to_drop_cache]         <- NULL
+cache_dir <- cache_dir[-to_drop_cache_dir]
+
+cache_inventory[,
+                cache_names := gsub(pattern = pattern, 
+                                     replacement = "\\1", 
+                                     x = cache_id)]
+
+cache_inventory <- cache_inventory[cache_names %chin% svy_in_pfw]
+
+cache_ids <- names(cache_dir)
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+## notify that cache has finished loading (please do NOT delete) ---
 stopifnot(
    "Lengths of cache list and cache directory are not the same" = 
      length(cache) == length(cache_dir)
 )
 
+if (requireNamespace("pushoverr")) {
+  pushoverr::pushover("Finished loading or creating cache list")
+}
 
 
-# ---- Step 2: Run pipeline -----
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Step 2: Run pipeline   ---------
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 list(
   
@@ -337,7 +379,7 @@ list(
                pip_years = gls$PIP_YEARS,
                region_code = 'pcn_region_code')),
   
-  ## Distributional stats ---- 
+  ## Distributional stats --1-- 
   
   # Calculate Lorenz curves (for microdata)
   tar_target(
@@ -398,20 +440,28 @@ list(
                pce_table = dl_aux$pce)
   ),
   
-  # Get median
+  ### Get lineup median -------
   tar_target(dt_lineup_median, 
              db_compute_lineup_median(
                ref_lkup = dt_prod_ref_estimation, 
                cache    = cache)
              ),
   
+  ### Get SPL  ----------
   tar_target(dt_spl, 
              db_compute_spl(dt = dt_lineup_median, 
                             ppp_year = py)
              ),
   
+  ### Get SPL headcount -------
+  tar_target(dt_spl_headcount, 
+             db_compute_lineup_headcount(
+               ref_lkup = dt_prod_ref_estimation, 
+               cache    = cache, 
+               spl      = dt_spl)
+  ),
   
-  ### Create coverage table -------
+  ### Coverage table -------
   
   # Create coverage table by region
   tar_target(
@@ -428,7 +478,7 @@ list(
   ),
   
   
-  ### Create censoring table -------
+  ### Censoring table -------
   
   # Create censoring list
   tar_target(
@@ -584,6 +634,16 @@ list(
     format = 'file',
   ),
   
+  tar_target(
+    national_poverty_lines_out,
+    save_aux_data(
+      dl_aux$npl,
+      fs::path(gls$OUT_AUX_DIR_PC, "national_poverty_lines.fst"),
+      compress = TRUE
+    ),
+    format = 'file',
+  ),
+  
   # Survey metadata (for Data Sources page)
   tar_target(
     survey_metadata_out,
@@ -650,7 +710,7 @@ list(
       compress = TRUE)
   ),
   
-  # Censoring 
+  ### Censored  -----
   tar_target(
     censored_out,
     save_aux_data(
@@ -684,7 +744,7 @@ list(
     format = 'file',
   ),
   
-  # Dictionary
+  ### Dictionary -------------
   tar_target(
     dictionary_out,
     save_aux_data(
@@ -695,11 +755,11 @@ list(
     format = 'file',
   ),
   
-  # Dictionary
+  ### SPL  --------------
   tar_target(
     spl_out,
     save_aux_data(
-      dt_spl,
+      dt_spl_headcount,
       fs::path(gls$OUT_AUX_DIR_PC, "spl.fst"),
       compress = TRUE
     ),
@@ -828,13 +888,11 @@ list(
                         ext = "txt"))
   ), 
   
-  ### convert AUX files  to qs ---------
+  ## Convert AUX files  to qs ---------
   tar_target(
     aux_qs_out, 
     convert_to_qs(dir = gls$OUT_AUX_DIR_PC)
   )
-  
-  
 )
 
 
