@@ -1,3 +1,33 @@
+### Filter pipline inventory ---- 
+
+# pipeline_inventory <-
+#   pipeline_inventory[grepl("^SOM", cache_id)]
+# 
+
+# pipeline_inventory <-
+#   pipeline_inventory[grepl("^IND_201[5-9]", cache_id)]
+
+# pipeline_inventory <-
+#   pipeline_inventory[grepl("^NIC", cache_id)]
+
+# Uncomment for specific countries
+# pipeline_inventory <-
+# pipeline_inventory[country_code == 'PHL' & surveyid_year == 2000]
+
+
+# cts_filter <- c('COL', 'IND', "CHN")
+# pipeline_inventory <-
+#    pipeline_inventory[country_code %in% cts_filter
+#                       ][!(country_code == 'CHN' & surveyid_year >= 2017)]
+
+# pipeline_inventory <-
+#    pipeline_inventory[surveyid_year >= 2021]
+
+# cts_filter <- c("CHN")
+# pipeline_inventory <-
+#    pipeline_inventory[country_code == 'TWN' 
+#                       & surveyid_year >= 2022]
+
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ## Cache files ----
