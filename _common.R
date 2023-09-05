@@ -1,7 +1,4 @@
 
-branch <- "main"
-branch <- "DEV"
-
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Load globals   ---------
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -9,10 +6,12 @@ branch <- "DEV"
 gls <- pipfun::pip_create_globals(
   root_dir   = Sys.getenv("PIP_ROOT_DIR"), 
   # out_dir    = fs::path("y:/pip_ingestion_pipeline/temp/"),
-  vintage    = list(release = "20230626", 
+  vintage    = list(release = release, 
                     ppp_year = py, 
-                    identity = "TEST"), 
-  create_dir = TRUE
+                    identity = identity), 
+  create_dir = TRUE, 
+  max_year_country   = max_year_country, 
+  max_year_aggregate = max_year_aggregate
 )
 
 
@@ -130,8 +129,9 @@ dl_aux$cp <-
                   \(x) { # for each table inside each list
                     if ("ppp_year" %in% names(x)) {
                       x <-
-                        x[ppp_year == py][,
-                                          ppp_year := NULL]
+                        x[ppp_year == py
+                          ][,
+                            ppp_year := NULL]
                     }
                     x
                   })
