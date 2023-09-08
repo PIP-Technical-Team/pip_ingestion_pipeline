@@ -65,22 +65,33 @@ compute_dist_stats <- function(dt, mean_table, pop_table, cache_id) {
     if (source == "GROUP") { # Group data
 
       # create synthetic vector
-      wf <- purrr::map_df(
+      wf <- purrr::map(
         .x = pop_level,
         .f = ~ get_synth_vector(dt, pop_table, mean, level = .x)
-      )
-      data.table::setDT(wf)
+      ) |> 
+        rbindlist()
+      # data.table::setDT(wf)
       wf[,
-         welfare_ppp := welfare]
+         welfare_ppp := welfare
+         ][, 
+           imputation_id := ""]
 
     } else { # microdata
 
       wf <- data.table::copy(dt)
     }
-
-    data.table::setorder(wf, welfare_ppp) # Data must be sorted
-    # national mean
-    res_national <- md_dist_stats(wf)
+    
+    n_imid <- collapse::fnunique(wf$imputation_id) # Number of imputations id
+    
+    data.table::setorder(wf, imputation_id, welfare_ppp) # Data must be sorted
+    if (n_imid == 1) {
+      # national mean
+      res_national <- md_dist_stats(wf)
+    } else {
+      # national mean
+      res_national <- id_dist_stats(wf)
+    }
+    
 
     res <- append(list(res_national), res)
     names(res) <- c("national", pop_level)
