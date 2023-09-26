@@ -40,7 +40,7 @@ status_cache_files_creation <-
     tool               = "PC",
     cache_svy_dir      = gls$CACHE_SVY_DIR_PC,
     compress           = gls$FST_COMP_LVL,
-    force              = FALSE,
+    force              = force_create_cache_file,
     verbose            = TRUE,
     cpi_table          = dl_aux$cpi,
     ppp_table          = dl_aux$ppp, 
@@ -56,7 +56,7 @@ cache_inventory <-
     pip_data_dir       = gls$PIP_DATA_DIR,
     cache_svy_dir      = gls$CACHE_SVY_DIR_PC,
     tool               = "PC", 
-    save               = TRUE, 
+    save               = save_pip_update_cache_inventory, 
     load               = TRUE, 
     verbose            = TRUE
   )
@@ -82,7 +82,7 @@ names(cache_dir) <-  cache_ids
 
 cache   <- mp_cache(cache_dir = cache_dir, 
                     load      = TRUE, 
-                    save      = FALSE, 
+                    save      = save_mp_cache, 
                     gls       = gls, 
                     cache_ppp = cache_ppp)
 
