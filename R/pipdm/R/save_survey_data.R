@@ -25,17 +25,24 @@ save_survey_data <- function(dt,
                              load        = FALSE,
                              verbose     = FALSE) {
 
-  # Select columns
+  ## Select columns    ---------
   if (!is.null(cols)) {
     dt <- dt[, ..cols]
   }
 
-  # optimize size
+  ## optimize size --------
   dt[,
       area := factor(area, levels = c("rural", "urban"))
       ]
 
-  # Create paths
+  byvars <- names(dt)[names(dt) != "weight"]
+
+  dt <- dt |>
+    fgroup_by(byvars) |>
+    fsum()
+  
+
+  ## Create paths -------------
   cache_filename <- fifelse(!grepl("\\.fst$", cache_filename),
                           paste0(cache_filename, ".fst"),
                           cache_filename)

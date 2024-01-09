@@ -226,9 +226,8 @@ db_create_dist_table <- function(dl,
     ,
     c("cpi", "ppp") := NULL
   ]
-
-
-  ## --- Finalize table ----
+  
+  #--- Finalize table ----
 
   # TEMP FIX: TO BE REMOVED
   # Make sure survey_id is uppercase
@@ -251,8 +250,10 @@ db_create_dist_table <- function(dl,
 
   # change factors to characters
   nn <- names(dt[, .SD, .SDcols = is.factor])
-  dt[, (nn) := lapply(.SD, as.character),
-     .SDcols = nn]
+  if (length(nn)) {
+    dt[, (nn) := lapply(.SD, as.character),
+       .SDcols = nn]
+  }
 
   return(dt)
 }

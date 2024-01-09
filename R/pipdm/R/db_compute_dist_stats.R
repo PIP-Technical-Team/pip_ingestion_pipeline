@@ -6,14 +6,23 @@
 #' @param pop_table data.table: A table with population data.
 #' @param mean_table data frame with deflated means in PPP.
 #' @param cache_id character: cache id to identify the right process
+#' @param ppp_year numeric: Round year of PPP  values
 #' @return list
 #' @export
-db_compute_dist_stats <- function(dt, mean_table, pop_table, cache_id) {
+db_compute_dist_stats <- function(dt, 
+                                  mean_table, 
+                                  pop_table, 
+                                  cache_id, 
+                                  ppp_year) {
   tryCatch(
     expr = {
 
       # Compute dist stats
-      res <- compute_dist_stats(dt, mean_table, pop_table, cache_id)
+      res <- compute_dist_stats(dt, 
+                                mean_table, 
+                                pop_table, 
+                                cache_id, 
+                                ppp_year)
 
       return(res)
     }, # end of expr section
@@ -30,7 +39,11 @@ db_compute_dist_stats <- function(dt, mean_table, pop_table, cache_id) {
 #' @inheritParams db_compute_dist_stats
 #' @return list
 #' @noRd
-compute_dist_stats <- function(dt, mean_table, pop_table, cache_id) {
+compute_dist_stats <- function(dt, 
+                               mean_table, 
+                               pop_table, 
+                               cache_id, 
+                               ppp_year) {
 
   # identify procedure
   source     <- gsub("(.*_)([A-Z]+$)", "\\2", cache_id)
@@ -55,7 +68,11 @@ compute_dist_stats <- function(dt, mean_table, pop_table, cache_id) {
   # get estimates by level
   res <- purrr::map(
     .x = pop_level,
-    .f = ~ get_dist_stats_by_level(dt, mean, source, level = .x)
+    .f = ~ get_dist_stats_by_level(dt, 
+                                   mean, 
+                                   source, 
+                                   level = .x, 
+                                   ppp_year = ppp_year)
   )
 
   names(res) <- pop_level
@@ -86,10 +103,10 @@ compute_dist_stats <- function(dt, mean_table, pop_table, cache_id) {
     data.table::setorder(wf, imputation_id, welfare_ppp) # Data must be sorted
     if (n_imid == 1) {
       # national mean
-      res_national <- md_dist_stats(wf)
+      res_national <- md_dist_stats(wf, ppp_year = ppp_year)
     } else {
       # national mean
-      res_national <- id_dist_stats(wf)
+      res_national <- id_dist_stats(wf, ppp_year = ppp_year)
     }
     
 
@@ -104,12 +121,13 @@ compute_dist_stats <- function(dt, mean_table, pop_table, cache_id) {
 #' @inheritParams db_compute_dist_stats
 #' @return list
 #' @noRd
-md_dist_stats <- function(dt, mean = NULL) {
+md_dist_stats <- function(dt, mean = NULL, ppp_year) {
   # Calculate dist stats
   res <- wbpip:::md_compute_dist_stats(
-    welfare = dt$welfare_ppp,
-    weight  = dt$weight,
-    mean    = mean
+    welfare  = dt$welfare_ppp,
+    weight   = dt$weight,
+    mean     = mean, 
+    ppp_year = ppp_year
   )
   return(res)
 }
@@ -118,19 +136,17 @@ md_dist_stats <- function(dt, mean = NULL) {
 #' @inheritParams db_compute_dist_stats
 #' @return list
 #' @noRd
-gd_dist_stats <- function(dt, mean) {
+gd_dist_stats <- function(dt, mean, ppp_year) {
   # Calculate dist stats
   res <- wbpip:::gd_compute_dist_stats(
     welfare    = dt$welfare,  # cummulative distribution. Not actual welfare
     population = dt$weight,
-    mean       = mean
+    mean       = mean, 
+    ppp_year   = ppp_year
   )
 
-  # Select dist stats
-  res <- res[c("mean", "median", "gini", "polarization", "mld", "deciles")]
-
   # Rename deciles to quantiles (for comparability with md_compute_dist_stats)
-  names(res)[length(res)] <- "quantiles"
+  names(res)[which(names(res) == "deciles")] <- "quantiles"
   return(res)
 }
 
@@ -138,31 +154,42 @@ gd_dist_stats <- function(dt, mean) {
 #' @inheritParams db_compute_dist_stats
 #' @return list
 #' @noRd
-id_dist_stats <- function(dt) {
+id_dist_stats <- function(dt, ppp_year) {
 
-  # Slit by imputation id
+  # Slit by imputation id   -----
   dl <- split(dt, f = list(dt$imputation_id))
 
-  # Compute stats by group
-  dl_stats <- purrr::map(dl, md_dist_stats)
+  # Compute stats by imputation ID   ----
+  dl_stats <- purrr::map(dl, md_dist_stats, ppp_year = ppp_year)
 
-  # Aggregate quantiles
-  q         <- purrr::map(dl_stats, function(x) x$quantiles)
-  qm        <- do.call("cbind", q)
-  quantiles <- rowMeans(qm)
-
-  # Aggregate the rest and
-  # combine to list
-  res <- list(
-    mean         = mean(purrr::map_dbl(dl_stats, function(x) x$mean)),
-    median       = mean(purrr::map_dbl(dl_stats, function(x) x$median)),
-    gini         = mean(purrr::map_dbl(dl_stats, function(x) x$gini)),
-    polarization = mean(purrr::map_dbl(dl_stats, function(x) x$polarization)),
-    mld          = mean(purrr::map_dbl(dl_stats, function(x) x$mld)),
-    quantiles    = quantiles
-  )
+  # get mean of imputations----
+  
+  stats_names <- names(dl_stats[[1]])
+  res <- vector("list", length(stats_names))
+  names(res) <- stats_names
+  
+  for (x in stats_names) {
+    res[[x]] <- mean_over_id(dl_stats, x)
+  }
+  
+  # Return ---------
   return(res)
 }
+
+
+#' extract x from list and get the mean of all imputed obs
+#'
+#' @param l list with dist stats
+#' @param x name of the element in l. e.g., mean, median, quantiles... 
+#'
+#' @return list
+mean_over_id <- function(l, x) {
+  map(l, x) |>  
+    unlist2d(idcols = FALSE) |>
+    fmean() |> 
+    unname()
+}
+
 
 #' Get dist stats based on data level for md or gd
 #'
@@ -171,12 +198,16 @@ id_dist_stats <- function(dt) {
 #'
 #' @return list
 #' @noRd
-get_dist_stats_by_level <- function(dt, mean, source, level) {
+get_dist_stats_by_level <- function(dt, 
+                                    mean, 
+                                    source, 
+                                    level, 
+                                    ppp_year) {
   df <- dt[reporting_level == level]
 
   if (source == "GROUP") {
 
-    res <- gd_dist_stats(df, mean[level])
+    res <- gd_dist_stats(df, mean[level], ppp_year)
 
   } else {
 
@@ -184,11 +215,11 @@ get_dist_stats_by_level <- function(dt, mean, source, level) {
 
     if (is_imputed) {
 
-        res <- id_dist_stats(df)
+        res <- id_dist_stats(df, ppp_year)
 
     } else {
 
-      res <- md_dist_stats(df, mean[level])
+      res <- md_dist_stats(df, mean[level], ppp_year)
 
     }
   }

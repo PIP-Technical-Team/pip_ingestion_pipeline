@@ -138,7 +138,8 @@ mp_lorenz <- function(cache) {
 mp_dl_dist_stats <- function(dt         ,
                              mean_table ,
                              pop_table  ,
-                             cache_id   ) {
+                             cache_id   , 
+                             ppp_year) {
   
   purrr::map2(.x = dt, 
               .y = cache_id, 
@@ -146,7 +147,8 @@ mp_dl_dist_stats <- function(dt         ,
                 db_compute_dist_stats(dt         = .x,
                                       mean_table = mean_table,
                                       pop_table  = pop_table,
-                                      cache_id   = .y)
+                                      cache_id   = .y, 
+                                      ppp_year   = ppp_year)
               })
   
 }
