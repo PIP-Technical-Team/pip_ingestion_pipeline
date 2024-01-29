@@ -172,7 +172,10 @@ create_framework <- function(pfw) {
       "use_microdata",
       "use_bin",
       "use_groupdata",
-      "survey_comparability"
+      "survey_comparability",
+      "survey_time",
+      "surv_title",
+      "surv_producer"
     )
   
   pfw <- pfw[, ..meta_vars]
@@ -205,3 +208,4 @@ get_groupdata_means <- function(cache_inventory,
   return(gd_means)
 
 }
+

@@ -15,7 +15,6 @@ db_create_ref_estimation_table <- function(ref_year_table, dist_table) {
 
   # Merge refyear table w/ dist stat table (left join)
   dist_table$reporting_year <- NULL
-  dist_table$problem <- NULL
   dt <- joyn::merge(ref_year_table, dist_table,
                     by = c(
                       "survey_id", "cache_id", "wb_region_code",
@@ -74,7 +73,7 @@ db_create_ref_estimation_table <- function(ref_year_table, dist_table) {
   cols <- c(
     "survey_id", "cache_id", "region_code", "wb_region_code",
     "country_code", "reporting_year", "surveyid_year",
-    "survey_year", "survey_acronym", "survey_coverage",
+    "survey_year", "survey_time", "survey_acronym", "survey_coverage",
     "survey_comparability", "comparable_spell", "welfare_type",
     "reporting_level",
     # "mean", "median", "mld", "gini",

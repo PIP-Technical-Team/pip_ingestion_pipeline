@@ -4,16 +4,36 @@ mp_svy_mean_lcu <- function(cache, gd_means) {
 }
 
 
+#' Create list of cache files
+#'
+#' @param cache_dir character: direcoty path of cache files
+#' @param load logical: whether to load the list of cache files
+#' @param save logical: whether to create the list again and save it
+#' @param gls list: globals from `pip_create_globals()`
+#' @param cache_ppp numeric: PPP year. 
+#'
+#' @return
+#' @export
+#'
+#' @examples
 mp_cache <- 
   function(cache_dir = NULL, 
            load = TRUE, 
            save = FALSE, 
-           gls  = pipload::pip_create_globals(Sys.getenv("PIP_ROOT_DIR"))) {
+           gls, 
+           cache_ppp) {
     
     dir <- fs::path(gls$PIP_PIPE_DIR, "pc_data/cache/global_list/")
     
     # global_file <- paste0(dir, "global_list.rds")
-    global_file <- fs::path(dir, "global_list", ext = "qs")
+    global_name <- paste0("global_list_", cache_ppp)
+    global_file <- fs::path(dir, global_name , ext = "qs")
+    
+    if (!fs::file_exists(global_file)) {
+      save <- TRUE
+      cli::cli_alert("file {.file {global_file}} does not exist. 
+                     It will be created and saved")
+    }
     
     if (isTRUE(save)) {
       
@@ -28,8 +48,23 @@ mp_cache <-
       cli::cli_progress_step("Creating list")
       y <- purrr::map(.x = cli::cli_progress_along(ch_names), 
                       .f = ~{
-                        fst::read_fst(path = cache_dir[.x],
-                                      as.data.table = TRUE)
+                        tryCatch(
+                          expr = {
+                            # Your code...
+                            fst::read_fst(path = cache_dir[.x],
+                                          as.data.table = TRUE)
+                          }, # end of expr section
+                          
+                          error = function(e) {
+                            NULL
+                          }, # end of error section
+                          
+                          warning = function(w) {
+                            NULL
+                          } # end of finally section
+                          
+                        ) # End of trycatch
+                        
                       })
       
       names(y) <- ch_names
@@ -70,6 +105,14 @@ mp_cache <-
   }
 
 
+#' Title
+#'
+#' @param cache 
+#'
+#' @return
+#' @export
+#'
+#' @examples
 mp_lorenz <- function(cache) {
   d <- purrr::map(cache, db_compute_lorenz)
   purrr::keep(d, ~!is.null(.x))
@@ -81,10 +124,22 @@ mp_lorenz <- function(cache) {
 
 
 
+#' Title
+#'
+#' @param dt 
+#' @param mean_table 
+#' @param pop_table 
+#' @param cache_id 
+#'
+#' @return
+#' @export
+#'
+#' @examples
 mp_dl_dist_stats <- function(dt         ,
                              mean_table ,
                              pop_table  ,
-                             cache_id   ) {
+                             cache_id   , 
+                             ppp_year) {
   
   purrr::map2(.x = dt, 
               .y = cache_id, 
@@ -92,7 +147,8 @@ mp_dl_dist_stats <- function(dt         ,
                 db_compute_dist_stats(dt         = .x,
                                       mean_table = mean_table,
                                       pop_table  = pop_table,
-                                      cache_id   = .y)
+                                      cache_id   = .y, 
+                                      ppp_year   = ppp_year)
               })
   
 }
@@ -104,12 +160,11 @@ mp_survey_files <- function(cache          ,
                             cols           ,
                             compress       ) {
   
-  x <- purrr::map2(.x = cache, 
-                   .y = cache_ids,
+  x <- purrr::map(.x = cli::cli_progress_along(cache_ids), 
                    .f = ~{
                      save_survey_data(
-                       dt              = .x,
-                       cache_filename  = .y,
+                       dt              = cache[[.x]],
+                       cache_filename  = cache_ids[[.x]],
                        output_dir      = output_dir,
                        cols            = cols,
                        compress        = compress) 

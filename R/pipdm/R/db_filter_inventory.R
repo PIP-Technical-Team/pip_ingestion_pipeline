@@ -12,8 +12,7 @@ db_filter_inventory <- function(dt, pfw_table) {
   #--------- Prepare data for merge ---------
 
   # fix datatype for merge
-  pfw_table[
-    ,
+  pfw_table[,
     surveyid_year := as.numeric(surveyid_year)
   ]
 

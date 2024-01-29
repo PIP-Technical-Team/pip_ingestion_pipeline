@@ -34,7 +34,7 @@ process_svy_data_to_cache <- function(survey_id,
   df <- tryCatch(
     expr = {
       # Load data
-      pipload::pip_load_data(
+      df <- pipload::pip_load_data(
         survey_id = survey_id,
         maindir   = pip_data_dir,
         verbose   = FALSE
@@ -42,10 +42,6 @@ process_svy_data_to_cache <- function(survey_id,
     }, # end of expr section
 
     error = function(e) {
-      NULL
-    }, # end of error section
-
-    warning = function(w) {
       NULL
     }
   ) # End of trycatch
@@ -66,11 +62,7 @@ process_svy_data_to_cache <- function(survey_id,
       # Clean data   ---------
       # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-      # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-      ## Standard cleaning --------
-
-      df <- db_clean_data(df)
-
+      
       #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
       ## check if there is alternative welfare to use --------
 
@@ -115,7 +107,12 @@ process_svy_data_to_cache <- function(survey_id,
 
       # stadanrdize and change weflare type
       df[, welfare_type := wt]
-
+      
+      # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+      ## Standard cleaning --------
+      
+      df <- db_clean_data(df)
+      
 
       #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
       # additional variables   ---------
@@ -135,7 +132,7 @@ process_svy_data_to_cache <- function(survey_id,
 
       # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
       ## Deflate data --------
-      ppp_table <- ppp_table[ppp_default == TRUE]
+      # ppp_table <- ppp_table[ppp_default == TRUE]
 
       # Merge survey table with PPP (left join)
       df <- joyn::merge(df, ppp_table,
@@ -179,7 +176,12 @@ process_svy_data_to_cache <- function(survey_id,
       nrl <- length(df[, unique(reporting_level)]) # number of reporting level
       dst <- df[, unique(distribution_type)]       # distribution type
 
-      if ( nrl > 1  &&  dst == "micro")  {
+      if ( nrl > 1  &&  !(dst %in% c("group", "aggregate")))  {
+        # sd <- split(df, by = "imputation_id")
+        # lf <- purrr::map(.x = sd, 
+        #                  adjust_population, 
+        #                  pop_table = pop_table)
+        # 
         df <- adjust_population(df, pop_table)
       }  # end of population adjustment
 

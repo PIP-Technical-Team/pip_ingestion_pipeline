@@ -127,6 +127,6 @@ db_create_lkup_table <- function(dt, nac_table, ref_years, region_code) {
     rlang::inform(msg)
     dt <- dt[!na_check, ]
   }
-
+  
   return(dt)
 }
