@@ -188,11 +188,11 @@ create_framework <- function(pfw) {
 get_groupdata_means <- function(cache_inventory, 
                                 gdm) {
   
-  dt. <- joyn::merge(x          = cache_inventory,
+  dt. <- joyn::joyn(x          = cache_inventory,
                      y          = gdm,
                      by         = c("survey_id", "welfare_type"),
                      match_type = "1:m",
-                     yvars      = c("survey_mean_lcu", "pop_data_level"),
+                     y_vars_to_keep = c("survey_mean_lcu", "pop_data_level"),
                      keep       = "left")
   
   data.table::setorder(dt., cache_id, pop_data_level)

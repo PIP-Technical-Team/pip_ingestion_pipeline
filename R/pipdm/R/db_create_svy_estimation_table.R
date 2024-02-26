@@ -17,7 +17,7 @@ db_create_svy_estimation_table <- function(dsm_table, dist_table, gdp_table, pce
   dist_table$problem <- NULL
 
   # Merge DSM table w/ dist stat table (full join)
-  dt <- joyn::merge(dsm_table, dist_table, match_type = "1:1")
+  dt <- joyn::joyn(dsm_table, dist_table, match_type = "1:1")
   dt$report <- NULL
 
   # Merge with GDP

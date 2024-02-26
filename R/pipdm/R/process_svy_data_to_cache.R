@@ -91,7 +91,7 @@ process_svy_data_to_cache <- function(survey_id,
         surveyid_year := as.integer(surveyid_year)
       ]
 
-      pfw <- joyn::merge(pfw_table,
+      pfw <- joyn::joyn(pfw_table,
                          dt_id,
                          by = c("country_code", "surveyid_year", "survey_acronym"),
                          match_type = "1:1",
@@ -135,23 +135,23 @@ process_svy_data_to_cache <- function(survey_id,
       # ppp_table <- ppp_table[ppp_default == TRUE]
 
       # Merge survey table with PPP (left join)
-      df <- joyn::merge(df, ppp_table,
+      df <- joyn::joyn(df, ppp_table,
         by         = c("country_code", "ppp_data_level"),
         match_type = "m:1",
-        yvars      = "ppp",
+        y_vars_to_keep = "ppp",
         keep       = "left",
         reportvar  = FALSE,
         verbose    = FALSE
       )
 
       # Merge survey table with CPI (left join)
-      df <- joyn::merge(df, cpi_table,
+      df <- joyn::joyn(df, cpi_table,
         by = c(
           "country_code", "survey_year",
           "survey_acronym", "cpi_data_level"
         ),
         match_type = "m:1",
-        yvars = "cpi",
+        y_vars_to_keep = "cpi",
         keep = "left",
         reportvar = FALSE,
         verbose = FALSE
@@ -300,7 +300,7 @@ adjust_population <- function(df, pop_table) {
              by = c("country_code", "survey_year", "reporting_level")]
 
 
-  dpop <- joyn::merge(pop_table, spop,
+  dpop <- joyn::joyn(pop_table, spop,
                       by         = c("country_code",
                                      "pop_data_level = reporting_level"),
                       match_type =  "m:1",
@@ -330,7 +330,7 @@ adjust_population <- function(df, pop_table) {
     ][,
       c("pop", "weight") := NULL]
 
-  df <- joyn::merge(x  = df,
+  df <- joyn::joyn(x  = df,
                     y  = fact,
                     by = c("reporting_level = pop_data_level"),
                     match_type = "m:1",

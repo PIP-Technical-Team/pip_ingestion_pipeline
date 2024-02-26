@@ -17,7 +17,7 @@ db_create_nac_table <- function(gdp_table, pce_table, pip_years) {
   names(gdp_table) <- sub("^gdp[_]", "nac_", names(gdp_table))
 
   # Merge GDP and PCE by country, year, data_level and domain (full join)
-  dt <- joyn::merge(gdp_table, pce_table,
+  dt <- joyn::joyn(gdp_table, pce_table,
     by = c(
       "country_code", "year", "nac_data_level",
       "nac_domain"

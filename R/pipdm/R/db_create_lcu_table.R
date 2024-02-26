@@ -52,7 +52,7 @@ db_create_lcu_table <- function(dl, pop_table, pfw_table) {
     )]
 
   # Merge LCU table with PFW (left join)
-  dt <- joyn::merge(dt, pfw_table,
+  dt <- joyn::joyn(dt, pfw_table,
     by = c(
       "country_code",
       "surveyid_year",
@@ -99,7 +99,7 @@ db_create_lcu_table <- function(dl, pop_table, pfw_table) {
     tidyfast::dt_nest(country_code, pop_data_level, .key = "data")
 
   # Merge dt with pop_nested (add survey_pop)
-  dt <- joyn::merge(dt, pop_nested,
+  dt <- joyn::joyn(dt, pop_nested,
     by = c("country_code", "pop_data_level"),
     match_type = "m:1"
   )
@@ -140,7 +140,7 @@ db_create_lcu_table <- function(dl, pop_table, pfw_table) {
   dt$data <- NULL
 
   # Merge with pop_table (add reporting_pop)
-  dt <- joyn::merge(dt, pop_table,
+  dt <- joyn::joyn(dt, pop_table,
     by = c(
       "country_code",
       "reporting_year = year",

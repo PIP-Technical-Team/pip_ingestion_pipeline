@@ -118,7 +118,7 @@ db_create_dist_table <- function(dl,
 
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   ## merge quantiles with other dist stats --------
-  df <- joyn::merge(qt, ds,
+  df <- joyn::joyn(qt, ds,
     by = c("cache_id", "reporting_level"),
     match_type = "1:1"
   )
@@ -161,7 +161,7 @@ db_create_dist_table <- function(dl,
     ]
 
   # Merge dist stats with DSM (left join)
-  dt <- joyn::merge(df, dsm_table,
+  dt <- joyn::joyn(df, dsm_table,
     by = c("cache_id", "reporting_level"),
     match_type = "1:1"
   )

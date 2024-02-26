@@ -30,7 +30,7 @@ db_create_dsm_table <- function(lcu_table,
     ]
 
   # Merge survey table with CPI (left join)
-  dt <- joyn::merge(lcu_table, cpi_table,
+  dt <- joyn::joyn(lcu_table, cpi_table,
     by = c(
       "country_code", "survey_year",
       "survey_acronym", "cpi_data_level"
@@ -66,7 +66,7 @@ db_create_dsm_table <- function(lcu_table,
     ]
 
   # Merge survey table with PPP (left join)
-  jn <- joyn::merge(dt, ppp_table,
+  jn <- joyn::joyn(dt, ppp_table,
     by = c("country_code", "ppp_data_level"),
     match_type = "m:1"
   )
