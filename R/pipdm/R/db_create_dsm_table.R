@@ -38,7 +38,7 @@ db_create_dsm_table <- function(lcu_table,
     match_type = "m:1"
   )
 
-  if (nrow(dt[report == "x"]) > 0) {
+  if (nrow(dt[.joyn == "x"]) > 0) {
     msg <- "We should not have NOT-matching observations from survey-mean tables"
     hint <- "Make sure CPI table is up to date"
     rlang::abort(c(
@@ -50,8 +50,8 @@ db_create_dsm_table <- function(lcu_table,
   }
 
   dt <- dt[
-    report != "y" # This is unnecessary data in cpi table... should we have it?
-  ][, report := NULL]
+    .joyn != "y" # This is unnecessary data in cpi table... should we have it?
+  ][, .joyn := NULL]
 
   #--------- Merge with PPP ---------
 
@@ -71,7 +71,7 @@ db_create_dsm_table <- function(lcu_table,
     match_type = "m:1"
   )
 
-  if (nrow(jn[report == "x"]) > 0) {
+  if (nrow(jn[.joyn == "x"]) > 0) {
     msg <- "We should not have NOT-matching observations from survey-mean tables"
     hint <- "Make sure PPP table is up to date"
     rlang::abort(c(
@@ -84,11 +84,11 @@ db_create_dsm_table <- function(lcu_table,
 
 
   cdt <- dt[, unique(country_code)]
-  cppp <- jn[report == "y", unique(country_code)]
+  cppp <- jn[.joyn == "y", unique(country_code)]
 
   dt <- jn[
-    report != "y" # Countries in PPP table for which we don't have data
-  ][, report := NULL]
+    .joyn != "y" # Countries in PPP table for which we don't have data
+  ][, .joyn := NULL]
 
   #--------- Deflate welfare mean ---------
 

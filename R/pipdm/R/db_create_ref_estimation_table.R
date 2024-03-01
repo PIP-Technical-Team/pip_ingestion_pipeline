@@ -22,10 +22,11 @@ db_create_ref_estimation_table <- function(ref_year_table, dist_table) {
                       "surveyid_year", "survey_year",
                       "welfare_type", "pop_data_level"
                     ),
-                    match_type = "m:1", keep = "left"
+                    match_type = "m:1", 
+                   keep = "left", 
+                   reportvar = FALSE
   )
-  dt$report <- NULL
-
+  
   # Set dist stat columns to NA for interpolated surveys
   dist_cols <- c(
     "survey_median_lcu", "survey_median_ppp",

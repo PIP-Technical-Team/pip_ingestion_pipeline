@@ -95,7 +95,8 @@ process_svy_data_to_cache <- function(survey_id,
                          dt_id,
                          by = c("country_code", "surveyid_year", "survey_acronym"),
                          match_type = "1:1",
-                         keep = "inner")
+                         keep = "inner", 
+                        reportvar = FALSE)
 
       if (pfw$oth_welfare1_type != "" && !is.na(pfw$oth_welfare1_type)) {
         if (substr(wt, 1, 1) == pfw$oth_welfare1_type) {

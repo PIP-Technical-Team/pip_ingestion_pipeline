@@ -123,7 +123,7 @@ db_create_dist_table <- function(dl,
     match_type = "1:1"
   )
 
-  if (nrow(df[report != "x & y"]) > 0) {
+  if (nrow(df[.joyn != "x & y"]) > 0) {
     msg <- "quantiles and othes-dist-stats tables should have the
     very same observations"
     hint <- "There is something wrong with the code above"
@@ -135,7 +135,7 @@ db_create_dist_table <- function(dl,
     )
   }
 
-  df[, report := NULL]
+  df[, .joyn := NULL]
 
 
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -169,10 +169,10 @@ db_create_dist_table <- function(dl,
   dt_p <- dt_p[,
                problem := paste(cache_id, reporting_level, sep = "-")
              ][,
-               .(report, problem)]
+               .(.joyn, problem)]
 
-  dy <- dt_p[report == "y", problem]
-  dx <- dt_p[report == "x", problem]
+  dy <- dt_p[.joyn == "y", problem]
+  dx <- dt_p[.joyn == "x", problem]
 
   if (length(dy) > 0) {
     # NOTE AE: should this be an error to abort or just to notify? I made it to
@@ -213,7 +213,7 @@ db_create_dist_table <- function(dl,
     )
   }
 
-  dt <- dt[report == "x & y"][, report := NULL]
+  dt <- dt[.joyn == "x & y"][, .joyn := NULL]
 
   ## ---- Deflate median ----
 

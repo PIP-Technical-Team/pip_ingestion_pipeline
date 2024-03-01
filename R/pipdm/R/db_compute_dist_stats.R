@@ -126,8 +126,7 @@ md_dist_stats <- function(dt, mean = NULL, ppp_year) {
   res <- wbpip:::md_compute_dist_stats(
     welfare  = dt$welfare_ppp,
     weight   = dt$weight,
-    mean     = mean, 
-    ppp_year = ppp_year
+    mean     = mean
   )
   return(res)
 }
@@ -141,8 +140,7 @@ gd_dist_stats <- function(dt, mean, ppp_year) {
   res <- wbpip:::gd_compute_dist_stats(
     welfare    = dt$welfare,  # cummulative distribution. Not actual welfare
     population = dt$weight,
-    mean       = mean, 
-    ppp_year   = ppp_year
+    mean       = mean
   )
 
   # Rename deciles to quantiles (for comparability with md_compute_dist_stats)
@@ -160,7 +158,7 @@ id_dist_stats <- function(dt, ppp_year) {
   dl <- split(dt, f = list(dt$imputation_id))
 
   # Compute stats by imputation ID   ----
-  dl_stats <- purrr::map(dl, md_dist_stats, ppp_year = ppp_year)
+  dl_stats <- purrr::map(dl, md_dist_stats)
 
   # get mean of imputations----
   
