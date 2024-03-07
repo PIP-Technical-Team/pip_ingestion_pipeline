@@ -48,7 +48,8 @@ tar_option_set(
 # make sure joyn does not display messages
 options(joyn.verbose    = FALSE, 
         pipload.verbose = FALSE, 
-        joyn.reportvar  = "report") 
+        joyn.reportvar  = ".joyn"
+        ) 
 
 
 
@@ -158,7 +159,14 @@ pip_inventory <-
 
 ### pipeline inventory ----
 
+# filter by  year 
+
+
+
+
 pipeline_inventory <- 
   db_filter_inventory(dt        = pip_inventory,
                       pfw_table = dl_aux$pfw)
 
+
+  

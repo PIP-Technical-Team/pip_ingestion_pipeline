@@ -33,7 +33,13 @@ refy_mean_inc_group <- \(dsm, gls, dl_aux) {
                by = c("country_code", "year"),
                match_type = "m:1",
                reportvar  = FALSE,
-               keep = "inner") |>
+               keep = "left") |>
+    fgroup_by(country_code, data_level) |> 
+    fmutate(income_group_code = 
+              income_group_code |> 
+              na_locf() |> 
+              na_focb()) |> 
+    fungroup() |> 
     findex_by(country_code, data_level, year) |>
     ftransform(gdp_gr =  (G(gdp, scale = 1) + 1),
                pce_gr =  (G(pce, scale = 1) + 1)) |>

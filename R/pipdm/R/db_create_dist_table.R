@@ -121,7 +121,8 @@ db_create_dist_table <- function(dl,
   df <- joyn::joyn(qt, ds,
     by = c("cache_id", "reporting_level"),
     match_type = "1:1"
-  )
+  ) |> 
+    collapse::qDT()
 
   if (nrow(df[.joyn != "x & y"]) > 0) {
     msg <- "quantiles and othes-dist-stats tables should have the
