@@ -23,7 +23,11 @@ refy_mean_inc_group <- \(dsm, gls, dl_aux) {
   ig <- dl_aux$income_groups |>
     fselect(country_code, year, income_group_code)
   
+  pfw <- dl_aux$pfw
+  setorder(pfw, country_code, welfare_type, reporting_year)
+  
   ## Get Cumulative Growth and pass through ------------
+  
   passthrough <- .7
   nac <- joyn::joyn(gdp, pce,
                     by = c("country_code", "data_level", "year"),
@@ -34,12 +38,12 @@ refy_mean_inc_group <- \(dsm, gls, dl_aux) {
                match_type = "m:1",
                reportvar  = FALSE,
                keep = "left") |>
-    fgroup_by(country_code, data_level) |> 
-    fmutate(income_group_code = 
-              income_group_code |> 
-              na_locf() |> 
-              na_focb()) |> 
-    fungroup() |> 
+    fgroup_by(country_code, data_level) |>
+    fmutate(income_group_code =
+              income_group_code |>
+              na_locf() |>
+              na_focb()) |>
+    fungroup() |>
     findex_by(country_code, data_level, year) |>
     ftransform(gdp_gr =  (G(gdp, scale = 1) + 1),
                pce_gr =  (G(pce, scale = 1) + 1)) |>
@@ -55,9 +59,6 @@ refy_mean_inc_group <- \(dsm, gls, dl_aux) {
   # fsubset(nac, country_code == "AGO")
   # fsubset(country_code == "AGO") |>
   
-  ## Get welfare type for global in PFW  -------------
-  pfw <- dl_aux$pfw
-  setorder(pfw, country_code, welfare_type, reporting_year)
   
   w2k <-
     pfw |>
@@ -77,19 +78,29 @@ refy_mean_inc_group <- \(dsm, gls, dl_aux) {
   
   ## Load survey mean ---------
   
+  
+  dsm <- pipr::get_stats() |>
+    qDT()
+  
   mn <- dsm |>
-    fselect(country_code, 
-            year = reporting_year ,
-            data_level = reporting_level,
-            survey_year,
+    fselect(country_code, year,
+            reporting_level,
+            survey_year = welfare_time,
             welfare_type,
-            mean = survey_mean_ppp) |>
+            mean) |>
     fsubset(year %in% gls$PIP_REF_YEARS) |>
     joyn::joyn(w2k,
                by = c("country_code", "welfare_type", "year"),
                match_type = "m:1",
                keep = "inner",
-               reportvar = FALSE)
+               reportvar = FALSE) |>
+    # convert to national those with only one obs per year
+    # number of data level
+    _[, ndl := .N,
+      by = c("country_code", "welfare_type", "year")
+    ][, data_level := fifelse(ndl == 1, "national", reporting_level)
+    ][,
+      ndl := NULL]
   
   ## expand those with decimal years ----
   
@@ -122,7 +133,7 @@ refy_mean_inc_group <- \(dsm, gls, dl_aux) {
     ftransform(dist_weight = fifelse(yid == 1,
                                      1 - (survey_year %% 1),
                                      survey_year %% 1)) |>
-    fgroup_by(country_code, data_level, welfare_type, survey_year, mean) |>
+    fgroup_by(country_code, reporting_level, data_level, welfare_type, survey_year, mean) |>
     fsummarise(nac_sy = fmean(nac,dist_weight)) |>
     fungroup()
   
@@ -138,12 +149,12 @@ refy_mean_inc_group <- \(dsm, gls, dl_aux) {
                keep = "left") |>
     ftransform(nac = fifelse(welfare_type == "consumption",
                              con_growth, inc_growth)) |>
-    roworderv(c("country_code", "data_level", "reference_year", "survey_year")) |> 
-    fgroup_by(country_code, data_level) |> 
-    fmutate(income_group_code = 
-              income_group_code |> 
-              na_locf() |> 
-              na_focb()) |> 
+    roworderv(c("country_code", "data_level", "reference_year", "survey_year")) |>
+    fgroup_by(country_code, data_level) |>
+    fmutate(income_group_code =
+              income_group_code |>
+              na_locf() |>
+              na_focb()) |>
     fungroup()
   
   
@@ -226,13 +237,11 @@ refy_mean_inc_group <- \(dsm, gls, dl_aux) {
               reference_year) |>
     fmutate(relative_distance = relative_distance(ref_year = reference_year,
                                                   svy_year = survey_year)) |>
-    fungroup()
-  
-  # New reference mean
-  rm |> 
+    fungroup() |>
+    # New reference mean
     fselect(
       country_code      ,
-      reporting_level  = data_level,
+      reporting_level,
       welfare_type      ,
       income_group_code ,
       survey_year       ,
@@ -241,6 +250,7 @@ refy_mean_inc_group <- \(dsm, gls, dl_aux) {
       ref_mean          ,
       relative_distance
     )
+  
 }
 
 
