@@ -79,15 +79,13 @@ refy_mean_inc_group <- \(dsm, gls, dl_aux) {
   ## Load survey mean ---------
   
   
-  dsm <- pipr::get_stats() |>
-    qDT()
-  
   mn <- dsm |>
-    fselect(country_code, year,
+    fselect(country_code, 
+            year = reporting_year ,
             reporting_level,
-            survey_year = welfare_time,
+            survey_year,
             welfare_type,
-            mean) |>
+            mean = survey_mean_ppp) |>
     fsubset(year %in% gls$PIP_REF_YEARS) |>
     joyn::joyn(w2k,
                by = c("country_code", "welfare_type", "year"),
