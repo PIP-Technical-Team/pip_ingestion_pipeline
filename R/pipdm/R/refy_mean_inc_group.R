@@ -12,13 +12,10 @@ refy_mean_inc_group <- \(dsm, gls, dl_aux) {
   
   gdp <- dl_aux$gdp  |>
     frename(data_level = gdp_data_level) |>
-    fselect(-gdp_domain) |>
-    fsubset(year %in% gls$PIP_REF_YEARS)
-  
+    fselect(-gdp_domain) 
   pce <- dl_aux$pce |>
     frename(data_level = pce_data_level) |>
-    fselect(-pce_domain) |>
-    fsubset(year %in% gls$PIP_REF_YEARS)
+    fselect(-pce_domain) 
   
   ig <- dl_aux$income_groups |>
     fselect(country_code, year, income_group_code)
@@ -79,14 +76,13 @@ refy_mean_inc_group <- \(dsm, gls, dl_aux) {
   ## Load survey mean ---------
   
   
-  mn <- dsm |>
+  mnt <- dsm |>
     fselect(country_code, 
             year = reporting_year ,
             reporting_level,
             survey_year,
             welfare_type,
             mean = survey_mean_ppp) |>
-    fsubset(year %in% gls$PIP_REF_YEARS) |>
     joyn::joyn(w2k,
                by = c("country_code", "welfare_type", "year"),
                match_type = "m:1",
@@ -99,6 +95,41 @@ refy_mean_inc_group <- \(dsm, gls, dl_aux) {
     ][, data_level := fifelse(ndl == 1, "national", reporting_level)
     ][,
       ndl := NULL]
+  
+  ## remove national if urb/rur data level is available for the same and remve
+  # urb/rur if national available is subsequent years
+  # we need to sort to create the correct id... very inefficient
+  setorder(mnt, country_code, reporting_level, year)
+  
+  mn <- mnt |> 
+    # number of reporting levels within each country
+    fgroup_by(country_code) |>
+    fmutate(rlid = groupid(reporting_level), 
+            maxrlid  = fmax(rlid)) |> 
+    fungroup() |> 
+    copy() |> 
+    _[,
+      # number of rows per year
+      nry := .N, 
+      by = .(country_code, year)
+    ][,
+      # identify obs to drop
+      # we drop: 
+      tokeep := fcase(
+        # 1. urban or rural when there is only one obs per year and there is at
+        # least one National reporting level in the series (e.g., URY, BOL).
+        maxrlid > 1 & nry == 1 & reporting_level != "national", FALSE,
+        # 2. National if there are more than one obs per year (e.g., IND).
+        maxrlid > 1 & nry > 1 & reporting_level == "national", FALSE, 
+        # 3. All the others should not be droped
+        default = TRUE
+      )
+    ]  |> 
+    fsubset(tokeep == TRUE) |> 
+    fselect(-c(rlid, maxrlid, nry, tokeep)) 
+  
+  
+  
   
   ## expand those with decimal years ----
   
@@ -164,12 +195,14 @@ refy_mean_inc_group <- \(dsm, gls, dl_aux) {
   byvars <-
     c("country_code",
       "reference_year",
-      "data_level",
-      "welfare_type")
+      "data_level"
+      # ,
+      # "welfare_type"
+    )
   
   ## closest surveys
-  cvy <-
-    rynac[
+  cvy <- copy(rynac) |> 
+    _[
       # Get differences between reference year and svy year
       , diff_year := reference_year - survey_year
     ][ # find if it will be below or above
