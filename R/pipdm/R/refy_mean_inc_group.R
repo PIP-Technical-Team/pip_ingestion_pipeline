@@ -42,8 +42,8 @@ refy_mean_inc_group <- \(dsm, gls, dl_aux) {
               na_focb()) |>
     fungroup() |>
     findex_by(country_code, data_level, year) |>
-    ftransform(gdp_gr =  (G(gdp, scale = 1) + 1),
-               pce_gr =  (G(pce, scale = 1) + 1)) |>
+    ftransform(gdp_gr =  (G(gdp, scale = 1, shift = "row") + 1),
+               pce_gr =  (G(pce, scale = 1, shift = "row") + 1)) |>
     unindex() |>
     fgroup_by(country_code, data_level) |>
     fmutate(inc_growth = select_cum_growth(gdp_gr, pce_gr,
