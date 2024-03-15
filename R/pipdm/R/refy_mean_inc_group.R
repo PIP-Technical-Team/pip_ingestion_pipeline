@@ -1,8 +1,4 @@
-refy_mean_inc_group <- \(dsm, gls, dl_aux) {
-  # dsm = svy_mean_ppp_table
-  # ref_years = gls$PIP_REF_YEARS
-  # pip_years = gls$PIP_YEARS
-  
+refy_mean_inc_group <- \(dsm, gls, dl_aux, pinv) {
   
   # opt <- options("joyn.verbose" = FALSE)
   withr::local_options(list(joyn.verbose = FALSE))
@@ -44,6 +40,8 @@ refy_mean_inc_group <- \(dsm, gls, dl_aux) {
     findex_by(country_code, data_level, year) |>
     ftransform(gdp_gr =  (G(gdp, scale = 1, shift = "row") + 1),
                pce_gr =  (G(pce, scale = 1, shift = "row") + 1)) |>
+    # ftransform(gdp_gr =  (G(gdp, scale = 1, by = ~country_code + data_level + year) + 1),
+    #            pce_gr =  (G(pce, scale = 1, by = ~country_code + data_level + year) + 1)) |>
     unindex() |>
     fgroup_by(country_code, data_level) |>
     fmutate(inc_growth = select_cum_growth(gdp_gr, pce_gr,
@@ -56,10 +54,23 @@ refy_mean_inc_group <- \(dsm, gls, dl_aux) {
   # fsubset(nac, country_code == "AGO")
   # fsubset(country_code == "AGO") |>
   
+  # reduced Price framework data
+  rpfw <- pfw |>
+    fselect(country_code, survey_acronym, surveyid_year, year = reporting_year) |> 
+    collapse::funique()
   
-  w2k <-
-    pfw |>
-    fselect(country_code, welfare_type, year = reporting_year)
+  w2k <- pinv |> 
+    ftransform(welfare_type = fifelse(grepl("_INC_", cache_id), "income", "consumption")) |> 
+    fselect(country_code, welfare_type, survey_acronym, surveyid_year) |> 
+    joyn::joyn(rpfw,
+               by = c("country_code", "survey_acronym", "surveyid_year"), 
+               match_type = "m:1", 
+               keep = "inner", 
+               reportvar = FALSE
+    ) |>
+    fselect(country_code, welfare_type, year) |> 
+    roworder(country_code, welfare_type, year) 
+  
   
   w2k <-
     w2k[
@@ -210,7 +221,7 @@ refy_mean_inc_group <- \(dsm, gls, dl_aux) {
                              all(diff_year > 0), "above",
                              any(diff_year == 0), "svy_year",
                              default = "mixed")
-      , by =  byvars
+      , by = byvars
     ][  # create sign for groupoing in next step
       , sign :=
         fcase(
