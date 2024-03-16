@@ -40,8 +40,6 @@ refy_mean_inc_group <- \(dsm, gls, dl_aux, pinv) {
     findex_by(country_code, data_level, year) |>
     ftransform(gdp_gr =  (G(gdp, scale = 1, shift = "row") + 1),
                pce_gr =  (G(pce, scale = 1, shift = "row") + 1)) |>
-    # ftransform(gdp_gr =  (G(gdp, scale = 1, by = ~country_code + data_level + year) + 1),
-    #            pce_gr =  (G(pce, scale = 1, by = ~country_code + data_level + year) + 1)) |>
     unindex() |>
     fgroup_by(country_code, data_level) |>
     fmutate(inc_growth = select_cum_growth(gdp_gr, pce_gr,
@@ -50,9 +48,6 @@ refy_mean_inc_group <- \(dsm, gls, dl_aux, pinv) {
                                            inc_group   = income_group_code,
                                            passthrough = passthrough)) |>
     fungroup()
-  
-  # fsubset(nac, country_code == "AGO")
-  # fsubset(country_code == "AGO") |>
   
   # reduced Price framework data
   rpfw <- pfw |>
@@ -202,44 +197,86 @@ refy_mean_inc_group <- \(dsm, gls, dl_aux, pinv) {
   
   ## svy years per ref year --------
   
-  
   byvars <-
     c("country_code",
-      "reference_year",
-      "data_level"
+      "data_level",
+      "reference_year"
       # ,
       # "welfare_type"
     )
+  rr <- 
+    rynac |> 
+    # Get differences between reference year and svy year
+    ftransform(diff_year = reference_year - survey_year) |> 
+    fgroup_by(c(byvars)) |>
+    fmutate(survey_select = fifelse(any(diff_year == 0), TRUE, FALSE)) |> 
+    fgroup_by(c(byvars, "welfare_type")) |> 
+    fmutate(lineup_case = fcase(all(diff_year < 0), "below",
+                                all(diff_year > 0), "above",
+                                default = "mixed")) |> 
+    fungroup() |>
+    ftransform(lineup_case = fifelse(survey_select == TRUE & lineup_case == "mixed",
+                                     "svy_year", lineup_case)) |> 
+    ftransform(sign = fcase(
+      lineup_case != "svy_year" & diff_year < 0, -1,
+      lineup_case != "svy_year" & diff_year > 0, 1,
+      default = 0)) |> 
+    
+    # get all min differences between years
+    fgroup_by(c(byvars,"sign")) |>  # 
+    fmutate(min_diff_sign = fmin(abs(diff_year))) |> 
+    
+    fgroup_by(c(byvars,"welfare_type")) |>  # 
+    fmutate(min_diff_welfare = fmin(abs(diff_year))) |> 
+    
+    fgroup_by(c(byvars,"lineup_case")) |>  # 
+    fmutate(min_diff_case = fmin(abs(diff_year))) |> 
+    
+    fgroup_by(c(byvars, "welfare_type", "lineup_case")) |>  # 
+    fmutate(min_diff_welfare_case = fmin(abs(diff_year))) |> 
+    
+    fgroup_by(c(byvars, "welfare_type", "sign")) |>  # 
+    fmutate(min_diff_welfare_sign = fmin(abs(diff_year))) |> 
+    
+    fgroup_by(c(byvars)) |>  # 
+    fmutate(min_diff = fmin(abs(diff_year))) |> 
+    fungroup()
   
-  ## closest surveys
-  cvy <- copy(rynac) |> 
-    _[
-      # Get differences between reference year and svy year
-      , diff_year := reference_year - survey_year
-    ][ # find if it will be below or above
-      , lineup_case := fcase(all(diff_year < 0), "below",
-                             all(diff_year > 0), "above",
-                             any(diff_year == 0), "svy_year",
-                             default = "mixed")
-      , by = byvars
-    ][  # create sign for groupoing in next step
-      , sign :=
-        fcase(
-          # "negative",
-          lineup_case != "svy_year" & diff_year < 0, -1,
-          #"positive",
-          lineup_case != "svy_year" & diff_year > 0, 1,
-          default = 0)
-      , by =  byvars
-    ][,
-      # find the closest and keep
-      keep := fmin(abs(diff_year))*sign == diff_year,
-      by = c(byvars, "sign")
-    ][
-      keep == TRUE
-    ][
-      , c("diff_year", "sign", "keep") := NULL
-    ]
+  # Obs to keep
+  cvy <- copy(rr) |> 
+    ftransform(keep = fcase(
+      #min diff by welfare and sign if mixed (to filter more later)
+      lineup_case == "mixed" & min_diff_welfare_sign*sign == diff_year, TRUE,
+      # min diff if above or below (independent of welfare type)
+      lineup_case %in% c("below","above") & min_diff*sign == diff_year, TRUE,
+      # survey year
+      lineup_case == "svy_year" & diff_year == 0, TRUE,
+      default = FALSE)) |> 
+    # Duplicate welfare type in mixed cases
+    fgroup_by(c(byvars, "keep")) |> 
+    fmutate(dup_wt = NROW(lineup_case)) |> 
+    fungroup() |> 
+    ftransform(keep = fifelse(lineup_case == "mixed" 
+                              & keep == TRUE 
+                              & dup_wt > 2
+                              & welfare_type != "consumption", 
+                              FALSE, keep)) |> 
+    fsubset(keep == TRUE) 
+  
+  # Delte temporary vars
+  vars_to_del <-
+    c(
+      "dup_wt",
+      "keep",
+      "survey_select",
+      "diff_year",
+      "sign",
+      grep("^min_diff", names(cvy), value = TRUE)
+    )
+  
+  get_vars(cvy, vars_to_del) <- NULL
+  
+  
   
   # 4. Mean at the reference year --------
   
