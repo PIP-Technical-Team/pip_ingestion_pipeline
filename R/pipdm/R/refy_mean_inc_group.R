@@ -37,6 +37,7 @@ refy_mean_inc_group <- \(dsm, gls, dl_aux, pinv) {
               na_locf() |>
               na_focb()) |>
     fungroup() |>
+    roworderv(c("country_code", "data_level", "year")) |> 
     findex_by(country_code, data_level, year) |>
     ftransform(gdp_gr =  (G(gdp, scale = 1, shift = "row") + 1),
                pce_gr =  (G(pce, scale = 1, shift = "row") + 1)) |>
@@ -362,18 +363,20 @@ refy_mean_inc_group <- \(dsm, gls, dl_aux, pinv) {
   
   
   
-  joyn::joyn(
-    x = dsm,
-    y = rm,
+  out <- joyn::joyn(
+    x = rm,
+    y = dsm,
     by = c(
       "country_code",
       "reporting_level",
       "welfare_type",
       "survey_year"),
-    match_type = "1:m",
+    match_type = "m:1",
     reportvar = FALSE,
-    keep = "right"
-  ) 
+    keep = "left"
+  )
+  
+  out
   
 }
 
