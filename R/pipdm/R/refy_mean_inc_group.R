@@ -374,10 +374,10 @@ refy_mean_inc_group <- \(dsm, gls, dl_aux, pinv) {
     match_type = "m:1",
     reportvar = FALSE,
     keep = "left"
-  )
+  ) |> 
+    ftransform(is_interpolated = fifelse(estimation_type  != "survey", TRUE, FALSE))
   
   out
-  
 }
 
 
