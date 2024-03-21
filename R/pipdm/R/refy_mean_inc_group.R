@@ -375,7 +375,10 @@ refy_mean_inc_group <- \(dsm, gls, dl_aux, pinv) {
     reportvar = FALSE,
     keep = "left"
   ) |> 
-    ftransform(is_interpolated = fifelse(estimation_type  != "survey", TRUE, FALSE))
+    ftransform(is_interpolated = fifelse(estimation_type  != "survey", TRUE, FALSE)) |> 
+    _[, 
+      reporting_pop := fmean(reporting_pop, w = relative_distance),
+      by = c("country_code", "reporting_level", "reporting_year", "welfare_type")]
   
   out
 }
