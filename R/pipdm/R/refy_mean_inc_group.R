@@ -356,8 +356,8 @@ refy_mean_inc_group <- \(dsm, gls, dl_aux, pinv) {
       estimation_type, 
       interpolation_id, 
       predicted_mean_ppp = ref_mean,
-      reporting_gdp = gdp_gr, 
-      reporting_pce = pce_gr 
+      reporting_gdp = gdp, 
+      reporting_pce = pce 
       
     )
   
