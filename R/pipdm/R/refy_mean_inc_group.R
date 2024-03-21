@@ -354,7 +354,10 @@ refy_mean_inc_group <- \(dsm, gls, dl_aux, pinv) {
       relative_distance, 
       estimation_type, 
       interpolation_id, 
-      predicted_mean_ppp = ref_mean
+      predicted_mean_ppp = ref_mean,
+      reporting_gdp = gdp_gr, 
+      reporting_pce = pce_gr 
+      
     )
   
   
@@ -370,10 +373,7 @@ refy_mean_inc_group <- \(dsm, gls, dl_aux, pinv) {
     match_type = "1:m",
     reportvar = FALSE,
     keep = "right"
-  ) |> 
-    # format variables
-    frename(ref_mean = predicted_mean_ppp)
-  
+  ) 
   
 }
 
