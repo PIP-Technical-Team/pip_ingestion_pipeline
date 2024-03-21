@@ -8,20 +8,13 @@ get_ref_mean_pred <- \(old, new) {
       "country_code",
       "reporting_level",
       "welfare_type",
-      "reporting_year",
-      "survey_year"
-    ),
-    match_type = "1:1",
-    keep = "left",
-    reportvar = FALSE
-  )
-  
-  
-  
+      "survey_year"),
+    match_type = "1:m",
+    reportvar = FALSE,
+    keep = "right"
+  ) |> 
   # format variables
-  dr <- dr |> 
-    frename(predicted_mean_ppp = old_predicted_mean_ppp, 
-            ref_mean           = predicted_mean_ppp)
+  frename(ref_mean = predicted_mean_ppp)
   
   dr
   

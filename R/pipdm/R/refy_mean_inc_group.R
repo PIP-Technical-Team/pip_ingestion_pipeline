@@ -251,22 +251,42 @@ refy_mean_inc_group <- \(dsm, gls, dl_aux, pinv) {
       lineup_case %in% c("below","above") & min_diff*sign == diff_year, TRUE,
       # survey year
       lineup_case == "svy_year" & diff_year == 0, TRUE,
-      default = FALSE)) |> 
+      default = FALSE)) |>
     # Duplicate welfare type in mixed cases
+    # fgroup_by(c(byvars, "keep")) |> 
     fgroup_by(c(byvars, "keep")) |> 
     fmutate(dup_wt = NROW(lineup_case)) |> 
+    fgroup_by(c(byvars, "keep", "lineup_case")) |> 
+    fmutate(ulc = NROW(lineup_case)) |> 
     fungroup() |> 
+    # drop income cases where there ref year has both income and consumption
+    # surveys below and above
     ftransform(keep = fifelse(lineup_case == "mixed" 
                               & keep == TRUE 
-                              & dup_wt > 2
+                              & dup_wt == 4
                               & welfare_type != "consumption", 
-                              FALSE, keep)) |> 
+                              FALSE, keep)) |>
+    # drop cases where only one welfare type is close to the ref year but the
+    # other welfare type is both above and below (mixed)
+    ftransform(keep = fifelse(lineup_case != "mixed" 
+                              & keep == TRUE 
+                              & dup_wt == 3
+                              & ulc == 1, 
+                              FALSE, keep)) |>
+    # select consumption over income when both inc and consumption are equally
+    # appart from the ref year
+    ftransform(keep = fifelse(keep == TRUE 
+                              & dup_wt == 2
+                              & ulc == 1 
+                              & welfare_type != "consumption",  
+                              FALSE, keep)) |>
     fsubset(keep == TRUE) 
   
   # Delte temporary vars
   vars_to_del <-
     c(
       "dup_wt",
+      "ulc",
       "keep",
       "survey_select",
       "diff_year",
@@ -317,6 +337,11 @@ refy_mean_inc_group <- \(dsm, gls, dl_aux, pinv) {
     fmutate(relative_distance = relative_distance(ref_year = reference_year,
                                                   svy_year = survey_year)) |>
     fungroup() |>
+    ftransform(estimation_type  = fcase(lineup_case == "mixed", "interpolation", 
+                                        lineup_case == "svy_year" , "survey", 
+                                        default = "extrapolation")) |> 
+    ftransform(interpolation_id = paste(country_code, reference_year, reporting_level, 
+                                        sep =  "_")) |> 
     # New reference mean
     fselect(
       country_code      ,
@@ -326,9 +351,29 @@ refy_mean_inc_group <- \(dsm, gls, dl_aux, pinv) {
       survey_year       ,
       reporting_year = reference_year,
       nac               ,
-      ref_mean          ,
-      relative_distance
+      relative_distance, 
+      estimation_type, 
+      interpolation_id, 
+      predicted_mean_ppp = ref_mean
     )
+  
+  
+  
+  joyn::joyn(
+    x = dsm,
+    y = rm,
+    by = c(
+      "country_code",
+      "reporting_level",
+      "welfare_type",
+      "survey_year"),
+    match_type = "1:m",
+    reportvar = FALSE,
+    keep = "right"
+  ) |> 
+    # format variables
+    frename(ref_mean = predicted_mean_ppp)
+  
   
 }
 
