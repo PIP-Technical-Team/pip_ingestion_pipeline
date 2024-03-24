@@ -14,7 +14,9 @@ refy_mean_inc_group <- \(dsm, gls, dl_aux, pinv) {
     fselect(-pce_domain) 
   
   pop <- dl_aux$pop |>
-    frename(data_level = pop_data_level) |>
+    # THis naming is different because it is merged way down in the process
+    frename(reporting_level = pop_data_level, 
+            reference_year  = year) |>
     fselect(-pop_domain) 
   
   ig <- dl_aux$income_groups |>
@@ -30,12 +32,6 @@ refy_mean_inc_group <- \(dsm, gls, dl_aux, pinv) {
                     by = c("country_code", "data_level", "year"),
                     match_type = "1:1",
                     reportvar = FALSE)  |>
-    joyn::joyn(pop,
-               by = c("country_code", "data_level", "year"),
-               match_type = "1:1",
-               keep       = "inner", 
-               reportvar = FALSE)  |>
-    
     joyn::joyn(ig,
                by = c("country_code", "year"),
                match_type = "m:1",
@@ -291,7 +287,13 @@ refy_mean_inc_group <- \(dsm, gls, dl_aux, pinv) {
                               & ulc == 1 
                               & welfare_type != "consumption",  
                               FALSE, keep)) |>
-    fsubset(keep == TRUE) 
+    fsubset(keep == TRUE) |> 
+    ## Add population 
+    joyn::joyn(pop,
+               by = c("country_code", "reporting_level", "reference_year"),
+               match_type = "m:1",
+               keep       = "inner", 
+               reportvar = FALSE)  
   
   # Delte temporary vars
   vars_to_del <-
