@@ -13,6 +13,10 @@ refy_mean_inc_group <- \(dsm, gls, dl_aux, pinv) {
     frename(data_level = pce_data_level) |>
     fselect(-pce_domain) 
   
+  pop <- dl_aux$pop |>
+    frename(data_level = pop_data_level) |>
+    fselect(-pop_domain) 
+  
   ig <- dl_aux$income_groups |>
     fselect(country_code, year, income_group_code)
   
@@ -26,6 +30,12 @@ refy_mean_inc_group <- \(dsm, gls, dl_aux, pinv) {
                     by = c("country_code", "data_level", "year"),
                     match_type = "1:1",
                     reportvar = FALSE)  |>
+    joyn::joyn(pop,
+               by = c("country_code", "data_level", "year"),
+               match_type = "1:1",
+               keep       = "inner", 
+               reportvar = FALSE)  |>
+    
     joyn::joyn(ig,
                by = c("country_code", "year"),
                match_type = "m:1",
@@ -357,7 +367,8 @@ refy_mean_inc_group <- \(dsm, gls, dl_aux, pinv) {
       interpolation_id, 
       predicted_mean_ppp = ref_mean,
       reporting_gdp = gdp, 
-      reporting_pce = pce 
+      reporting_pce = pce, 
+      reporting_pop = pop
       
     )
   
@@ -365,7 +376,8 @@ refy_mean_inc_group <- \(dsm, gls, dl_aux, pinv) {
   
   out <- joyn::joyn(
     x = rm,
-    y = dsm,
+    y = dsm |> # remove survey year population to merge reference year pop
+      fselect(-reporting_pop),
     by = c(
       "country_code",
       "reporting_level",
