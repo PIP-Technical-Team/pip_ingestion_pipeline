@@ -27,18 +27,29 @@ cli::cli_text("Vintage directory {.file {gls$vintage_dir}}")
 # 
 
 # Set targets options 
+  # controller <- crew::crew_controller_local(
+  #   name = "pipeline_controller",
+  #   workers = 10,
+  #   seconds_idle = 3
+  # )
+
+
 tar_option_set(
   garbage_collection = TRUE,
   memory = 'transient',
   format = 'qs', #'fst_dt',
   workspace_on_error = TRUE, 
   error = "stop"  # or "null"
+  # controller = controller
+  # , controller = crew::crew_controller_local(workers = 2)
 )
 
 
 # make sure joyn does not display messages
-options(joyn.verbose = FALSE, 
-        pipload.verbose = FALSE) 
+options(joyn.verbose    = FALSE, 
+        pipload.verbose = FALSE, 
+        joyn.reportvar  = ".joyn"
+        ) 
 
 
 
@@ -148,7 +159,14 @@ pip_inventory <-
 
 ### pipeline inventory ----
 
+# filter by  year 
+
+
+
+
 pipeline_inventory <- 
   db_filter_inventory(dt        = pip_inventory,
                       pfw_table = dl_aux$pfw)
 
+
+  

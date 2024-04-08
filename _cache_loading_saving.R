@@ -115,7 +115,8 @@ to_drop_cache     <- which(!cache_names %in% svy_in_pfw)
 to_drop_cache_dir <- which(!cache_dir_names %in% svy_in_pfw)
 
 cache[to_drop_cache]         <- NULL
-cache_dir <- cache_dir[-to_drop_cache_dir]
+if (length(to_drop_cache_dir) > 0)
+  cache_dir <- cache_dir[-to_drop_cache_dir]
 
 cache_inventory[,
                 cache_names := gsub(pattern = pattern, 
@@ -128,12 +129,16 @@ cache_ids <- names(cache_dir)
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ## notify that cache has finished loading (please do NOT delete) ---
-stopifnot(
-  "Lengths of cache list and cache directory are not the same" = 
-    length(cache) == length(cache_dir)
-)
+
 
 if (requireNamespace("pushoverr")) {
   pushoverr::pushover("Finished loading or creating cache list")
+}
+
+
+
+if (length(cache) != length(cache_dir)) {
+  cli::cli_abort("Lengths of cache list ({length(cache)}) and cache directory 
+                 ({length(cache_dir)}) are not the same")
 }
 

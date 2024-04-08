@@ -29,7 +29,7 @@ db_merge_dsm_nac <- function(dsm_table, nac_table) {
     tidyfast::dt_nest(country_code, nac_data_level, .key = "data")
 
   # Merge dsm_table with nac_nested (left join)
-  dt <- joyn::merge(dsm_table, nac_nested,
+  dt <- joyn::joyn(dsm_table, nac_nested,
     by = c("country_code", "nac_data_level"),
     match_type = "m:1",
     keep = "left",

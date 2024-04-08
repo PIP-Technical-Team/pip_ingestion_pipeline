@@ -45,12 +45,12 @@ pip_update_cache_inventory <- function(
   # Filter pipeline inventory and select relevant variables
   cols <- c("orig", "filename", "survey_id")
 
-  crr <- joyn::merge(cch, pipeline_inventory,
+  crr <- joyn::joyn(cch, pipeline_inventory,
                      by         = "cache_id",
                      match_type = "1:1",
                      keep       = "inner",
                      reportvar  = FALSE,
-                     yvars      = cols,
+                     y_vars_to_keep = cols,
                      verbose    = FALSE
   )
 
@@ -92,7 +92,7 @@ pip_update_cache_inventory <- function(
       }
 
       # Update values with new information
-      crr <- joyn::merge(cci, crr, 
+      crr <- joyn::joyn(cci, crr, 
                          by            = "cache_id",
                          match_type    = "1:1",
                          update_values = TRUE,
@@ -100,7 +100,7 @@ pip_update_cache_inventory <- function(
                          verbose       = FALSE)
 
       # remove information that is not longer necessary
-      crr <- joyn::merge(crr, cch,
+      crr <- joyn::joyn(crr, cch,
                          by            = "cache_id",
                          match_type    = "1:1",
                          verbose       = FALSE,
