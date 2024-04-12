@@ -364,6 +364,7 @@ refy_mean_inc_group <- \(dsm, gls, dl_aux, pinv) {
       survey_year       ,
       reporting_year = reference_year,
       nac               ,
+      nac_sy,
       relative_distance, 
       estimation_type, 
       interpolation_id, 
