@@ -139,7 +139,7 @@ db_create_dsm_table <- function(lcu_table,
         "survey_comparability", "comparable_spell",
         "surveyid_year", "reporting_year",
         "survey_year", "survey_time", "welfare_type",
-        "survey_mean_lcu", "survey_mean_ppp", 'survey_pop',
+        "survey_mean_lcu", "survey_mean_ppp", #' survey_pop',
         "reporting_pop", "ppp", "cpi", "pop_data_level",
         "gdp_data_level", "pce_data_level",
         "cpi_data_level", "ppp_data_level", "reporting_level",
@@ -195,14 +195,13 @@ add_aggregated_mean <- function(dt) {
       welfare_type         = unique(welfare_type),
       survey_mean_lcu      = collapse::fmean(
         x = survey_mean_lcu,
-        w = survey_pop # reporting_pop
+        w = reporting_pop
       ),
       survey_mean_ppp      = collapse::fmean(
         x = survey_mean_ppp,
-        w = survey_pop # reporting_pop
+        w = reporting_pop
       ),
-      survey_pop              = collapse::fsum(survey_pop), # reporting_pop
-      reporting_pop           = collapse::fsum(reporting_pop),  
+      reporting_pop           = collapse::fsum(reporting_pop),
       ppp                     = NA,
       cpi                     = NA,
       pop_data_level          = "national",

@@ -90,7 +90,7 @@ db_create_svy_estimation_table <- function(dsm_table, dist_table, gdp_table, pce
     "survey_mean_lcu", "survey_mean_ppp",
     "survey_median_ppp", "survey_median_lcu",
     "predicted_mean_ppp", "ppp", "cpi",
-    "reporting_pop", "survey_pop", "reporting_gdp",
+    "reporting_pop", "reporting_gdp",
     "reporting_pce", "pop_data_level",
     "gdp_data_level", "pce_data_level",
     "cpi_data_level", "ppp_data_level",
