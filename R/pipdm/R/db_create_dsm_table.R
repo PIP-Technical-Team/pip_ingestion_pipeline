@@ -127,10 +127,24 @@ db_create_dsm_table <- function(lcu_table,
 
   # Add is_used_for_aggregation column
   dt[, n_rl := .N, by = cache_id]
-  dt[, is_used_for_aggregation := ifelse((dt$reporting_level %in% c("urban", "rural") & dt$n_rl == 2), TRUE, FALSE)]
+  dt[, is_used_for_aggregation := 
+       ifelse((dt$reporting_level %in% c("urban", "rural") & dt$n_rl == 2), 
+              TRUE, FALSE)]
   dt$n_rl <- NULL
+  
+  ## replace reporting_pop with survey_pop  ----------
+  
+  # In principle, for all survey year calculations,
+  # we should use survey_pop information because it reflects the population in
+  # decimal years. reporting_pop should the same are survey_pop for integer
+  # years. The following code should show you that. You must uncomment and be in
+  # debugging mode
+  #  dt[ reporting_pop != survey_pop, .(country_code, reporting_year, survey_year)]
+  
+  dt[, reporting_pop := survey_pop]
+  
 
-  # Select and order columns
+  ## Select and order columns -----------
   dt <- dt[, .SD,
     .SDcols =
       c(
