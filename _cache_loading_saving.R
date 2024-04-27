@@ -23,10 +23,10 @@
 # pipeline_inventory <-
 #    pipeline_inventory[surveyid_year >= 2021]
 
-# cts_filter <- c("CHN")
-# pipeline_inventory <-
-#    pipeline_inventory[country_code == 'TWN' 
-#                       & surveyid_year >= 2022]
+cts_filter <- c("NGA")
+pipeline_inventory <-
+   pipeline_inventory[country_code %in% cts_filter
+                      & surveyid_year >= 2022]
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

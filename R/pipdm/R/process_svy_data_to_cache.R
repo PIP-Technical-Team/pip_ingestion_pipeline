@@ -146,6 +146,11 @@ process_svy_data_to_cache <- function(survey_id,
       )
 
       # Merge survey table with CPI (left join)
+      ## Round survey_year to 3 decimal places to guarantee the merge
+      cpi_table[, survey_year := round(survey_year, 3)]
+      df[, survey_year := round(survey_year, 3)]
+      
+      
       df <- joyn::joyn(df, cpi_table,
         by = c(
           "country_code", "survey_year",
