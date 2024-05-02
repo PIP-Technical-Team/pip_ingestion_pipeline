@@ -201,6 +201,26 @@ process_svy_data_to_cache <- function(survey_id,
          (chr_vars) := lapply(.SD, as.factor),
          .SDcols = chr_vars
          ]
+      
+      
+      ## Bottom censoring 25 cents ---------
+      # PPP year
+      py <- cache_svy_dir |> 
+        fs::path_file() |> 
+        sub("(^[0-9]+_)([0-9]{4})(_.*)", "\\2", x = _) |> 
+        as.numeric()
+      
+      if (py == 2017) {
+        bc <- .25
+      } else if (py == 2011) {
+        bc <- .25
+      } else {
+        bc <- 0
+      }
+      # apply censoring
+      df[welfare_ppp <= bc, welfare_ppp := bc]
+      
+      
 
 
     }, # end of expr section in trycatch
