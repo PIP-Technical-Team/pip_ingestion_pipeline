@@ -259,6 +259,14 @@ from_gd_2_synth <- function(dl_aux, gls,
     ## Combine data ------------
     dt <- rbindlist(lsyn)
     
+    # Get reporting level
+    dl_var        <- grep("data_level", names(dt), value = TRUE) # data_level vars
+    ordered_level <- purrr::map_dbl(dl_var, ~ get_ordered_level(dt, .x))
+    select_var    <- dl_var[which.max(ordered_level)]
+    
+    dt[, reporting_level := get(select_var)]
+    
+    
     return(dt)
   })
   
