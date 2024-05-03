@@ -1,7 +1,5 @@
 from_gd_2_synth <- function(dl_aux, gls,
                             pipeline_inventory,
-                            cts = NULL,
-                            yrs = NULL, 
                             force = FALSE) {
   
   withr::local_options(list(joyn.verbose = FALSE))
@@ -82,17 +80,6 @@ from_gd_2_synth <- function(dl_aux, gls,
                 reportvar = FALSE, 
                 keep = "inner")
   
-  # filter data -----------
-  
-  if (!is.null(cts)) {
-    gpfw <- gpfw[country_code %in% cts]
-  }
-  
-  if (!is.null(yrs)) {
-    gpfw <- gpfw[year %in% yrs]
-  }
-  
-  
   # Process in functional programming -----------
   
   # unique framework
@@ -152,6 +139,27 @@ from_gd_2_synth <- function(dl_aux, gls,
     # This is super inefficient, but I don't have time to make it better. 
     inv  <- pipload::pip_find_data(ugpfw_j$country,
                                    ugpfw_j$year)
+    
+    cache_ids <- 
+      with(ugpfw_j, {
+        paste(country_code,
+              year,
+              survey_acronym,
+              paste0("D", reporting_level),
+              wt,
+              "SYNTH",
+              sep = "_"
+        )
+      })
+    
+    inv[, 
+        `:=`(
+          cache_id = cache_ids,
+          survey_id = sub("\\.dta", "", filename)
+        ) ]
+    
+    
+    
     
     
     area_levels <- dt[, unique(area)]
