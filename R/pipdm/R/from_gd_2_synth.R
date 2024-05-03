@@ -96,7 +96,16 @@ from_gd_2_synth <- function(dl_aux, gls,
   # Process in functional programming -----------
   
   # unique framework
-  uvars <- c("country_code", "year", "survey_acronym", "wt", "reporting_level")
+  uvars <-
+    c(
+      "country_code",
+      "surveyid_year",
+      "survey_year",
+      "year",
+      "survey_acronym",
+      "wt",
+      "reporting_level"
+    )
   ugpfw <- unique(gpfw[, ..uvars]) |> 
     _[, 
       cache_id := paste(country_code,
@@ -127,8 +136,10 @@ from_gd_2_synth <- function(dl_aux, gls,
   
   
   # define length of inventory
-  j <- 1
+  
   seq_pfw <- seq_len(nrow(ugpfw))
+  
+  j <- 19
   ldt <- purrr::map(cli::cli_progress_along(seq_pfw), \(j) {
     ugpfw_j <- ugpfw[j]
     gpfw_j  <- gpfw[ugpfw_j, on = uvars]
@@ -137,6 +148,11 @@ from_gd_2_synth <- function(dl_aux, gls,
     dt <- pipload::pip_load_data(ugpfw_j$country,
                                  ugpfw_j$year, 
                                  verbose = FALSE)
+    
+    # This is super inefficient, but I don't have time to make it better. 
+    inv  <- pipload::pip_find_data(ugpfw_j$country,
+                                   ugpfw_j$year)
+    
     
     area_levels <- dt[, unique(area)]
     lal         <- length(area_levels)
@@ -205,12 +221,16 @@ from_gd_2_synth <- function(dl_aux, gls,
               country_code      = gpfw_ji$country,
               year              = gpfw_ji$year, 
               distribution_type = "micro", 
-              welfare_type      = gpfw_ji$welfare_type
+              welfare_type      = gpfw_ji$welfare_type, 
+              gd_type           = as.factor(""),
+              ppp               = gpfw_ji$ppp, 
+              cpi               = gpfw_ji$cpi, 
+              alt_welfare       = NA
             )][, 
                welfare_ppp := wbpip:::deflate_welfare_mean(welfare_mean = welfare, 
                                                            ppp = gpfw_ji$ppp, 
                                                            cpi = gpfw_ji$cpi)
-          # apply censoring
+               # apply censoring
             ][welfare_ppp <= bc, 
               welfare_ppp := bc]
           
@@ -224,6 +244,14 @@ from_gd_2_synth <- function(dl_aux, gls,
           emp
         }
       ) # End of trycatch
+      
+      ## add unique information ----------
+      udt <- char_vars(dt_area) |> 
+        funique() 
+      get_vars(udt, c("gd_type", "distribution_type")) <- NULL
+      
+      ftransform(ls) <- udt ## add metadata from dlw
+      ftransform(ls) <- inv ## add metadata from inventory
       
       lsyn[[i]] <- ls
     }
@@ -286,3 +314,4 @@ from_gd_2_synth <- function(dl_aux, gls,
   return(invisible(pipeline_inventory))
   
 }
+

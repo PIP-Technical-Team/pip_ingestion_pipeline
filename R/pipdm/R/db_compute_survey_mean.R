@@ -81,7 +81,7 @@ md_compute_survey_mean <- function(dt, gd_mean = NULL) {
     )
     ]
 
-  return(dt)
+  return(dt)  
 }
 
 #' gd_compute_survey_mean
