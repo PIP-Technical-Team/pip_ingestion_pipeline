@@ -80,6 +80,9 @@ from_gd_2_synth <- function(dl_aux, gls,
                 reportvar = FALSE, 
                 keep = "inner")
   
+  ## convert mean to daily value ------------
+  gpfw[, survey_mean_lcu := survey_mean_lcu * (12/365)]
+  
   # Process in functional programming -----------
   
   # unique framework
