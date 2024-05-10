@@ -56,6 +56,9 @@ refy_mean_inc_group <- \(dsm, gls, dl_aux, pinv) {
                                            passthrough = passthrough)) |>
     fungroup()
   
+  #temporal solution
+  setkey(nac, NULL)
+  
   # reduced Price framework data
   rpfw <- pfw |>
     fselect(country_code, survey_acronym, surveyid_year, year = reporting_year) |> 
@@ -73,6 +76,8 @@ refy_mean_inc_group <- \(dsm, gls, dl_aux, pinv) {
     fselect(country_code, welfare_type, year) |> 
     roworder(country_code, welfare_type, year) 
   
+  #temporal solution
+  setkey(w2k, NULL)
   
   w2k <-
     w2k[
@@ -108,6 +113,10 @@ refy_mean_inc_group <- \(dsm, gls, dl_aux, pinv) {
     ][, data_level := fifelse(ndl == 1, "national", reporting_level)
     ][,
       ndl := NULL]
+  
+  #temporal solution
+  setkey(mnt, NULL)
+  
   
   ## remove national if urb/rur data level is available for the same and remve
   # urb/rur if national available is subsequent years
@@ -179,6 +188,9 @@ refy_mean_inc_group <- \(dsm, gls, dl_aux, pinv) {
     fsummarise(nac_sy = fmean(nac,dist_weight)) |>
     fungroup()
   
+  #temporal solution
+  setkey(dynac, NULL)
+  
   ## expand to reference years --------------
   
   rynac <- tidyr::expand_grid(dynac,
@@ -198,6 +210,9 @@ refy_mean_inc_group <- \(dsm, gls, dl_aux, pinv) {
               na_locf() |>
               na_focb()) |>
     fungroup()
+  
+  #temporal solution
+  setkey(rynac, NULL)
   
   
   # 3. Growth in Reference year ----------
@@ -294,6 +309,9 @@ refy_mean_inc_group <- \(dsm, gls, dl_aux, pinv) {
                match_type = "m:1",
                keep       = "inner", 
                reportvar = FALSE)  
+  
+  #temporal solution
+  setkey(cvy, NULL)
   
   # Delte temporary vars
   vars_to_del <-
@@ -394,6 +412,9 @@ refy_mean_inc_group <- \(dsm, gls, dl_aux, pinv) {
     _[, 
       reporting_pop := fmean(reporting_pop, w = relative_distance),
       by = c("country_code", "reporting_level", "reporting_year", "welfare_type")]
+  
+  #temporal solution
+  setkey(out, NULL)
   
   out
 }
