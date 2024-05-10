@@ -224,9 +224,6 @@ process_svy_data_to_cache <- function(survey_id,
          .SDcols = chr_vars
          ]
       
-    
-      
-
 
     }, # end of expr section in trycatch
 
