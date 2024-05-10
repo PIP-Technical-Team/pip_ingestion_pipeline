@@ -242,7 +242,6 @@ from_gd_2_synth <- function(dl_aux, gls,
                                          mean        = gpfw_ji$survey_mean_lcu,
                                          pop         = gpfw_ji$pop) |> 
             _[, `:=`(
-              welfare_lcu       = welfare,
               area              = i,
               country_code      = gpfw_ji$country,
               year              = gpfw_ji$year,
@@ -253,13 +252,20 @@ from_gd_2_synth <- function(dl_aux, gls,
               ppp               = gpfw_ji$ppp, 
               cpi               = gpfw_ji$cpi, 
               alt_welfare       = NA
-            )][, 
+            )][,
+               # convert bottom censoring threshold to LCU
+               bc_lcu := get("bc")*ppp*cpi
+                # apply censoring
+               ][welfare <= bc_lcu, 
+                 welfare := bc_lcu
+               ][,
+                 # deflate LCU welfare to PPP
+                 welfare_lcu := welfare
+               ][, 
                welfare_ppp := wbpip:::deflate_welfare_mean(welfare_mean = welfare, 
                                                            ppp = gpfw_ji$ppp, 
                                                            cpi = gpfw_ji$cpi)
-               # apply censoring
-            ][welfare_ppp <= bc, 
-              welfare_ppp := bc]
+            ]
           
         }, # end of expr section
         
