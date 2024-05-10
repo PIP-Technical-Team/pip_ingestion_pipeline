@@ -162,18 +162,40 @@ process_svy_data_to_cache <- function(survey_id,
         reportvar = FALSE,
         verbose = FALSE
       )
-
-      df[
-        ,
-        welfare_lcu := welfare
-      ][
-        ,
-        welfare_ppp := wbpip::deflate_welfare_mean(
-          welfare_mean = welfare_lcu,
-          ppp          = ppp,
-          cpi          = cpi
-        )
-      ]
+      
+      ## Bottom censoring 25 cents ---------
+      # PPP year
+      py <- cache_svy_dir |> 
+        fs::path_file() |> 
+        sub("(^[0-9]+_)([0-9]{4})(_.*)", "\\2", x = _) |> 
+        as.numeric()
+      
+      if (py == 2017) {
+        bc <- .25
+      } else if (py == 2011) {
+        bc <- .25
+      } else {
+        bc <- 0
+      }
+      
+    
+      df[,
+         # convert bottom censoring threshold to LCU
+         bc_lcu := get("bc")*ppp*cpi
+         # apply censoring
+         ][welfare <= bc_lcu, 
+           welfare := bc_lcu
+           ][,
+             # deflate LCU welfare to PPP
+             welfare_lcu := welfare
+             ][
+               ,
+               welfare_ppp := wbpip::deflate_welfare_mean(
+                 welfare_mean = welfare_lcu,
+                 ppp          = ppp,
+                 cpi          = cpi
+               )
+             ]
 
       #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
       ## scale subnational population to National accounts (WDI) --------
@@ -202,24 +224,7 @@ process_svy_data_to_cache <- function(survey_id,
          .SDcols = chr_vars
          ]
       
-      
-      ## Bottom censoring 25 cents ---------
-      # PPP year
-      py <- cache_svy_dir |> 
-        fs::path_file() |> 
-        sub("(^[0-9]+_)([0-9]{4})(_.*)", "\\2", x = _) |> 
-        as.numeric()
-      
-      if (py == 2017) {
-        bc <- .25
-      } else if (py == 2011) {
-        bc <- .25
-      } else {
-        bc <- 0
-      }
-      # apply censoring
-      df[welfare_ppp <= bc, welfare_ppp := bc]
-      
+    
       
 
 
