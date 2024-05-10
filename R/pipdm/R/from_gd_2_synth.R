@@ -1,6 +1,8 @@
 from_gd_2_synth <- function(dl_aux, gls,
                             pipeline_inventory,
-                            force = FALSE) {
+                            force = FALSE,
+                            cts = NULL, 
+                            yrs = NULL) {
   
   withr::local_options(list(joyn.verbose = FALSE))
   # prepare data --------
@@ -125,11 +127,24 @@ from_gd_2_synth <- function(dl_aux, gls,
   }
   
   
+
+  ## filter data -----------
+  
+  if (!is.null(cts)) {
+    ugpfw <- ugpfw[country_code %in% cts]
+  }
+  
+  if (!is.null(yrs)) {
+    ugpfw <- ugpfw[year %in% yrs]
+  }
+  
+  
+  
   # define length of inventory
   
   seq_pfw <- seq_len(nrow(ugpfw))
   
-  j <- 19
+  j <- 23
   ldt <- purrr::map(cli::cli_progress_along(seq_pfw), \(j) {
     ugpfw_j <- ugpfw[j]
     gpfw_j  <- gpfw[ugpfw_j, on = uvars]
@@ -184,7 +199,7 @@ from_gd_2_synth <- function(dl_aux, gls,
       dt_area   <- dt[area == i]
       gpfw_ji    <- gpfw_j[data_level == i]
       
-      gd_type   <- sub("\\D", "", gpfw_ji$gd_type) |> # remove eveything not numeric
+      gd_type   <- sub("\\D", "", gpfw_ji$gd_type) |> # remove not numeric part
         as.numeric() 
       
       ## clean group data ------------

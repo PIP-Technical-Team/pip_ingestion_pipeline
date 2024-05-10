@@ -68,7 +68,7 @@ mp_cache <-
                       })
       
       names(y) <- ch_names
-      qs::qsave(y, global_file)
+      qs::qsave(y, global_file, preset =  "fast")
       # readr::write_rds(y, global_file)
       
     }
@@ -86,7 +86,7 @@ mp_cache <-
           cli::cli_progress_step("Loading list from file")
           
           # x <- readr::read_rds(global_file)
-          x <- qs::qread(global_file)
+          x <- qs::qread(global_file, nthreads = 2)
           
         } else {
           cli::cli_abort("file {.file {global_file}} does not exist. 
