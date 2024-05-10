@@ -31,18 +31,14 @@ from_gd_2_synth <- function(dl_aux, gls,
   
   # 
   ## find reporting level ---------
-  dcols <- c(
-    "cpi_domain",
-    "ppp_domain",
-    "gdp_domain",
-    "pce_domain",
-    "pop_domain"
-  )
+  
+  ## based on  reporting domain 
+  domain_vars <- grep("domain$", names(pfw), value = TRUE) |> 
+    parse(text = _)
   
   pfw[,
       # Find MAX domain per obs
-      reporting_level := apply(.SD, MARGIN = 1, max),
-      .SDcols = dcols
+      max_domain := pmax(eval(domain_vars))
   ][, 
     # welfare type 
     wt := fcase(welfare_type == "consumption", "CON", 
@@ -96,14 +92,14 @@ from_gd_2_synth <- function(dl_aux, gls,
       "year",
       "survey_acronym",
       "wt",
-      "reporting_level"
+      "max_domain"
     )
   ugpfw <- unique(gpfw[, ..uvars]) |> 
     _[, 
       cache_id := paste(country_code,
                         year,
                         survey_acronym,
-                        paste0("D", reporting_level),
+                        paste0("D", max_domain),
                         wt,
                         "SYNTH",
                         sep = "_"
@@ -127,7 +123,7 @@ from_gd_2_synth <- function(dl_aux, gls,
   }
   
   
-
+  
   ## filter data -----------
   
   if (!is.null(cts)) {
@@ -144,7 +140,7 @@ from_gd_2_synth <- function(dl_aux, gls,
   
   seq_pfw <- seq_len(nrow(ugpfw))
   
-  j <- 23
+  j <- 81
   ldt <- purrr::map(cli::cli_progress_along(seq_pfw), \(j) {
     ugpfw_j <- ugpfw[j]
     gpfw_j  <- gpfw[ugpfw_j, on = uvars]
@@ -163,7 +159,7 @@ from_gd_2_synth <- function(dl_aux, gls,
         paste(country_code,
               year,
               survey_acronym,
-              paste0("D", reporting_level),
+              paste0("D", max_domain),
               wt,
               "SYNTH",
               sep = "_"
@@ -255,16 +251,16 @@ from_gd_2_synth <- function(dl_aux, gls,
             )][,
                # convert bottom censoring threshold to LCU
                bc_lcu := get("bc")*ppp*cpi
-                # apply censoring
-               ][welfare <= bc_lcu, 
-                 welfare := bc_lcu
-               ][,
-                 # deflate LCU welfare to PPP
-                 welfare_lcu := welfare
-               ][, 
-               welfare_ppp := wbpip:::deflate_welfare_mean(welfare_mean = welfare, 
-                                                           ppp = gpfw_ji$ppp, 
-                                                           cpi = gpfw_ji$cpi)
+               # apply censoring
+            ][welfare <= bc_lcu, 
+              welfare := bc_lcu
+            ][,
+              # deflate LCU welfare to PPP
+              welfare_lcu := welfare
+            ][, 
+              welfare_ppp := wbpip:::deflate_welfare_mean(welfare_mean = welfare, 
+                                                          ppp = ppp, 
+                                                          cpi = cpi)
             ]
           
         }, # end of expr section
@@ -292,13 +288,20 @@ from_gd_2_synth <- function(dl_aux, gls,
     ## Combine data ------------
     dt <- rbindlist(lsyn)
     
-    # Get reporting level
+    # Get reporting level -----
+    
+    ## get reporting level ---------
     dl_var        <- grep("data_level", names(dt), value = TRUE) # data_level vars
     ordered_level <- purrr::map_dbl(dl_var, ~ get_ordered_level(dt, .x))
     select_var    <- dl_var[which.max(ordered_level)]
     
-    dt[, reporting_level := get(select_var)]
+    ## using domain -----------
+    md <- unique(gpfw_j$max_domain)
     
+    dt[, reporting_level := get(select_var)]
+    if (md == 1) {
+      dt[, reporting_level := "national"]
+    }
     
     return(dt)
   })
