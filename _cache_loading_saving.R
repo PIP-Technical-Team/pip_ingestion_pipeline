@@ -50,13 +50,6 @@ status_cache_files_creation <-
 
 
 
-
-cts <- "CHN"
-yrs <- 2016
-cts <- NULL
-yrs <- NULL
-
-
 pipeline_inventory <- 
   from_gd_2_synth(dl_aux             = dl_aux, 
                   gls                = gls,

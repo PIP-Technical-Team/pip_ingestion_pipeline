@@ -46,9 +46,7 @@ from_gd_2_synth <- function(dl_aux, gls,
                 default =  "")
   ]
   
-  
-  
-  
+
   ## merge data ---------
   
   gpfw <- joyn::joyn(pfw[use_groupdata == 1], gdm, 
@@ -322,7 +320,7 @@ from_gd_2_synth <- function(dl_aux, gls,
       paste(country_code,
             year,
             survey_acronym,
-            paste0("D", reporting_level),
+            paste0("D", max_domain),
             wt,
             "SYNTH",
             sep = "_"
