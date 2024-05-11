@@ -239,6 +239,26 @@ add_aggregated_mean <- function(dt) {
 
   # Sort rows
   data.table::setorder(dt, survey_id, cache_id)
+  
+  # fix data lvel vars for cases like IDN 1984
+  dt_vars <- grep("data_level$", names(dt), value = TRUE)
+  
+  dt <- funique(dt, 
+                 cols =  c("country_code",
+                           "reporting_level",
+                           "welfare_type",
+                           "survey_year")
+  )
+  
+  
+  dt[,
+      (dt_vars) := lapply(.SD, \(.) {
+        fifelse(reporting_level == "national", reporting_level, .)
+      }),
+      .SDcols = dt_vars
+  ]
+  
+  
   return(dt)
 }
 
