@@ -69,41 +69,29 @@ md_compute_survey_mean <- function(dt, gd_mean = NULL) {
               "distribution_type",
               "gd_type")
   
-  data_level_vars <-  c("cpi_data_level",
-                        "ppp_data_level",
-                        "gdp_data_level",
-                        "pce_data_level",
-                        "pop_data_level")
+  data_level_vars <- grep("data_level$", names(dt), value = TRUE)
   
-  urep_lev <- unique(dt$reporting_level)
-  if (length(urep_lev) == 1) {
-    # uvars_inx <- which(names(dt) %in% uvars)
-    dt <- dt |> 
-      # By imputations
-      fgroup_by(imputation_id, reporting_level) |> 
-      fsummarise(across(uvars, funique), 
-                 survey_mean_lcu = fmean(welfare, w= weight), 
-                 weight          = fsum(weight)) |>
-      # after imputation 
-      fgroup_by(reporting_level) |> 
-      fsummarise(across(uvars, funique), 
-                 survey_mean_lcu = fmean(survey_mean_lcu, w= weight)) |>
-      fungroup() |> 
-      # data level vars should be exactly like reporting level when length is 1
-      _[, 
-        (data_level_vars) := reporting_level]
-    
+  udt_vars <- dt |> 
+    fselect(c(uvars, data_level_vars)) |> 
+    funique()
+  
+  dt <- dt |> 
+    # By imputations
+    fgroup_by(imputation_id, reporting_level) |> 
+    fsummarise(survey_mean_lcu = fmean(welfare, w= weight), 
+               weight          = fsum(weight)) |>
+    # after imputation 
+    fgroup_by(reporting_level) |> 
+    fsummarise(survey_mean_lcu = fmean(survey_mean_lcu, w= weight)) |>
+    fungroup() 
+  
+  # super fast join of unique variables. 
+  dt <- if (fnrow(udt_vars) == fnrow(dt)) {
+    add_vars(udt_vars, dt)
+  } else if (fnrow(udt_vars) > fnrow(dt)) {
+    ftransform(udt_vars, dt[rep(1:.N, nrow(udt_vars))])
   } else {
-    dt <- dt |> 
-      fgroup_by(c("imputation_id", "reporting_level", data_level_vars)) |> 
-      fsummarise(across(uvars, funique), 
-                 survey_mean_lcu = fmean(welfare, w= weight), 
-                 weight          = fsum(weight)) |>
-      # after imputation 
-      fgroup_by(c("reporting_level", data_level_vars)) |> 
-      fsummarise(across(uvars, funique), 
-                 survey_mean_lcu = fmean(survey_mean_lcu, w= weight)) |>
-      fungroup()
+    ftransform(udt_vars[rep(1:.N, nrow(dt))], dt)
   }
   
 
