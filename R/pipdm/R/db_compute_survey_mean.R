@@ -78,11 +78,11 @@ md_compute_survey_mean <- function(dt, gd_mean = NULL) {
   dt <- dt |> 
     # By imputations
     fgroup_by(imputation_id, reporting_level) |> 
-    fsummarise(survey_mean_lcu = fmean(welfare, w= weight), 
+    fsummarise(survey_mean_lcu = fmean(welfare, w = weight), 
                weight          = fsum(weight)) |>
     # after imputation 
     fgroup_by(reporting_level) |> 
-    fsummarise(survey_mean_lcu = fmean(survey_mean_lcu, w= weight)) |>
+    fsummarise(survey_mean_lcu = fmean(survey_mean_lcu, w = weight)) |>
     fungroup() 
   
   # super fast join of unique variables. 
@@ -91,6 +91,7 @@ md_compute_survey_mean <- function(dt, gd_mean = NULL) {
   } else if (fnrow(udt_vars) > fnrow(dt)) {
     ftransform(udt_vars, dt[rep(1:.N, nrow(udt_vars))])
   } else {
+    # this case should not even happen... just in case.
     ftransform(udt_vars[rep(1:.N, nrow(dt))], dt)
   }
   
