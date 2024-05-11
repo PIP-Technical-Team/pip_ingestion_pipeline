@@ -20,7 +20,7 @@ max_year_aggregate <- 2022
 
 force_create_cache_file         <- FALSE
 save_pip_update_cache_inventory <- FALSE
-force_gd_2_synth                <- TRUE
+force_gd_2_synth                <- FALSE
 save_mp_cache                   <- FALSE
 
 
@@ -47,11 +47,11 @@ fs::path("_common.R") |>
 
 # check synth creation for a particular country/year
 
+cts <- "IDN"
+yrs <- 1984
 cts <- NULL
 yrs <- NULL
 
-cts <- "IDN"
-yrs <- 1984
 
 
 # 

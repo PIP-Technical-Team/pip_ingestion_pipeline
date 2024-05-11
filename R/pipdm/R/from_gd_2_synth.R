@@ -104,6 +104,41 @@ from_gd_2_synth <- function(dl_aux, gls,
       )]
   
   
+  
+  ## inventory file -------
+  inv <- vector("list", length = nrow(ugpfw))
+  
+  for (j in 1:nrow(ugpfw)) {
+    ugpfw_j <- ugpfw[j]
+    inv[[j]] <- pipload::pip_find_data(ugpfw_j$country,
+                                       ugpfw_j$year)
+  }
+  
+  cache_ids <- 
+    with(ugpfw, {
+      paste(country_code,
+            year,
+            survey_acronym,
+            paste0("D", max_domain),
+            wt,
+            "SYNTH",
+            sep = "_"
+      )
+    })
+  
+  synth_inv <- 
+    rbindlist(inv) |> 
+    _[, 
+      `:=`(
+        cache_id = cache_ids,
+        survey_id = sub("\\.dta", "", filename)
+      ) ]
+  
+  pipeline_inventory <- pipeline_inventory[!synth_inv, # remove old cache
+                                           on = "cache_id"] |> 
+    rowbind(synth_inv)
+  
+  
   # filter if it is already available -------
   if (force == FALSE) {
     syn_cache_ids <- 
@@ -131,7 +166,6 @@ from_gd_2_synth <- function(dl_aux, gls,
   if (!is.null(yrs)) {
     ugpfw <- ugpfw[year %in% yrs]
   }
-  
   
   
   # define length of inventory
@@ -306,37 +340,7 @@ from_gd_2_synth <- function(dl_aux, gls,
   
   
   
-  ## inventory file -------
-  inv <- vector("list", length = nrow(ugpfw))
-  
-  for (j in 1:nrow(ugpfw)) {
-    ugpfw_j <- ugpfw[j]
-    inv[[j]] <- pipload::pip_find_data(ugpfw_j$country,
-                                       ugpfw_j$year)
-  }
-  
-  cache_ids <- 
-    with(ugpfw, {
-      paste(country_code,
-            year,
-            survey_acronym,
-            paste0("D", max_domain),
-            wt,
-            "SYNTH",
-            sep = "_"
-      )
-    })
-  
-  synth_inv <- 
-    rbindlist(inv) |> 
-    _[, 
-      `:=`(
-        cache_id = cache_ids,
-        survey_id = sub("\\.dta", "", filename)
-      ) ]
-  
   # save data ---------
-  
   
   ## organize and save -----------
   names(ldt) <- cache_ids
@@ -348,11 +352,7 @@ from_gd_2_synth <- function(dl_aux, gls,
       fst::write_fst(ldt[[i]], path = _)
   })
   
-  
-  pipeline_inventory <- pipeline_inventory[!synth_inv, # remove old cache
-                                           on = "cache_id"] |> 
-    rowbind(synth_inv)
-  
+
   return(invisible(pipeline_inventory))
   
 }
