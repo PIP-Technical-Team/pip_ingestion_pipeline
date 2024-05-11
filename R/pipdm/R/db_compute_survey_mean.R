@@ -49,7 +49,7 @@ compute_survey_mean <- list(
   micro     = function(dt, gd_mean) md_compute_survey_mean(dt, gd_mean),
   group     = function(dt, gd_mean) gd_compute_survey_mean(dt, gd_mean),
   aggregate = function(dt, gd_mean) gd_compute_survey_mean(dt, gd_mean),
-  imputed   = function(dt, gd_mean) id_compute_survey_mean(dt, gd_mean)
+  imputed   = function(dt, gd_mean) md_compute_survey_mean(dt, gd_mean)
 )
 
 #' md_compute_survey_mean
@@ -58,28 +58,54 @@ compute_survey_mean <- list(
 #' @noRd
 md_compute_survey_mean <- function(dt, gd_mean = NULL) {
 
-  # Compute mean by data levels
-  dt <-
-    dt[, .(
-      survey_id          = unique(survey_id),
-      cache_id           = unique(cache_id),
-      country_code       = unique(country_code),
-      surveyid_year      = unique(surveyid_year),
-      survey_acronym     = unique(survey_acronym),
-      survey_year        = unique(survey_year),
-      welfare_type       = unique(welfare_type),
-      distribution_type  = unique(distribution_type),
-      gd_type            = unique(gd_type),
-      survey_mean_lcu    = collapse::fmean(x = welfare,
-                                           w = weight,
-                                           na.rm = TRUE)
-      ),
-    by = .(
-      cpi_data_level, ppp_data_level,
-      gdp_data_level, pce_data_level,
-      pop_data_level, reporting_level
-    )
-    ]
+  
+  uvars <- c( "survey_id",
+              "cache_id",
+              "country_code",
+              "surveyid_year",
+              "survey_acronym",
+              "survey_year",
+              "welfare_type",
+              "distribution_type",
+              "gd_type")
+  
+  data_level_vars <-  c("cpi_data_level",
+                        "ppp_data_level",
+                        "gdp_data_level",
+                        "pce_data_level",
+                        "pop_data_level")
+  
+  urep_lev <- unique(dt$reporting_level)
+  if (length(urep_lev) == 1) {
+    # uvars_inx <- which(names(dt) %in% uvars)
+    dt <- dt |> 
+      # By imputations
+      fgroup_by(imputation_id, reporting_level) |> 
+      fsummarise(across(uvars, funique), 
+                 survey_mean_lcu = fmean(welfare, w= weight), 
+                 weight          = fsum(weight)) |>
+      # after imputation 
+      fgroup_by(reporting_level) |> 
+      fsummarise(across(uvars, funique), 
+                 survey_mean_lcu = fmean(survey_mean_lcu, w= weight)) |>
+      fungroup() |> 
+      # data level vars should be exactly like reporting level when length is 1
+      _[, 
+        (data_level_vars) := reporting_level]
+    
+  } else {
+    dt <- dt |> 
+      fgroup_by(c("imputation_id", "reporting_level", data_level_vars)) |> 
+      fsummarise(across(uvars, funique), 
+                 survey_mean_lcu = fmean(welfare, w= weight), 
+                 weight          = fsum(weight)) |>
+      # after imputation 
+      fgroup_by(c("reporting_level", data_level_vars)) |> 
+      fsummarise(across(uvars, funique), 
+                 survey_mean_lcu = fmean(survey_mean_lcu, w= weight)) |>
+      fungroup()
+  }
+  
 
   return(dt)  
 }
