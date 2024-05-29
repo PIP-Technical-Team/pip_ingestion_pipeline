@@ -15,7 +15,7 @@ create_line_up_check <- function(dt){
   dt[, n_rl := .N, by = cache_id]
 
   # Create check
-  check <- (dt$reporting_level == "national" & dt$n_rl == 1) |  # Surveys w/ national reporting level and no split by U/R domain (e.g USA)
+  check <- (dt$reporting_level == "national") |  # Surveys w/ national reporting level and no split by U/R domain (e.g USA)
     (dt$reporting_level %in% c("urban", "rural") & dt$n_rl == 2) | # Surveys split by U/R domain (e.g. CHN, IND)
     dt$country_code %in% cc  # Countries wo/ any national surveys (e.g. ARG, SUR)
 
