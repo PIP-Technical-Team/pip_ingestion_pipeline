@@ -15,10 +15,6 @@
 # pipeline_inventory[country_code == 'PHL' & surveyid_year == 2000]
 
 
-# cts_filter <- c('COL', 'IND', "CHN")
-# pipeline_inventory <-
-#    pipeline_inventory[country_code %in% cts_filter
-#                       ][!(country_code == 'CHN' & surveyid_year >= 2017)]
 
 # pipeline_inventory <-
 #    pipeline_inventory[surveyid_year >= 2021]
@@ -28,6 +24,9 @@
 pipeline_inventory <-
    pipeline_inventory[module  != "PC-GROUP"]
 
+# cts_filter <- c("NGA")
+# pipeline_inventory <-
+#    pipeline_inventory[country_code %in% cts_filter & surveyid_year == 2022]
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
