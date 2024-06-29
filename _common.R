@@ -11,7 +11,8 @@ gls <- pipfun::pip_create_globals(
                     identity = identity), 
   create_dir = TRUE, 
   max_year_country   = max_year_country, 
-  max_year_aggregate = max_year_aggregate
+  max_year_aggregate = max_year_aggregate, 
+  max_year_lineup    = max_year_lineup
 )
 
 

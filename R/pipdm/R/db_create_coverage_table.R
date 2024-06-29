@@ -14,6 +14,7 @@
 #' @param urban_rural_countries character: A string with 3-letter country codes.
 #'   Countries where the coverage calculation is based on urban or rural
 #'   population numbers.
+#' @param gls list from `pipfun::pip_create_globals()`
 #'
 #' @return list
 #' @export
@@ -24,7 +25,8 @@ db_create_coverage_table <- function(ref_year_table,
                                      ref_years,
                                      digits = 2,
                                      urban_rural_countries =
-                                       c("ARG", "CHN", "IDN", "IND", "SUR")) {
+                                       c("ARG", "CHN", "IDN", "IND", "SUR"), 
+                                     gls) {
 
   # ---- Prepare Reference year table ----
 
@@ -121,6 +123,11 @@ db_create_coverage_table <- function(ref_year_table,
     dplyr::group_by(reporting_year, pcn_region_code) %>%
     dplyr::summarise(coverage = stats::weighted.mean(coverage, pop)) %>%
     data.table::as.data.table()
+  
+  # bypass coverage rule for nowcasted years
+  lnp_year <- fmax(gls$PIP_LINEUP_YEARS)
+  out_region[reporting_year > lnp_year & coverage < .5, 
+             coverag := .51]
 
   # World coverage
   out_wld <- dt %>%
