@@ -126,8 +126,10 @@ db_create_coverage_table <- function(ref_year_table,
   
   # bypass coverage rule for nowcasted years
   lnp_year <- fmax(gls$PIP_LINEUP_YEARS)
-  out_region[reporting_year > lnp_year & coverage < .5, 
-             coverag := .51]
+  
+  out_region[, 
+             coverage := fifelse(reporting_year > lnp_year & coverage < .5,
+                                 .51, coverage)]
 
   # World coverage
   out_wld <- dt %>%
