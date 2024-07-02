@@ -29,7 +29,7 @@ db_create_coverage_table <- function(ref_year_table,
                                      gls) {
 
   # ---- Prepare Reference year table ----
-
+  
   # Select relevant columns
   dt <- ref_year_table[
     ,
@@ -40,7 +40,7 @@ db_create_coverage_table <- function(ref_year_table,
       "pop_data_level", "reporting_level"
     )
   ]
-
+  
   # Transform table to one row per country-year-reporting_level
   dt <- dt[, .(survey_year = toString(survey_year)),
            by = list(
@@ -60,30 +60,30 @@ db_create_coverage_table <- function(ref_year_table,
     as.character() %>%
     as.numeric()
   dt <- data.table::setnames(dt, 'survey_year', 'survey_year_before')
-
+  
   # ---- Prepare Population table ----
-
+  
   # Select national population estimates except for selected countries
   pop_table <- pop_table[(pop_data_level == "national" |
-    country_code %in% urban_rural_countries), ]
-
+                            country_code %in% urban_rural_countries), ]
+  
   # Remove national population estimates for selected countries
   pop_table <- pop_table[!(pop_data_level == "national" &
-    country_code %in% urban_rural_countries), ]
-
+                             country_code %in% urban_rural_countries), ]
+  
   # Select population estimates for selected reference years
   pop_table <- pop_table[year %in% ref_years, ]
-
+  
   # Remove domain column
   pop_table$pop_domain <- NULL
-
+  
   # Merge with cl (to get *_region_code for all countries)
   pop_table <-
     merge(pop_table,
           cl_table[, c('country_code', 'pcn_region_code')],
           by = 'country_code',
           all.x = TRUE)
-
+  
   # Merge with historical income group table
   pop_table <-
     merge(pop_table,
@@ -94,50 +94,54 @@ db_create_coverage_table <- function(ref_year_table,
     )
   # Impute incgroup_historical 1981-86 based on 1987 value
   pop_table <- pop_table[order(country_code, year)]
-  pop_table[, incgroup_historical := impute_missing(incgroup_historical), by = country_code]
-
+  pop_table[, incgroup_historical := impute_missing(incgroup_historical), 
+            by = country_code]
+  
   # ---- Merge datasets ----
-
+  
   # Merge dt with pop_table (full outer join)
   dt <- merge(dt, pop_table,
-    by.x = c("country_code", "reporting_year", "pop_data_level", "pcn_region_code"),
-    by.y = c("country_code", "year", "pop_data_level", "pcn_region_code"),
-    all = TRUE
+              by.x = c("country_code", "reporting_year", "pop_data_level", "pcn_region_code"),
+              by.y = c("country_code", "year", "pop_data_level", "pcn_region_code"),
+              all = TRUE
   )
-
+  
   # ---- Create coverage column ----
-
+  
   # Remove rows with missing Population data
   dt <- dt[!is.na(pop), ]
-
+  
+  
+  
   # Create coverage column (current method)
-  dt$coverage <- (abs(dt$reporting_year - dt$survey_year_before) <= 3 |
-    abs(dt$reporting_year - dt$survey_year_after) <= 3)
-  # dt$coverage <- data.table::fifelse(dt$coverage, 1, 0)
-  dt[is.na(coverage), ]$coverage <- 0
-
+  dt[, coverage :=  (abs(reporting_year - survey_year_before) <= 3 |
+                       abs(reporting_year - survey_year_after) <= 3)]
+  
+  # Break year
+  year_break <- 2020
+  
+  dt[is.na(coverage), coverage := 0]
+  dt[(survey_year_before < year_break & reporting_year >= year_break & is.na(survey_year_after)) |
+       (survey_year_after  >= year_break & reporting_year < year_break & is.na(survey_year_before)),
+     coverage := 0]
+  
   # ---- Calculate world and regional coverage ----
-
+  
   # PCN Regional coverage
   out_region <- dt %>%
     dplyr::group_by(reporting_year, pcn_region_code) %>%
     dplyr::summarise(coverage = stats::weighted.mean(coverage, pop)) %>%
     data.table::as.data.table()
   
-  # bypass coverage rule for nowcasted years
-  lnp_year <- fmax(gls$PIP_LINEUP_YEARS)
   
-  out_region[, 
-             coverage := fifelse(reporting_year > lnp_year & coverage < .5,
-                                 .51, coverage)]
-
+  
   # World coverage
   out_wld <- dt %>%
     dplyr::group_by(reporting_year) %>%
     dplyr::summarise(coverage = stats::weighted.mean(coverage, pop)) %>%
     base::transform(pcn_region_code = "WLD") %>%
     data.table::as.data.table()
-
+  
   # Total coverage (World less Other High Income)
   out_tot <- dt %>%
     dplyr::filter(pcn_region_code != "OHI") %>%
@@ -145,7 +149,7 @@ db_create_coverage_table <- function(ref_year_table,
     dplyr::summarise(coverage = stats::weighted.mean(coverage, pop)) %>%
     base::transform(pcn_region_code = "TOT") %>%
     data.table::as.data.table()
-
+  
   # Income group coverage
   out_inc <- dt %>%
     dplyr::filter(incgroup_historical %in% c("Low income", "Lower middle income")) %>%
@@ -154,16 +158,16 @@ db_create_coverage_table <- function(ref_year_table,
     dplyr::mutate(incgroup_historical = "LIC/LMIC") %>%
     data.table::as.data.table()
   out_inc <-  out_inc[, c('reporting_year', 'incgroup_historical', 'coverage')]
-
+  
   # Create output list
   out <- list(region = rbind(out_region, out_wld, out_tot),
               incgrp = out_inc,
               country_year_coverage = dt)
-
+  
   # Adjust digits
   out$region$coverage <- round(out$region$coverage * 100, digits)
   out$incgrp$coverage <- round(out$incgrp$coverage * 100, digits)
-
+  
   return(out)
 }
 
