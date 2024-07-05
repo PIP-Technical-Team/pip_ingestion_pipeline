@@ -61,7 +61,8 @@ options(joyn.verbose    = FALSE,
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ##  AUX data -----
-aux_tb <- prep_aux_data(maindir = gls$PIP_DATA_DIR)
+aux_tb <- prep_aux_data(maindir = gls$PIP_DATA_DIR, 
+                        branch  = branch)
 # filter 
 aux_tb <- aux_tb[!(auxname %chin% c("maddison"))]
 
