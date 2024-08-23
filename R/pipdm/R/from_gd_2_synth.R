@@ -343,12 +343,13 @@ from_gd_2_synth <- function(dl_aux, gls,
   # save data ---------
   
   ## organize and save -----------
-  names(ldt) <- cache_ids
+  filtered_id <- ugpfw$cache_id
+  names(ldt) <- filtered_id
   
   
-  purrr::walk(cli::cli_progress_along(cache_ids), \(i) {
+  purrr::walk(cli::cli_progress_along(filtered_id), \(i) {
     
-    fs::path(sv_dir, cache_ids[[i]], ext = "fst") |> 
+    fs::path(sv_dir, filtered_id[[i]], ext = "fst") |> 
       fst::write_fst(ldt[[i]], path = _)
   })
   
