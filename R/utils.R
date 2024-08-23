@@ -404,15 +404,6 @@ relative_distance <- \(ref_year, svy_year) {
 
 
 
-
-
-
-
-
-
-
-
-
 #' SAve estimations file
 #'
 #' @param dt 
