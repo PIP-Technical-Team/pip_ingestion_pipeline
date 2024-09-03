@@ -173,7 +173,7 @@ process_svy_data_to_cache <- function(survey_id,
       if (py == 2017) {
         bc <- .25
       } else if (py == 2011) {
-        bc <- .25
+        bc <- .22
       } else {
         bc <- 0
       }
