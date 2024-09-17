@@ -80,7 +80,7 @@ db_create_coverage_table <- function(ref_year_table,
   # Merge with cl (to get *_region_code for all countries)
   pop_table <-
     merge(pop_table,
-          cl_table[, c('country_code', 'pcn_region_code')],
+          cl_table[, c('country_code', 'pcn_region_code', 'africa_split_code')],
           by = 'country_code',
           all.x = TRUE)
   
@@ -159,8 +159,17 @@ db_create_coverage_table <- function(ref_year_table,
     data.table::as.data.table()
   out_inc <-  out_inc[, c('reporting_year', 'incgroup_historical', 'coverage')]
   
+  out_ssa <- dt |> 
+    fsubset(!is.na(africa_split_code)) |> 
+    fgroup_by(reporting_year, africa_split_code) |> 
+    fselect(coverage, pop) |> 
+    fmean(w = pop, keep.w = FALSE) |> 
+    frename(pcn_region_code   = africa_split_code) |> 
+    qDT()
+  
+  
   # Create output list
-  out <- list(region = rbind(out_region, out_wld, out_tot),
+  out <- list(region = rbind(out_region, out_wld, out_tot, out_ssa),
               incgrp = out_inc,
               country_year_coverage = dt)
   
