@@ -46,10 +46,10 @@ branch <- "DEV"
 gls <- pipfun::pip_create_globals(
   root_dir   = Sys.getenv("PIP_ROOT_DIR"), 
   # out_dir    = fs::path("y:/pip_ingestion_pipeline/temp/"),
-  vintage    = list(release = "20230328", 
+  vintage    = list(release = "20240429", 
                     ppp_year = py, 
-                    identity = "PROD"), 
-  create_dir = TRUE
+                    identity = "INT"), 
+  create_dir = FALSE
 )
 
 

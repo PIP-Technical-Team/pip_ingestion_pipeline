@@ -49,7 +49,7 @@ compute_survey_mean <- list(
   micro     = function(dt, gd_mean) md_compute_survey_mean(dt, gd_mean),
   group     = function(dt, gd_mean) gd_compute_survey_mean(dt, gd_mean),
   aggregate = function(dt, gd_mean) gd_compute_survey_mean(dt, gd_mean),
-  imputed   = function(dt, gd_mean) id_compute_survey_mean(dt, gd_mean)
+  imputed   = function(dt, gd_mean) md_compute_survey_mean(dt, gd_mean)
 )
 
 #' md_compute_survey_mean
@@ -58,30 +58,45 @@ compute_survey_mean <- list(
 #' @noRd
 md_compute_survey_mean <- function(dt, gd_mean = NULL) {
 
-  # Compute mean by data levels
-  dt <-
-    dt[, .(
-      survey_id          = unique(survey_id),
-      cache_id           = unique(cache_id),
-      country_code       = unique(country_code),
-      surveyid_year      = unique(surveyid_year),
-      survey_acronym     = unique(survey_acronym),
-      survey_year        = unique(survey_year),
-      welfare_type       = unique(welfare_type),
-      distribution_type  = unique(distribution_type),
-      gd_type            = unique(gd_type),
-      survey_mean_lcu    = collapse::fmean(x = welfare,
-                                           w = weight,
-                                           na.rm = TRUE)
-      ),
-    by = .(
-      cpi_data_level, ppp_data_level,
-      gdp_data_level, pce_data_level,
-      pop_data_level, reporting_level
-    )
-    ]
+  
+  uvars <- c( "survey_id",
+              "cache_id",
+              "country_code",
+              "surveyid_year",
+              "survey_acronym",
+              "survey_year",
+              "welfare_type",
+              "distribution_type",
+              "gd_type")
+  
+  data_level_vars <- grep("data_level$", names(dt), value = TRUE)
+  
+  udt_vars <- dt |> 
+    fselect(c(uvars, data_level_vars)) |> 
+    funique()
+  
+  dt <- dt |> 
+    # By imputations
+    fgroup_by(imputation_id, reporting_level) |> 
+    fsummarise(survey_mean_lcu = fmean(welfare, w = weight), 
+               weight          = fsum(weight)) |>
+    # after imputation 
+    fgroup_by(reporting_level) |> 
+    fsummarise(survey_mean_lcu = fmean(survey_mean_lcu, w = weight)) |>
+    fungroup() 
+  
+  # super fast join of unique variables. 
+  dt <- if (fnrow(udt_vars) == fnrow(dt)) {
+    add_vars(udt_vars, dt)
+  } else if (fnrow(udt_vars) > fnrow(dt)) {
+    ftransform(udt_vars, dt[rep(1:.N, nrow(udt_vars))])
+  } else {
+    # this case should not even happen... just in case.
+    ftransform(udt_vars[rep(1:.N, nrow(dt))], dt)
+  }
+  
 
-  return(dt)
+  return(dt)  
 }
 
 #' gd_compute_survey_mean

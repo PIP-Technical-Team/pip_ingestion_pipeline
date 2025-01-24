@@ -38,13 +38,32 @@ db_create_censoring_table <- function(censored, coverage_list, coverage_threshol
   
   data.table::setnames(dt, 'pcn_region_code', 'region_code')
   
+  ## account for AFE and AFW to get the same values as for SSA
+  # ssa <- 
+  #   dt[region_code == "SSA", "reporting_year"
+  #       ][
+  #         rep(1:.N, 2)
+  #       ][,
+  #         # identifier for AFE and AFW
+  #         n := rowid(reporting_year)
+  #         
+  #       ][, 
+  #         region_code := fifelse(n == 1, "AFE", "AFW")
+  #       ]
+  # 
+  # dt <- rowbind(ssa, dt, fill = TRUE)
+  
   dt[, statistic := 'all']
   dt[, id := paste(region_code, reporting_year, sep = "_")]
   
   dt <- dt[, c('region_code', 'reporting_year', 'statistic', 'id')]
-
+  
+  
   # Add region-years to censor based on coverage
-  censored$regions <- rbind(censored$regions, dt)
+  censored$regions <- rowbind(censored$regions, dt, 
+                              fill = TRUE) |> 
+    setorder(region_code, reporting_year)
+  
 
   return(censored)
 }

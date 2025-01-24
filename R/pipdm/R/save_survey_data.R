@@ -24,13 +24,26 @@ save_survey_data <- function(dt,
                              save        = TRUE,
                              load        = FALSE,
                              verbose     = FALSE) {
-
-  ## Select columns    ---------
+  
+  
+  # TEMP: solution to account for imputed population -------
+  dt_names <- names(dt)
+  if ("imputation_id" %in% dt_names) {
+    n_ids <- dt[, uniqueN(imputation_id)]
+    if (n_ids > 1) {
+      dt[, weight := weight/n_ids]
+    }
+  }
+  
+  # END of TEMP -------------
+  
+  
+  # Select columns    ---------
   if (!is.null(cols)) {
     dt <- dt[, ..cols]
   }
 
-  ## optimize size --------
+  # optimize size --------
   dt[,
       area := factor(area, levels = c("rural", "urban"))
       ]
@@ -41,7 +54,7 @@ save_survey_data <- function(dt,
     fgroup_by(byvars) |>
     fsum()
   
-
+  # save -------
   ## Create paths -------------
   cache_filename <- fifelse(!grepl("\\.fst$", cache_filename),
                           paste0(cache_filename, ".fst"),
@@ -49,6 +62,7 @@ save_survey_data <- function(dt,
 
   svy_out_path <- paste(output_dir, cache_filename, sep = "/")
 
+  ## find if file has changed --------------
   if (file.exists(svy_out_path)) {
     odt <- fst::read_fst(svy_out_path)
 

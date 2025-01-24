@@ -146,6 +146,11 @@ process_svy_data_to_cache <- function(survey_id,
       )
 
       # Merge survey table with CPI (left join)
+      ## Round survey_year to 3 decimal places to guarantee the merge
+      
+      df[, survey_year := round(survey_year, 2)]
+      
+      
       df <- joyn::joyn(df, cpi_table,
         by = c(
           "country_code", "survey_year",
@@ -157,18 +162,40 @@ process_svy_data_to_cache <- function(survey_id,
         reportvar = FALSE,
         verbose = FALSE
       )
-
-      df[
-        ,
-        welfare_lcu := welfare
-      ][
-        ,
-        welfare_ppp := wbpip::deflate_welfare_mean(
-          welfare_mean = welfare_lcu,
-          ppp          = ppp,
-          cpi          = cpi
-        )
-      ]
+      
+      ## Bottom censoring 25 cents ---------
+      # PPP year
+      py <- cache_svy_dir |> 
+        fs::path_file() |> 
+        sub("(^[0-9]+_)([0-9]{4})(_.*)", "\\2", x = _) |> 
+        as.numeric()
+      
+      if (py == 2017) {
+        bc <- .25
+      } else if (py == 2011) {
+        bc <- .22
+      } else {
+        bc <- 0
+      }
+      
+    
+      df[,
+         # convert bottom censoring threshold to LCU
+         bc_lcu := get("bc")*ppp*cpi
+         # apply censoring
+         ][welfare <= bc_lcu, 
+           welfare := bc_lcu
+           ][,
+             # deflate LCU welfare to PPP
+             welfare_lcu := welfare
+             ][
+               ,
+               welfare_ppp := wbpip::deflate_welfare_mean(
+                 welfare_mean = welfare_lcu,
+                 ppp          = ppp,
+                 cpi          = cpi
+               )
+             ]
 
       #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
       ## scale subnational population to National accounts (WDI) --------
@@ -196,7 +223,7 @@ process_svy_data_to_cache <- function(survey_id,
          (chr_vars) := lapply(.SD, as.factor),
          .SDcols = chr_vars
          ]
-
+      
 
     }, # end of expr section in trycatch
 
@@ -295,50 +322,62 @@ get_ordered_level <- function(dt, x) {
 #' @return dataframe
 adjust_population <- function(df, pop_table) {
 
-  spop <- df[,
-             # get total population by level
-             .(weight = collapse::fsum(weight)),
-             by = c("country_code", "survey_year", "reporting_level")]
-
-
-  dpop <- joyn::joyn(pop_table, spop,
-                      by         = c("country_code",
-                                     "pop_data_level = reporting_level"),
-                      match_type =  "m:1",
-                      keep       = "inner",
-                      reportvar  =  FALSE)
-
+  spop <- df |> 
+    fgroup_by(c("imputation_id", "country_code", "survey_year", "reporting_level")) |> 
+    fselect(weight) |> 
+    fsum()
+  
+  to_filter <- df |> 
+    fselect(country_code, survey_year, pop_data_level = reporting_level) |> 
+    funique()
+  
+  
+  dpop <- joyn::joyn(pop_table, to_filter, 
+                     by = c("country_code", "pop_data_level"), 
+                     keep = "inner", 
+                     match_type = "m:1",
+                     reportvar = FALSE, 
+                     verbose = FALSE)
+  
+  
   dpop <-
     dpop[,
          # Abs difference in year
-         diff_year := abs(year - survey_year)
-    ][,
-      # get the min in each data level
-      .SD[diff_year == min(diff_year)],
-      by = pop_data_level
+         to_keep := years_to_keep(year, survey_year)
+    ][to_keep == TRUE
     ][,
       # get weights for weighted mean
-      wght := fifelse(diff_year == 0, 1, 1/diff_year) ]
-
-  fact <-
-    dpop[,
-         # get mean of population.
-         lapply(.SD, weighted.mean, w = wght),
-         by = "pop_data_level",
-         .SDcols = c("pop", "weight")
-    ][,
-      pop_fact := pop/weight
-    ][,
-      c("pop", "weight") := NULL]
-
+      wght := 1 - abs(year - survey_year)
+    ][, 
+      # population at the right year
+      .(wdipop = weighted.mean(pop, wght)), 
+      by = pop_data_level
+    ]
+  setnames(dpop, "pop_data_level", "reporting_level")
+  
+  fact <- joyn::joyn(spop, dpop,
+                     by = "reporting_level", 
+                     match_type = "m:1", 
+                     reportvar = FALSE, 
+                     verbose = FALSE) |> 
+    ftransform(pop_fact  = wdipop/weight) |> 
+    fselect(imputation_id, reporting_level, pop_fact)
+  
   df <- joyn::joyn(x  = df,
-                    y  = fact,
-                    by = c("reporting_level = pop_data_level"),
-                    match_type = "m:1",
-                    reportvar = FALSE)
-
-  df[,
-     weight := weight*pop_fact]
+                   y  = fact,
+                   by = c("imputation_id", "reporting_level"),
+                   match_type = "m:1",
+                   reportvar = FALSE, 
+                   verbose = FALSE) |> 
+    ftransform(weight = weight*pop_fact)
 
   return(df)
 }
+
+
+years_to_keep <- \(year, survey_year) {
+  sy  <- unique(survey_year)
+  fcy <- c(floor(sy), ceiling(sy))
+  year %in% fcy
+}
+

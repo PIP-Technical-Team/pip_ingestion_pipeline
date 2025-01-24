@@ -11,7 +11,8 @@ gls <- pipfun::pip_create_globals(
                     identity = identity), 
   create_dir = TRUE, 
   max_year_country   = max_year_country, 
-  max_year_aggregate = max_year_aggregate
+  max_year_aggregate = max_year_aggregate, 
+  max_year_lineup    = max_year_lineup
 )
 
 
@@ -60,7 +61,8 @@ options(joyn.verbose    = FALSE,
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ##  AUX data -----
-aux_tb <- prep_aux_data(maindir = gls$PIP_DATA_DIR)
+aux_tb <- prep_aux_data(maindir = gls$PIP_DATA_DIR, 
+                        branch  = branch)
 # filter 
 aux_tb <- aux_tb[!(auxname %chin% c("maddison"))]
 
@@ -155,6 +157,14 @@ pip_inventory <-
     inv_file = fs::path(gls$PIP_DATA_DIR, '_inventory/inventory.fst'),
     filter_to_pc = TRUE,
     maindir = gls$PIP_DATA_DIR)
+
+
+
+
+if (".joyn" %in% names(pip_inventory)) {
+  pip_inventory[, .joyn := NULL]
+}
+
 
 
 ### pipeline inventory ----

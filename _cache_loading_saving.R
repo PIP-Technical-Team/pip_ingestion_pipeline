@@ -15,18 +15,18 @@
 # pipeline_inventory[country_code == 'PHL' & surveyid_year == 2000]
 
 
-# cts_filter <- c('COL', 'IND', "CHN")
-# pipeline_inventory <-
-#    pipeline_inventory[country_code %in% cts_filter
-#                       ][!(country_code == 'CHN' & surveyid_year >= 2017)]
 
 # pipeline_inventory <-
 #    pipeline_inventory[surveyid_year >= 2021]
+# 
 
-# cts_filter <- c("CHN")
+
+pipeline_inventory <-
+   pipeline_inventory[module  != "PC-GROUP"]
+
+# cts_filter <- c("NGA")
 # pipeline_inventory <-
-#    pipeline_inventory[country_code == 'TWN' 
-#                       & surveyid_year >= 2022]
+#    pipeline_inventory[country_code %in% cts_filter & surveyid_year == 2022]
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -46,6 +46,17 @@ status_cache_files_creation <-
     ppp_table          = dl_aux$ppp, 
     pfw_table          = dl_aux$pfw, 
     pop_table          = dl_aux$pop)
+
+
+
+pipeline_inventory <- 
+  from_gd_2_synth(dl_aux             = dl_aux, 
+                  gls                = gls,
+                  pipeline_inventory = pipeline_inventory, 
+                  force              = force_gd_2_synth, 
+                  cts                = cts, 
+                  yrs                = yrs)
+
 
 
 ### bring cache our of pipeline -----

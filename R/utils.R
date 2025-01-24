@@ -404,15 +404,6 @@ relative_distance <- \(ref_year, svy_year) {
 
 
 
-
-
-
-
-
-
-
-
-
 #' SAve estimations file
 #'
 #' @param dt 
@@ -535,9 +526,10 @@ named_mean <- function(dt) {
   return(mvec)
 }
 
-prep_aux_data <- function(maindir = PIP_DATA_DIR) {
+prep_aux_data <- function(maindir = PIP_DATA_DIR,
+                          branch = "DEV") {
   
-  auxdir <- fs::path(maindir, "_aux/")
+  auxdir <- fs::path(maindir, "_aux/", branch)
   
   aux_dirs <- fs::dir_ls(auxdir,
                          recurse = FALSE,
