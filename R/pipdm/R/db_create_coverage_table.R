@@ -169,7 +169,9 @@ db_create_coverage_table <- function(ref_year_table,
   
   
   # Create output list
-  out <- list(region = rbind(out_region, out_wld, out_tot, out_ssa),
+  out <- list(region = rowbind(out_region, out_wld, out_tot, out_ssa, 
+                               fill = TRUE) |> 
+                setorder(pcn_region_code, reporting_year ),
               incgrp = out_inc,
               country_year_coverage = dt)
   
