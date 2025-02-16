@@ -170,7 +170,9 @@ process_svy_data_to_cache <- function(survey_id,
         sub("(^[0-9]+_)([0-9]{4})(_.*)", "\\2", x = _) |> 
         as.numeric()
       
-      if (py == 2017) {
+      if (py == 2021) {
+        bc <- 0.2831
+      } else if (py == 2017) {
         bc <- .25
       } else if (py == 2011) {
         bc <- .22
