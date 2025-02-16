@@ -53,8 +53,9 @@ create_cache_file <- function(pipeline_inventory,
     new_svy_ids <- find_new_svy_data(
       pipeline_inventory = pipeline_inventory,
       pip_data_dir       = pip_data_dir,
-      tool          = tool,
-      cache_svy_dir = cache_svy_dir
+      tool               = tool,
+      cache_svy_dir      = cache_svy_dir, 
+      pfw_table          = pfw_table
     )
 
     if (verbose) {

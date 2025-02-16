@@ -172,7 +172,7 @@ from_gd_2_synth <- function(dl_aux, gls,
   
   seq_pfw <- seq_len(nrow(ugpfw))
   
-  j <- 81
+  # j <- 81
   ldt <- purrr::map(cli::cli_progress_along(seq_pfw), \(j) {
     ugpfw_j <- ugpfw[j]
     gpfw_j  <- gpfw[ugpfw_j, on = uvars]
