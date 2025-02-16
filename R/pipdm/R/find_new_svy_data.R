@@ -21,14 +21,15 @@ find_new_svy_data <- function(pipeline_inventory,
   
   
   ## filter first by data available in PFW
-  pipeline_inventory <- 
-    pipeline_inventory[pfw_table, 
-                     on = c("country_code", "surveyid_year", "survey_acronym"), 
-                     inpovcal := i.inpovcal
-                     ][
-                       inpovcal == 1
-                       ][,
-                         inpovcal := NULL]
+  pi2 <- copy(pipeline_inventory)
+  pi2[pfw_table, 
+      on = c("country_code", "surveyid_year", "survey_acronym"), 
+      inpovcal := i.inpovcal]
+  
+ pipeline_inventory <- 
+   pi2[inpovcal == 1]
+ 
+ pipeline_inventory[, inpovcal := NULL]
   
   
   cache_id <- pipeline_inventory$cache_id
