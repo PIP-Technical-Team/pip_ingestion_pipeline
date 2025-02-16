@@ -118,7 +118,7 @@ db_create_coverage_table <- function(ref_year_table,
                        abs(reporting_year - survey_year_after) <= 3)]
   
   # Break year
-  year_break <- 2020
+  year_break <- 2019.5
   
   dt[is.na(coverage), coverage := 0]
   dt[(survey_year_before < year_break & reporting_year >= year_break & is.na(survey_year_after)) |
