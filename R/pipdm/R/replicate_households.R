@@ -1,4 +1,4 @@
-library(ggplot2)
+# library(ggplot2)
 library(data.table)
 library(collapse)
 
@@ -149,44 +149,40 @@ replicate_households <- function(DT, weight = "weight", threshold = 2.5, i = 0, 
 }
 
 
-civ <- pipload::pip_load_cache("CIV", 2002)
-civ2 <- replicate_households(civ)
-
-attributes(civ2)
-nrow(civ2)
-nrow(civ)
-
-wbpip::md_compute_gini(civ$welfare_ppp, civ$weight)
-wbpip::md_compute_gini(civ2$welfare_ppp, civ2$weight)
-
-
-ury <- pipload::pip_load_cache("PRY", 2018)
-ury2 <- replicate_households(ury)
-
-
-
-civ2  |>  
-  ggplot(aes(x = weight)) +
-    geom_histogram(bins = 100) +
-    geom_vline(aes(xintercept=fsd(weight)*2.5+fmean(weight)),
-               color="blue", linetype="dashed", linewidth=1) 
-
-
-
-
-
-civp1 <- lorenz_table(civ) 
-civp2 <- lorenz_table(civ2)
-
-perr <- which(diff(civp1$welfare_share) < 0)
-perr2 <- which(diff(civp2$welfare_share) < 0)
-
-civp1[perr]
-civp1[perr2]
-civp2[c(perr2, perr2+1) |> sort()]
-
-
-
-
-
-dim(civ2)
+# civ <- pipload::pip_load_cache("CIV", 2002)
+# civ2 <- replicate_households(civ)
+# 
+# attributes(civ2)
+# nrow(civ2)
+# nrow(civ)
+# 
+# wbpip::md_compute_gini(civ$welfare_ppp, civ$weight)
+# wbpip::md_compute_gini(civ2$welfare_ppp, civ2$weight)
+# 
+# 
+# ury <- pipload::pip_load_cache("PRY", 2018)
+# ury2 <- replicate_households(ury)
+# 
+# 
+# 
+# civ2  |>  
+#   ggplot(aes(x = weight)) +
+#     geom_histogram(bins = 100) +
+#     geom_vline(aes(xintercept=fsd(weight)*2.5+fmean(weight)),
+#                color="blue", linetype="dashed", linewidth=1) 
+# 
+# 
+# 
+# 
+# 
+# civp1 <- lorenz_table(civ) 
+# civp2 <- lorenz_table(civ2)
+# 
+# perr <- which(diff(civp1$welfare_share) < 0)
+# perr2 <- which(diff(civp2$welfare_share) < 0)
+# 
+# civp1[perr]
+# civp1[perr2]
+# civp2[c(perr2, perr2+1) |> sort()]
+# 
+# dim(civ2)

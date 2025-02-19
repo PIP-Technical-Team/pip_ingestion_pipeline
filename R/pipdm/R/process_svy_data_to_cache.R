@@ -245,11 +245,38 @@ process_svy_data_to_cache <- function(survey_id,
     )
     return(ret)
   }
+  
+  # Treat weights to avoid issues with percentiles --------
+
+  df <- tryCatch(
+    expr = {
+      
+      ht <- replicate_households(df)
+      if (attr(ht, "iterations") == 0) {
+        has_replicated_hhds <- FALSE
+      } else {
+        has_replicated_hhds <- TRUE
+      }
+      setattr(ht, "has_replicated_hhds", has_replicated_hhds)
+      
+    }, # end of expr section
+    
+    error = function(e) {
+      setattr(df, "has_replicated_hhds", FALSE)
+      
+    }, # end of error section
+    
+    warning = function(w) {
+      setattr(df, "has_replicated_hhds", FALSE)
+    } # end of finally section
+    
+  ) # End of trycatch  
+  
 
   #--------- Saving data ---------
   df <- tryCatch(
     expr = {
-      # Your code...
+      
       if (!is.null(cols)) {
         df <- df[, ..cols]
       }
