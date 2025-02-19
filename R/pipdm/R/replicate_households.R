@@ -11,14 +11,31 @@ find_outliers <- \(DT, weight = "weight", threshold = 2.5) {
   DT
 }
 
+
+optimize_ratio <- \(y, m) {
+  # Candidate optimum (smallest x possible given that 
+  # 1. y/x < x, whichi x > y^(1/2)
+  # 2. x > m, hwere m is the min or mean of the distribution
+  
+  opt_x <- pmax(m, sqrt(y))
+  
+  # Check the extra condition: we need x_opt <= y/2 to ensure y/x >= 2.
+  to_one <- (opt_x > y/2)
+  opt_x[to_one] <- 1
+  
+  round(y / opt_x)
+  
+}
+
+
 # Step 2: Calculate Replications and Partitioning for Outliers
-calculate_replications <- \(DT, weight = "weight") {
-  mean_w <- fmean(DT[[weight]])
+duplicate_obs <- \(DT, weight = "weight") {
+  min_w <- fmin(DT[[weight]])
   
   # Get houdehold ID
-  DT[, hhid := .I]
+  DT[, hhindex := .I]
   # Get replication count
-  DT[, rep_count := as.integer(pmax(round(.SD[[1]]  / mean_w), 2)), 
+  DT[, rep_count := optimize_ratio(.SD[[1]],  min_w), 
      .SDcols = weight
   ][is_outlier == FALSE,
     rep_count := 1]
@@ -27,9 +44,15 @@ calculate_replications <- \(DT, weight = "weight") {
   Y
 }
 
+
 split_weights <- \(x, rep) {
-  base <- floor(x / rep)
-  rem <- x[1] - fsum(base) 
+  base <- round(x / rep)
+  rem <- x[1] - fsum(base)
+  
+  add_to_base <- floor(abs(rem)/base[1])
+  
+  if (abs(rem) > base[1]) {}
+  
   base[length(base)] <- base[1] + rem
   base
 }
@@ -38,7 +61,7 @@ add_new_weights <- \(DT, weight = "weight") {
   X <- DT[is_outlier == TRUE]
   Y <- DT[is_outlier == FALSE]
   X[, x := split_weights(.SD[[1]], rep_count), 
-     by = hhid, 
+     by = hhindex, 
      .SDcols = weight]
   setnames(X, c(weight, "x"), c("x", weight)) # reverse names
   X[, x := NULL]
@@ -77,13 +100,16 @@ lorenz_table <- \(x, nq = 100) {
   
 }
 # Wrapper Function
-replicate_households <- function(DT, weight = "weight", threshold = 2) {
+replicate_households <- function(DT, weight = "weight", threshold = 2.5, i = 0, li = 5) {
+  
+  i = i + 1
+  ori_treshold <- threshold
   R <- copy(DT)  # work on a copy to avoid modifying original DT
   ori_names <- R |> 
     names() |> 
     copy()
   R <- find_outliers(R, weight, threshold)
-  R <- calculate_replications(R, weight)
+  R <- duplicate_obs(R, weight)
   R <- add_new_weights(R, weight)
   R <- clean_new_weights(R, ori_names)
   lt <- lorenz_table(R) # this is very inefficient, but that's whay I have for now
@@ -92,9 +118,18 @@ replicate_households <- function(DT, weight = "weight", threshold = 2) {
   setattr(R, "welfare_share_OK", !welfare_share_bad)
   setattr(R, "threshold", threshold)
   
+  if (!welfare_share_bad || i >= li) {
+    return(R)
+  }
+  
   if (welfare_share_bad && threshold > 0) {
     threshold <- max(threshold - .5, 0)
-    R <- replicate_households(DT, weight, threshold)
+    R <- replicate_households(DT, weight, threshold, i = i, li = li)
+    
+  } 
+  
+  if (welfare_share_bad && threshold == 0) {
+    R <- replicate_households(R, weight, ori_treshold, i = i, li = li)
   }
   R
 }
@@ -114,16 +149,19 @@ civ <- pipload::pip_load_cache("CIV", 2002)
 ury <- pipload::pip_load_cache("PRY", 2018)
 
 
-ury  |>  
+civ2  |>  
   ggplot(aes(x = weight)) +
     geom_histogram(bins = 100) +
     geom_vline(aes(xintercept=fsd(weight)*2.5+fmean(weight)),
                color="blue", linetype="dashed", linewidth=1) +
-    geom_density(alpha=.2, fill="#FF6666") 
+    geom_vline(aes(xintercept=fmean(weight)),
+               color="red", linetype="dashed", linewidth=1) 
 
 
-civ2 <- replicate_households(civ, threshold = 1)
+civ2 <- replicate_households(civ)
+attributes(civ2)
 nrow(civ2)
+nrow(civ)
 
 
 
@@ -137,6 +175,9 @@ civp1[perr]
 civp1[perr2]
 civp2[c(perr2, perr2+1) |> sort()]
 
+
+wbpip::md_compute_gini(civ$welfare_ppp, civ$weight)
+wbpip::md_compute_gini(civ2$welfare_ppp, civ2$weight)
 
 
 
