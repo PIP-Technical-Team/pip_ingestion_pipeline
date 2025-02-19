@@ -51,8 +51,6 @@ split_weights <- \(x, rep) {
   
   add_to_base <- floor(abs(rem)/base[1])
   
-  if (abs(rem) > base[1]) {}
-  
   base[length(base)] <- base[1] + rem
   base
 }
@@ -60,9 +58,11 @@ split_weights <- \(x, rep) {
 add_new_weights <- \(DT, weight = "weight") {
   X <- DT[is_outlier == TRUE]
   Y <- DT[is_outlier == FALSE]
-  X[, x := split_weights(.SD[[1]], rep_count), 
-     by = hhindex, 
-     .SDcols = weight]
+  # X[, x := split_weights(.SD[[1]], rep_count), 
+  #    by = hhindex, 
+  #    .SDcols = weight]
+  X[, x := .SD[[1]]/ rep_count,
+    .SDcols = weight]
   setnames(X, c(weight, "x"), c("x", weight)) # reverse names
   X[, x := NULL]
   
@@ -101,10 +101,10 @@ lorenz_table <- \(x, nq = 100) {
 }
 # Wrapper Function
 replicate_households <- function(DT, weight = "weight", threshold = 2.5, i = 0, li = 5) {
+  R <- copy(DT)  # work on a copy to avoid modifying original DT
   
   i = i + 1
   ori_treshold <- threshold
-  R <- copy(DT)  # work on a copy to avoid modifying original DT
   ori_names <- R |> 
     names() |> 
     copy()
@@ -122,46 +122,42 @@ replicate_households <- function(DT, weight = "weight", threshold = 2.5, i = 0, 
     return(R)
   }
   
-  if (welfare_share_bad && threshold > 0) {
-    threshold <- max(threshold - .5, 0)
-    R <- replicate_households(DT, weight, threshold, i = i, li = li)
-    
-  } 
-  
-  if (welfare_share_bad && threshold == 0) {
-    R <- replicate_households(R, weight, ori_treshold, i = i, li = li)
+  if (welfare_share_bad) {
+    R <- replicate_households(R, weight, threshold, i = i, li = li)
   }
+  
+  
+  # if (welfare_share_bad && threshold > 0) {
+  #   threshold <- max(threshold - .5, 0)
+  #   R <- replicate_households(DT, weight, threshold, i = i, li = li)
+  #   
+  # }
+  
   R
+  
 }
-
-# Example Usage:
-DT <- data.table(
-  A = letters[1:7],
-  B = 101:107,
-  weight = c(10, 31, 12, 9, 8, 90, 124)
-)
-
-DT_new <- replicate_households(DT, weight = "weight", threshold = 1)
-DT_new[]
 
 
 civ <- pipload::pip_load_cache("CIV", 2002)
-ury <- pipload::pip_load_cache("PRY", 2018)
+civ2 <- replicate_households(civ, li = 10)
+attributes(civ2)
+nrow(civ2)
+nrow(civ)
+
+wbpip::md_compute_gini(civ$welfare_ppp, civ$weight)
+wbpip::md_compute_gini(civ2$welfare_ppp, civ2$weight)
+
+
+# ury <- pipload::pip_load_cache("PRY", 2018)
 
 
 civ2  |>  
   ggplot(aes(x = weight)) +
     geom_histogram(bins = 100) +
     geom_vline(aes(xintercept=fsd(weight)*2.5+fmean(weight)),
-               color="blue", linetype="dashed", linewidth=1) +
-    geom_vline(aes(xintercept=fmean(weight)),
-               color="red", linetype="dashed", linewidth=1) 
+               color="blue", linetype="dashed", linewidth=1) 
 
 
-civ2 <- replicate_households(civ)
-attributes(civ2)
-nrow(civ2)
-nrow(civ)
 
 
 
@@ -176,8 +172,6 @@ civp1[perr2]
 civp2[c(perr2, perr2+1) |> sort()]
 
 
-wbpip::md_compute_gini(civ$welfare_ppp, civ$weight)
-wbpip::md_compute_gini(civ2$welfare_ppp, civ2$weight)
 
 
 
