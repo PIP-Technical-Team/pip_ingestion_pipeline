@@ -171,7 +171,7 @@ process_svy_data_to_cache <- function(survey_id,
         as.numeric()
       
       if (py == 2021) {
-        bc <- 0.2831
+        bc <- 0.28
       } else if (py == 2017) {
         bc <- .25
       } else if (py == 2011) {
@@ -245,32 +245,6 @@ process_svy_data_to_cache <- function(survey_id,
     )
     return(ret)
   }
-  
-  # Treat weights to avoid issues with percentiles --------
-
-  df <- tryCatch(
-    expr = {
-      
-      ht <- replicate_households(df)
-      if (attr(ht, "iterations") == 0) {
-        has_replicated_hhds <- FALSE
-      } else {
-        has_replicated_hhds <- TRUE
-      }
-      setattr(ht, "has_replicated_hhds", has_replicated_hhds)
-      
-    }, # end of expr section
-    
-    error = function(e) {
-      setattr(df, "has_replicated_hhds", FALSE)
-      
-    }, # end of error section
-    
-    warning = function(w) {
-      setattr(df, "has_replicated_hhds", FALSE)
-    } # end of finally section
-    
-  ) # End of trycatch  
   
 
   #--------- Saving data ---------
