@@ -103,8 +103,21 @@ lorenz_table <- \(x, nq = 100) {
 replicate_households <- function(DT, weight = "weight", threshold = 2.5, i = 0, li = 5) {
   R <- copy(DT)  # work on a copy to avoid modifying original DT
   
+  # First iteration to make avoid goind through the whole
+  # transformation of weights
+  if (i == 0) {
+    lt <- lorenz_table(R) # this is very inefficient, but that's whay I have for now
+    welfare_share_bad <- any(diff(lt$welfare_share) < 0) 
+    setattr(R, "welfare_share_OK", !welfare_share_bad)
+    setattr(R, "threshold", threshold)
+    setattr(R, "iterations", i)
+    if (!welfare_share_bad) {
+      return(R)
+    }
+  }
+  
+  
   i = i + 1
-  ori_treshold <- threshold
   ori_names <- R |> 
     names() |> 
     copy()
@@ -117,9 +130,13 @@ replicate_households <- function(DT, weight = "weight", threshold = 2.5, i = 0, 
   welfare_share_bad <- any(diff(lt$welfare_share) < 0) 
   setattr(R, "welfare_share_OK", !welfare_share_bad)
   setattr(R, "threshold", threshold)
+  setattr(R, "iterations", i)
   
-  if (!welfare_share_bad || i >= li) {
-    return(R)
+  # if after li iteration still does nor, then lower the threshold and 
+  # increase the number of iteration
+  if (welfare_share_bad && i >= li && threshold > 0) {
+    threshold <- max(threshold - .5, 0)
+    li <- li*2
   }
   
   if (welfare_share_bad) {
@@ -127,19 +144,14 @@ replicate_households <- function(DT, weight = "weight", threshold = 2.5, i = 0, 
   }
   
   
-  # if (welfare_share_bad && threshold > 0) {
-  #   threshold <- max(threshold - .5, 0)
-  #   R <- replicate_households(DT, weight, threshold, i = i, li = li)
-  #   
-  # }
-  
   R
   
 }
 
 
 civ <- pipload::pip_load_cache("CIV", 2002)
-civ2 <- replicate_households(civ, li = 10)
+civ2 <- replicate_households(civ)
+
 attributes(civ2)
 nrow(civ2)
 nrow(civ)
@@ -148,7 +160,9 @@ wbpip::md_compute_gini(civ$welfare_ppp, civ$weight)
 wbpip::md_compute_gini(civ2$welfare_ppp, civ2$weight)
 
 
-# ury <- pipload::pip_load_cache("PRY", 2018)
+ury <- pipload::pip_load_cache("PRY", 2018)
+ury2 <- replicate_households(ury)
+
 
 
 civ2  |>  
