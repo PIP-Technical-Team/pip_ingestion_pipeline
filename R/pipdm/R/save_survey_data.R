@@ -49,10 +49,37 @@ save_survey_data <- function(dt,
       ]
 
   byvars <- names(dt)[names(dt) != "weight"]
-
-  dt <- dt |>
-    fgroup_by(byvars) |>
-    fsum()
+  
+  # remove optimization 
+  # dt <- dt |>
+  #   fgroup_by(byvars) |>
+  #   fsum()
+  
+  
+  dt <- tryCatch(
+    expr = {
+      
+      ht <- replicate_households(dt)
+      if (attr(ht, "iterations") == 0) {
+        has_replicated_hhds <- FALSE
+      } else {
+        has_replicated_hhds <- TRUE
+      }
+      setattr(ht, "has_replicated_hhds", has_replicated_hhds)
+      
+    }, # end of expr section
+    
+    error = function(e) {
+      setattr(dt, "has_replicated_hhds", FALSE)
+      
+    }, # end of error section
+    
+    warning = function(w) {
+      setattr(dt, "has_replicated_hhds", FALSE)
+    } # end of finally section
+    
+  ) # End of trycatch  
+  
   
   # save -------
   ## Create paths -------------

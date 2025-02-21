@@ -256,10 +256,12 @@ from_gd_2_synth <- function(dl_aux, gls,
             as.numeric()
           
           # threshold
-          if (py == 2017) {
+          if (py == 2021) {
+            bc <- 0.28
+          } else if (py == 2017) {
             bc <- .25
           } else if (py == 2011) {
-            bc <- .25
+            bc <- .22
           } else {
             bc <- 0
           }

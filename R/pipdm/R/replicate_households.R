@@ -78,35 +78,40 @@ lorenz_table <- \(x, nq = 100) {
     ## totals -----------
   fgroup_by(c("welfare_type")) |>
     fmutate(tot_pop = fsum(weight),
-            tot_wlf = fsum(welfare_ppp*weight)) |>
+            tot_wlf = fsum(welfare*weight)) |>
     fungroup() |>
-    setorder(welfare_type, welfare_ppp) |>
+    setorder(welfare_type, welfare) |>
     fgroup_by(c("welfare_type", "reporting_level")) |>
-    fmutate(bin = wbpip:::md_compute_bins(welfare = welfare_ppp,
+    fmutate(bin = wbpip:::md_compute_bins(welfare = welfare,
                                           weight = weight,
                                           nbins = nq)) |>
     fungroup() |> 
     ## shares at the observation level ---------
   ftransform(pop_share = weight/tot_pop,
-             welfare_share = (welfare_ppp*weight)/tot_wlf) |>
+             welfare_share = (welfare*weight)/tot_wlf) |>
     ## aggregate
     fgroup_by(reporting_level, welfare_type, bin) |>
-    fsummarise(avg_welfare    = fmean(welfare_ppp, w = weight),
+    fsummarise(avg_welfare    = fmean(welfare, w = weight),
                pop_share      = fsum(pop_share),
                welfare_share  = fsum(welfare_share),
-               quantile       = fmax(welfare_ppp),
+               quantile       = fmax(welfare),
                pop            = fsum(weight)) |>
     fungroup()
   
 }
 # Wrapper Function
-replicate_households <- function(DT, weight = "weight", threshold = 2.5, i = 0, li = 5) {
+replicate_households <- function(DT, 
+                                 weight = "weight", 
+                                 threshold = 2.5, 
+                                 i = 0, 
+                                 li = 5, 
+                                 super_limit = 20) {
   R <- copy(DT)  # work on a copy to avoid modifying original DT
   
   # First iteration to make avoid goind through the whole
   # transformation of weights
   if (i == 0) {
-    lt <- lorenz_table(R) # this is very inefficient, but that's whay I have for now
+    lt <- lorenz_table(R) # this is very inefficient, but that's what I have for now
     welfare_share_bad <- any(diff(lt$welfare_share) < 0) 
     setattr(R, "welfare_share_OK", !welfare_share_bad)
     setattr(R, "threshold", threshold)
@@ -115,6 +120,9 @@ replicate_households <- function(DT, weight = "weight", threshold = 2.5, i = 0, 
       return(R)
     }
   }
+  
+  if (i >= super_limit)
+    return(R)
   
   
   i = i + 1
@@ -125,7 +133,7 @@ replicate_households <- function(DT, weight = "weight", threshold = 2.5, i = 0, 
   R <- duplicate_obs(R, weight)
   R <- add_new_weights(R, weight)
   R <- clean_new_weights(R, ori_names)
-  lt <- lorenz_table(R) # this is very inefficient, but that's whay I have for now
+  lt <- lorenz_table(R) # this is very inefficient, but that's what I have for now
   
   welfare_share_bad <- any(diff(lt$welfare_share) < 0) 
   setattr(R, "welfare_share_OK", !welfare_share_bad)
@@ -156,8 +164,8 @@ replicate_households <- function(DT, weight = "weight", threshold = 2.5, i = 0, 
 # nrow(civ2)
 # nrow(civ)
 # 
-# wbpip::md_compute_gini(civ$welfare_ppp, civ$weight)
-# wbpip::md_compute_gini(civ2$welfare_ppp, civ2$weight)
+# wbpip::md_compute_gini(civ$welfare, civ$weight)
+# wbpip::md_compute_gini(civ2$welfare, civ2$weight)
 # 
 # 
 # ury <- pipload::pip_load_cache("PRY", 2018)
