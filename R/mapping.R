@@ -17,7 +17,7 @@ mp_svy_mean_lcu <- function(cache, gd_means) {
 #'
 #' @examples
 mp_cache <- 
-  function(cache_dir = NULL, 
+  function(cache_dir, 
            load = TRUE, 
            save = FALSE, 
            gls, 
@@ -26,8 +26,10 @@ mp_cache <-
     dir <- fs::path(gls$PIP_PIPE_DIR, "pc_data/cache/global_list/")
     
     # global_file <- paste0(dir, "global_list.rds")
-    global_name <- paste0("global_list_", cache_ppp)
-    global_file <- fs::path(dir, global_name , ext = "qs")
+    global_name      <- paste0("global_list_", cache_ppp)
+    global_name_inv  <- paste0("global_list_inventory", cache_ppp)
+    global_file      <- fs::path(dir, global_name , ext = "qs")
+    global_inv       <- fs::path(dir, global_name_inv, ext = "qs")
     
     if (!fs::file_exists(global_file)) {
       save <- TRUE
@@ -35,15 +37,25 @@ mp_cache <-
                      It will be created and saved")
     }
     
+    # Compare names of each file with the ones already saved
+    # if different, then create cache again and save both cache 
+    # and new inventory
+    ch_names <- names(cache_dir)
+    if (!fs::file_exists(global_inv)) {
+      save <- TRUE
+      cli::cli_alert("file {.file {global_inv}} does not exist. 
+                     cache will be created and saved")
+    } else {
+      inv <- qs::qread(global_inv)
+      if (!all.equal(inv, ch_names, check.attributes = FALSE)) {
+        cli::cli_alert("current cache inventory in file  does not match with 
+                       the new one. Cache will be recreated")
+        save <- TRUE
+      }
+    }
+    
     if (isTRUE(save)) {
       
-      if (is.null(cache_dir)) {
-        cli::cli_abort("You must provide a {.code cache_dir} vector")
-      }
-      
-      ch_names <- gsub("(.+/)([A-Za-z0-9_\\-]+)(\\.fst$)", "\\2", cache_dir)
-      names(ch_names) <- NULL
-      names(cache_dir) <- ch_names
       
       cli::cli_progress_step("Creating list")
       y <- purrr::map(.x = cli::cli_progress_along(ch_names), 
@@ -69,6 +81,7 @@ mp_cache <-
       
       names(y) <- ch_names
       qs::qsave(y, global_file, preset =  "fast")
+      qs::qsave(ch_names, global_inv, preset =  "fast")
       # readr::write_rds(y, global_file)
       
     }
