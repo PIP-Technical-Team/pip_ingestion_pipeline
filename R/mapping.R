@@ -47,7 +47,7 @@ mp_cache <-
                      cache will be created and saved")
     } else {
       inv <- qs::qread(global_inv)
-      if (!all.equal(inv, ch_names, check.attributes = FALSE)) {
+      if (!identical(inv, ch_names)) {
         cli::cli_alert("current cache inventory in file  does not match with 
                        the new one. Cache will be recreated")
         save <- TRUE
