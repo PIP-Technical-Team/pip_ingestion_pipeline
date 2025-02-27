@@ -50,14 +50,14 @@ db_create_coverage_table <- function(ref_year_table,
              reporting_level
            )
   ]
-  dt$survey_year_after <- dt$survey_year %>%
-    regmatches(., gregexpr(", .*", .)) %>%
-    gsub(", ", "", .) %>%
-    ifelse(. == "character(0)", NA, .) %>%
+  dt$survey_year_after <- dt$survey_year |>
+    regmatches(., gregexpr(", .*", .)) |>
+    gsub(", ", "", .) |>
+    ifelse(. == "character(0)", NA, .) |>
     as.numeric()
   dt$survey_year <-
-    gsub(", .*", "", dt$survey_year) %>%
-    as.character() %>%
+    gsub(", .*", "", dt$survey_year) |>
+    as.character() |>
     as.numeric()
   dt <- data.table::setnames(dt, 'survey_year', 'survey_year_before')
   
@@ -112,52 +112,70 @@ db_create_coverage_table <- function(ref_year_table,
   dt <- dt[!is.na(pop), ]
   
   
+  # set limits for rules
+  year_threshold <- 3
+  year_break     <- 2019.5
   
-  # Create coverage column (current method)
-  dt[, coverage :=  (abs(reporting_year - survey_year_before) <= 3 |
-                       abs(reporting_year - survey_year_after) <= 3)]
+  # find differences for surveys before and after reporting year
+  dt[, `:=`(
+    lower_limit = year_threshold,
+    upper_limit = survey_year_after - year_break
+  )]
   
-  # Break year
-  year_break <- 2019.5
+  # the upper limit only applies to those year that are within the 
+  # year threshold and the difference between the year of the survey
+  # afeter and the COVID break. All the other years have the same 
+  # year threshold
+  dt[upper_limit > year_threshold | upper_limit < 0, 
+     upper_limit := year_threshold]
   
-  dt[is.na(coverage), coverage := 0]
-  dt[(survey_year_before < year_break & reporting_year >= year_break & is.na(survey_year_after)) |
-       (survey_year_after  >= year_break & reporting_year < year_break & is.na(survey_year_before)),
-     coverage := 0]
+  # first we find coverage for the upper limit. 
+  dt[!is.na(upper_limit), 
+     coverage := (survey_year_after - reporting_year) <= upper_limit]
+  
+  # if the condition of lower limits meets, 
+  # it has prevalence over the one of upper limit. That's why it 
+  # is executed after. Yet, if the lower limit does not meet, but 
+  # after limit does, then the coverage will TRUE. 
+  
+  dt[!is.na(lower_limit), 
+     coverage := (reporting_year - survey_year_before) <= lower_limit]
+  
+  dt[is.na(coverage), 
+     coverage := FALSE]
   
   # ---- Calculate world and regional coverage ----
   
   # PCN Regional coverage
-  out_region <- dt %>%
-    dplyr::group_by(reporting_year, pcn_region_code) %>%
-    dplyr::summarise(coverage = stats::weighted.mean(coverage, pop)) %>%
-    data.table::as.data.table()
-  
+  out_region <- dt  |> 
+    fgroup_by(reporting_year, pcn_region_code) |> 
+    fsummarise(coverage = fmean(coverage, pop)) |> 
+    fungroup()
   
   
   # World coverage
-  out_wld <- dt %>%
-    dplyr::group_by(reporting_year) %>%
-    dplyr::summarise(coverage = stats::weighted.mean(coverage, pop)) %>%
-    base::transform(pcn_region_code = "WLD") %>%
-    data.table::as.data.table()
+  out_wld <- dt |>
+    fgroup_by(reporting_year) |>
+    fsummarise(coverage = fmean(coverage, pop)) |>
+    fungroup() |> 
+    ftransform(pcn_region_code = "WLD")
   
   # Total coverage (World less Other High Income)
-  out_tot <- dt %>%
-    dplyr::filter(pcn_region_code != "OHI") %>%
-    dplyr::group_by(reporting_year) %>%
-    dplyr::summarise(coverage = stats::weighted.mean(coverage, pop)) %>%
-    base::transform(pcn_region_code = "TOT") %>%
-    data.table::as.data.table()
+  out_tot <- dt |>
+    fsubset(pcn_region_code != "OHI") |>
+    fgroup_by(reporting_year) |>
+    fsummarise(coverage = stats::weighted.mean(coverage, pop)) |>
+    fungroup() |> 
+    ftransform(pcn_region_code = "TOT")
   
   # Income group coverage
-  out_inc <- dt %>%
-    dplyr::filter(incgroup_historical %in% c("Low income", "Lower middle income")) %>%
-    dplyr::group_by(reporting_year) %>%
-    dplyr::summarise(coverage = stats::weighted.mean(coverage, pop)) %>%
-    dplyr::mutate(incgroup_historical = "LIC/LMIC") %>%
-    data.table::as.data.table()
-  out_inc <-  out_inc[, c('reporting_year', 'incgroup_historical', 'coverage')]
+  out_inc <- dt |>
+    fsubset(incgroup_historical %in% c("Low income", "Lower middle income")) |>
+    fgroup_by(reporting_year) |>
+    fsummarise(coverage = stats::weighted.mean(coverage, pop)) |>
+    fungroup() |> 
+    ftransform(incgroup_historical = "LIC/LMIC") |> 
+    fselect(c('reporting_year', 'incgroup_historical', 'coverage'))
   
   out_ssa <- dt |> 
     fsubset(!is.na(africa_split_code)) |> 
