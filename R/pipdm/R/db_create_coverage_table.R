@@ -50,16 +50,14 @@ db_create_coverage_table <- function(ref_year_table,
              reporting_level
            )
   ]
-  dt$survey_year_after <- dt$survey_year |>
-    regmatches(., gregexpr(", .*", .)) |>
-    gsub(", ", "", .) |>
-    ifelse(. == "character(0)", NA, .) |>
-    as.numeric()
-  dt$survey_year <-
-    gsub(", .*", "", dt$survey_year) |>
-    as.character() |>
-    as.numeric()
-  dt <- data.table::setnames(dt, 'survey_year', 'survey_year_before')
+  
+  dt[grepl(",", survey_year), 
+     survey_year_after := sub(".*,\\s*", "", survey_year) |> 
+       as.numeric()]
+  dt[,
+     survey_year_before := sub(", .*", "", survey_year) |>
+       as.numeric()]
+  
   
   # ---- Prepare Population table ----
   
