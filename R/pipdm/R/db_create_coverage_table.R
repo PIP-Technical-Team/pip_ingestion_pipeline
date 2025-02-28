@@ -114,33 +114,46 @@ db_create_coverage_table <- function(ref_year_table,
   year_threshold <- 3
   year_break     <- 2019.5
   
-  # find differences for surveys before and after reporting year
+  # Step 1: Compute the absolute year differences (lags)
   dt[, `:=`(
-    lower_limit = year_threshold,
-    upper_limit = survey_year_after - year_break
+    lag_before = abs(reporting_year - survey_year_before),
+    lag_after  = abs(survey_year_after - reporting_year),
+    gap_before_break = abs(survey_year_before - year_break),
+    gap_after_break = abs(survey_year_after - year_break)
   )]
   
-  # the upper limit only applies to those year that are within the 
-  # year threshold and the difference between the year of the survey
-  # afeter and the COVID break. All the other years have the same 
-  # year threshold
-  dt[upper_limit > year_threshold | upper_limit < 0, 
-     upper_limit := year_threshold]
+  # Step 2: Initial coverage check (based on nearest survey)
+  dt[, coverage := pmin(lag_before, lag_after, na.rm = TRUE) <= year_threshold]
   
-  # first we find coverage for the upper limit. 
-  dt[!is.na(upper_limit), 
-     coverage := (survey_year_after - reporting_year) <= upper_limit]
+  # Step 3: Define COVID-period thresholds
+  threshold_low <- year_break - year_threshold
+  threshold_high <- year_break + year_threshold
   
-  # if the condition of lower limits meets, 
-  # it has prevalence over the one of upper limit. That's why it 
-  # is executed after. Yet, if the lower limit does not meet, but 
-  # after limit does, then the coverage will TRUE. 
+  # Step 4: Apply COVID-period rules (censored coverage window)
+  dt[
+    reporting_year %between% c(threshold_low, threshold_high) &
+      ((survey_year_after %between% c(threshold_low, threshold_high)) | 
+         (survey_year_before %between% c(threshold_low, threshold_high))),
+    coverage := NA_real_
+  ]
   
-  dt[!is.na(lower_limit), 
-     coverage := (reporting_year - survey_year_before) <= lower_limit]
+  # Step 5: Adjust coverage based on COVID-period conditions
+  dt[
+    is.na(coverage) & reporting_year %between% c(threshold_low, threshold_high) &
+      ((survey_year_after > year_break & !is.na(survey_year_after)) | survey_year_before > year_break),
+    coverage := lag_before <= year_threshold | lag_after <= gap_after_break
+  ]
   
-  dt[is.na(coverage), 
-     coverage := FALSE]
+  dt[
+    is.na(coverage) & reporting_year %between% c(threshold_low, threshold_high) &
+      ((survey_year_after < year_break & !is.na(survey_year_after)) | survey_year_before < year_break),
+    coverage := lag_before <= gap_before_break | lag_after <= year_threshold
+  ]
+  
+  # Step 6: Clean up intermediate variables
+  cols_to_remove <- c("lag_before", "lag_after", "gap_before_break", "gap_after_break")
+  
+  dt[, (cols_to_remove) := NULL]
   
   # ---- Calculate world and regional coverage ----
   
