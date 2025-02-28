@@ -111,9 +111,10 @@ from_gd_2_synth <- function(dl_aux, gls,
   for (j in 1:nrow(ugpfw)) {
     ugpfw_j <- ugpfw[j]
     inv[[j]] <- pipload::pip_find_data(ugpfw_j$country,
-                                       ugpfw_j$year, 
-                                       filter_to_pc = TRUE) |> 
-      fselect(-c( survey_id , .joyn))
+                                       ugpfw_j$year) |> 
+      # get max again. 
+      _[, .SD[filename  == max(filename)],
+        by = .(country_code, surveyid_year)]
   }
   
   cache_ids <- 
@@ -186,7 +187,9 @@ from_gd_2_synth <- function(dl_aux, gls,
     
     # This is super inefficient, but I don't have time to make it better. 
     inv  <- pipload::pip_find_data(ugpfw_j$country,
-                                   ugpfw_j$year)
+                                   ugpfw_j$year) |> 
+      _[, .SD[filename  == max(filename)],
+          by = .(country_code, surveyid_year)]
     
     cache_ids <- 
       with(ugpfw_j, {
