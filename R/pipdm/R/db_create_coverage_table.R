@@ -115,6 +115,12 @@ db_create_coverage_table <- function(ref_year_table,
   year_break     <- 2019.5
   
   # Step 1: Compute the absolute year differences (lags)
+  dt[survey_year_before > reporting_year,
+     survey_year_before := NA]
+  
+  dt[survey_year_after < reporting_year,
+     survey_year_after := NA]
+  
   dt[, `:=`(
     lag_before = abs(reporting_year - survey_year_before),
     lag_after  = abs(survey_year_after - reporting_year),
@@ -139,21 +145,37 @@ db_create_coverage_table <- function(ref_year_table,
   
   # Step 5: Adjust coverage based on COVID-period conditions
   dt[
-    is.na(coverage) & reporting_year %between% c(threshold_low, threshold_high) &
-      ((survey_year_after > year_break & !is.na(survey_year_after)) | survey_year_before > year_break),
+    reporting_year %between% c(threshold_low, threshold_high) &
+      ((survey_year_after > year_break & !is.na(survey_year_after)) | 
+         survey_year_before > year_break) & 
+      is.na(coverage),
     coverage := lag_before <= year_threshold | lag_after <= gap_after_break
   ]
   
   dt[
-    is.na(coverage) & reporting_year %between% c(threshold_low, threshold_high) &
-      ((survey_year_after < year_break & !is.na(survey_year_after)) | survey_year_before < year_break),
+    reporting_year %between% c(threshold_low, threshold_high) &
+      ((survey_year_after < year_break & !is.na(survey_year_after)) | 
+         survey_year_before < year_break) & 
+      is.na(coverage),
     coverage := lag_before <= gap_before_break | lag_after <= year_threshold
   ]
+  
+
+  # dt[
+  #   reporting_year %between% c(threshold_low, threshold_high) 
+  #   & survey_year_before > year_break 
+  #   & is.na(survey_year_after) 
+  #   & reporting_year < year_break 
+  #   & coverage == TRUE,
+  #   coverage := lag_before <= gap_before_break | lag_after <= year_threshold
+  # ]
   
   # Step 6: Clean up intermediate variables
   cols_to_remove <- c("lag_before", "lag_after", "gap_before_break", "gap_after_break")
   
   dt[, (cols_to_remove) := NULL]
+  dt[is.na(coverage), 
+     coverage := FALSE]
   
   # ---- Calculate world and regional coverage ----
   
@@ -183,7 +205,7 @@ db_create_coverage_table <- function(ref_year_table,
   out_inc <- dt |>
     fsubset(incgroup_historical %in% c("Low income", "Lower middle income")) |>
     fgroup_by(reporting_year) |>
-    fsummarise(coverage = stats::weighted.mean(coverage, pop)) |>
+    fsummarise(coverage = fmean(coverage, pop)) |>
     fungroup() |> 
     ftransform(incgroup_historical = "LIC/LMIC") |> 
     fselect(c('reporting_year', 'incgroup_historical', 'coverage'))
