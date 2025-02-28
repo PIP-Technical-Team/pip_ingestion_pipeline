@@ -111,7 +111,9 @@ from_gd_2_synth <- function(dl_aux, gls,
   for (j in 1:nrow(ugpfw)) {
     ugpfw_j <- ugpfw[j]
     inv[[j]] <- pipload::pip_find_data(ugpfw_j$country,
-                                       ugpfw_j$year)
+                                       ugpfw_j$year, 
+                                       filter_to_pc = TRUE) |> 
+      fselect(-c( survey_id , .joyn))
   }
   
   cache_ids <- 
