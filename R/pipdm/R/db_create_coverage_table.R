@@ -115,11 +115,28 @@ db_create_coverage_table <- function(ref_year_table,
   year_break     <- 2019.5
   
   # Step 1: Compute the absolute year differences (lags)
-  dt[survey_year_before > reporting_year,
+  # Create temporary variables ya and yb
+  dt[survey_year_before > reporting_year & is.na(survey_year_after), 
+     ya := survey_year_before]
+  
+  dt[survey_year_after < reporting_year & is.na(survey_year_before), 
+     yb := survey_year_after]
+  
+  # Replace values in survey_year_before and survey_year_after based on the conditions
+  dt[survey_year_before > reporting_year, 
      survey_year_before := NA]
   
-  dt[survey_year_after < reporting_year,
+  dt[survey_year_after < reporting_year, 
      survey_year_after := NA]
+  
+  # For missing values, replace with the temporary variable values
+  dt[is.na(survey_year_before), 
+     survey_year_before := yb]
+  
+  dt[is.na(survey_year_after), 
+     survey_year_after := ya]
+  
+  dt[, c("yb", "ya") := NULL]
   
   dt[, `:=`(
     lag_before = abs(reporting_year - survey_year_before),
