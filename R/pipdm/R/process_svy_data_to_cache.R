@@ -206,7 +206,8 @@ process_svy_data_to_cache <- function(survey_id,
       nrl <- length(df[, unique(reporting_level)]) # number of reporting level
       dst <- df[, unique(distribution_type)]       # distribution type
 
-      if ( nrl > 1  &&  !(dst %in% c("group", "aggregate")))  {
+      # if ( nrl > 1  &&  !(dst %in% c("group", "aggregate")))  {
+      if ( FALSE)  {
         # sd <- split(df, by = "imputation_id")
         # lf <- purrr::map(.x = sd, 
         #                  adjust_population, 
