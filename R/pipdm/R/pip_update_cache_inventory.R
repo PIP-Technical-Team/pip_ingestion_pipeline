@@ -44,6 +44,10 @@ pip_update_cache_inventory <- function(
 
   # Filter pipeline inventory and select relevant variables
   cols <- c("orig", "filename", "survey_id")
+  
+  # convert GROUP to SYNTH in pipeline inventory (TEMPORAL)
+  w_group <- grep("GROUP$", pipeline_inventory$cache_id)
+  pipeline_inventory[w_group, cache_id := gsub("GROUP", "SYNTH", cache_id)]
 
   crr <- joyn::joyn(cch, pipeline_inventory,
                      by         = "cache_id",
