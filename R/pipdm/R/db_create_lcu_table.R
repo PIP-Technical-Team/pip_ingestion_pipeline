@@ -90,6 +90,16 @@ db_create_lcu_table <- function(dl, pop_table, pfw_table) {
   # since other cases that have mulitiple welfare types for the same year aslo
   # have different survey acronyms (e.g POL). But the whole handling of multiple
   # welfare types in the same survey is probably something we could discuss.
+  
+  #-------- Fix display in country profiles ------------
+  #This needs to be done when there is more than one welfare type in the same
+  #survey.
+  
+  dt[(grepl("^i", oth_welfare1_type) & welfare_type == "consumption") |
+       (grepl("^c", oth_welfare1_type) & welfare_type == "income") ,
+     display_cp := 0]
+  
+  dt[, oth_welfare1_type := NULL]
 
   #--------- Merge with POP ---------
 
