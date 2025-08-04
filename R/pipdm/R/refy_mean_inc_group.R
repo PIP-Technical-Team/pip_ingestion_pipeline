@@ -390,8 +390,8 @@ refy_mean_inc_group <- \(dsm, gls, dl_aux, pinv) {
       reporting_gdp = gdp, 
       reporting_pce = pce, 
       reporting_pop = pop,
-      is_monotonic, 
-      is_same_direction
+      monotonic, 
+      same_direction
     )
   
   
