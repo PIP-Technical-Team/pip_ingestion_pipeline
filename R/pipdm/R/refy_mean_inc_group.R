@@ -372,7 +372,7 @@ refy_mean_inc_group <- \(dsm, gls, dl_aux, pinv) {
                                         lineup_case == "svy_year" , "survey", 
                                         default = "extrapolation")) |> 
     ftransform(interpolation_id = paste(country_code, reference_year, reporting_level, 
-                                        sep =  "_")) |> 
+                                        sep =  "_"))  |> 
     # New reference mean
     fselect(
       country_code      ,
@@ -392,8 +392,6 @@ refy_mean_inc_group <- \(dsm, gls, dl_aux, pinv) {
       reporting_pop = pop,
       monotonic, 
       same_direction,
-      nac,  
-      nac_sy, 
       svy_mean
     )
   
