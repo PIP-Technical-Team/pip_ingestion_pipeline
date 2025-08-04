@@ -391,7 +391,10 @@ refy_mean_inc_group <- \(dsm, gls, dl_aux, pinv) {
       reporting_pce = pce, 
       reporting_pop = pop,
       monotonic, 
-      same_direction
+      same_direction,
+      nac,  
+      nac_sy, 
+      svy_mean
     )
   
   
