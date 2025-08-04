@@ -95,9 +95,12 @@ db_create_lcu_table <- function(dl, pop_table, pfw_table) {
   #This needs to be done when there is more than one welfare type in the same
   #survey.
   
-  dt[(grepl("^i", oth_welfare1_type) & welfare_type == "consumption") |
-       (grepl("^c", oth_welfare1_type) & welfare_type == "income") ,
-     display_cp := 0]
+  dt[(grepl("^i", oth_welfare1_type) & welfare_type == "income") |
+       (grepl("^c", oth_welfare1_type) & welfare_type == "consumption") ,
+     display_cp := 0
+     ][(grepl("^i", oth_welfare1_type) & welfare_type == "consumption") |
+         (grepl("^c", oth_welfare1_type) & welfare_type == "income") ,
+       display_cp := 1]
   
   dt[, oth_welfare1_type := NULL]
 

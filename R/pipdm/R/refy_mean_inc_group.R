@@ -389,8 +389,9 @@ refy_mean_inc_group <- \(dsm, gls, dl_aux, pinv) {
       predicted_mean_ppp = ref_mean,
       reporting_gdp = gdp, 
       reporting_pce = pce, 
-      reporting_pop = pop
-      
+      reporting_pop = pop,
+      is_monotonic, 
+      is_same_direction
     )
   
   
