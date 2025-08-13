@@ -92,7 +92,8 @@ db_create_ref_estimation_table <- function(ref_year_table, dist_table) {
     "estimation_type",
     "interpolation_id",
     "display_cp", "monotonic", 
-    "same_direction", "nac",   "nac_sy", "svy_mean"
+    "same_direction", "nac",   "nac_sy", 
+    "svy_mean", "income_group_code", "relative_distance"
   )
   dt <- dt[, .SD, .SDcols = cols]
 

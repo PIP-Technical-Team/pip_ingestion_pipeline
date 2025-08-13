@@ -562,7 +562,8 @@ prep_aux_data <- function(maindir = PIP_DATA_DIR,
     auxfiles = aux_dirs
   )
   
-  return(aux_tb)
+  aux_tb[!(auxname %chin% c("maddison"))]
+  
 }
 
 #' Create framework data from Price FrameWork data (subsample)

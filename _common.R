@@ -63,106 +63,119 @@ options(joyn.verbose    = FALSE,
 ##  AUX data -----
 aux_tb <- prep_aux_data(maindir = gls$PIP_DATA_DIR, 
                         branch  = branch)
-# filter 
-aux_tb <- aux_tb[!(auxname %chin% c("maddison"))]
-
-aux_ver <- rep("00", length(aux_tb$auxname))
-
-# aux_ver[which(aux_tb$auxname == "cpi")] <- -1 # remove for march update
-
-dl_aux <- purrr::map2(.x = aux_tb$auxname,
-                      .y =  aux_ver,
-                      .f = ~ {
-                        pipload::pip_load_aux(
-                          measure     = .x, 
-                          apply_label = FALSE,
-                          maindir     = gls$PIP_DATA_DIR, 
-                          verbose     = FALSE, 
-                          version     = .y, 
-                          branch      = branch)
-                      }
-)
-
-names(dl_aux) <- aux_tb$auxname    
-
-aux_versions <- purrr::map_df(aux_tb$auxname, ~{
-  y <- attr(dl_aux[[.x]], "version")
-  w <- data.table(aux = .x, 
-                  version = y)
-  w
-})
 
 
-# temporal change. 
-dl_aux$pop$year <- as.numeric(dl_aux$pop$year)
+
+load_aux_data <- \(aux_tb) {
+  # Modify this if we need another version
+  aux_ver <- rep("00", length(aux_tb$auxname))
+  
+  # aux_ver[which(aux_tb$auxname == "cpi")] <- -1 # remove for march update
+  
+  purrr::map2(.x = aux_tb$auxname,
+              .y =  aux_ver,
+              .f = ~ {
+                pipload::pip_load_aux(
+                  measure     = .x, 
+                  apply_label = FALSE,
+                  maindir     = gls$PIP_DATA_DIR, 
+                  verbose     = FALSE, 
+                  version     = .y, 
+                  branch      = branch)
+              }) |> 
+    setNames(aux_tb$auxname)
+}
 
 
-### Select PPP year --------
-
-vars     <- c("ppp_year", "release_version", "adaptation_version")
-ppp_v    <- unique(dl_aux$ppp[, ..vars], by = vars)
-data.table::setnames(x = ppp_v,
-                     old = c("release_version", "adaptation_version"),
-                     new = c("ppp_rv", "ppp_av"))
-
-# max release version
-m_rv <- ppp_v[ppp_year == py, max(ppp_rv)]
-
-# max adaptation year
-m_av <- ppp_v[ppp_year == py & ppp_rv == m_rv, 
-              max(ppp_av)]
+# aux_versions <- purrr::map_df(aux_tb$auxname, ~{
+#   y <- attr(dl_aux[[.x]], "version")
+#   w <- data.table(aux = .x, 
+#                   version = y)
+#   w
+# })
 
 
-dl_aux$ppp <- dl_aux$ppp[ppp_year == py 
-                         & release_version    == m_rv
-                         & adaptation_version == m_av
-][, 
-  ppp_default := TRUE]
+# temporal change.
 
+## format aux data -------
 
-### Select the right CPI --------
-
-cpivar <- paste0("cpi", py)
-
-dl_aux$cpi[, cpi := get(cpivar)]
-
-### Select right Poverty lines table ------
-
-dl_aux$pl <- dl_aux$pl[ppp_year == py
-][, 
-  ppp_year := NULL]
-
-### Select right Country Profile ------
-
-
-dl_aux$cp <-
-  lapply(dl_aux$cp,
-         \(.) { # for each list *key indicators and charts
-           lapply(.,
-                  \(x) { # for each table inside each list
-                    if ("ppp_year" %in% names(x)) {
-                      x <-
-                        x[ppp_year == py
+format_aux_data <- \(dl_aux, py) {
+  dl_aux$pop$year <- as.numeric(dl_aux$pop$year)
+  
+  
+  ### Select PPP year --------
+  
+  vars     <- c("ppp_year", "release_version", "adaptation_version")
+  ppp_v    <- unique(dl_aux$ppp[, ..vars], by = vars)
+  data.table::setnames(x = ppp_v,
+                       old = c("release_version", "adaptation_version"),
+                       new = c("ppp_rv", "ppp_av"))
+  
+  # max release version
+  m_rv <- ppp_v[ppp_year == py, max(ppp_rv)]
+  
+  # max adaptation year
+  m_av <- ppp_v[ppp_year == py & ppp_rv == m_rv, 
+                max(ppp_av)]
+  
+  
+  dl_aux$ppp <- dl_aux$ppp[ppp_year == py 
+                           & release_version    == m_rv
+                           & adaptation_version == m_av
+  ][, 
+    ppp_default := TRUE]
+  
+  
+  ### Select the right CPI --------
+  
+  cpivar <- paste0("cpi", py)
+  
+  dl_aux$cpi[, cpi := get(cpivar)]
+  
+  ### Select right Poverty lines table ------
+  
+  dl_aux$pl <- dl_aux$pl[ppp_year == py
+  ][, 
+    ppp_year := NULL]
+  
+  ### Select right Country Profile ------
+  
+  
+  dl_aux$cp <-
+    lapply(dl_aux$cp,
+           \(.) { # for each list *key indicators and charts
+             lapply(.,
+                    \(x) { # for each table inside each list
+                      if ("ppp_year" %in% names(x)) {
+                        x <-
+                          x[ppp_year == py
                           ][,
                             ppp_year := NULL]
-                    }
-                    x
-                  })
-         })
+                      }
+                      x
+                    })
+           })
+  dl_aux
+}
+
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ##  PIP inventory ----
-pip_inventory <- 
-  pipload::pip_find_data(
-    inv_file = fs::path(gls$PIP_DATA_DIR, '_inventory/inventory.fst'),
-    filter_to_pc = TRUE,
-    maindir = gls$PIP_DATA_DIR)
 
 
 
-
-if (".joyn" %in% names(pip_inventory)) {
-  pip_inventory[, .joyn := NULL]
+load_pip_inventory <- \(file) {
+  pip_inventory <- 
+    pipload::pip_find_data(
+      inv_file = file,
+      filter_to_pc = TRUE,
+      maindir = gls$PIP_DATA_DIR)
+  
+  
+  if (".joyn" %in% names(pip_inventory)) {
+    pip_inventory[, .joyn := NULL]
+  }
+  pip_inventory
 }
 
 
@@ -174,9 +187,9 @@ if (".joyn" %in% names(pip_inventory)) {
 
 
 
-pipeline_inventory <- 
-  db_filter_inventory(dt        = pip_inventory,
-                      pfw_table = dl_aux$pfw)
+# pipeline_inventory <- 
+#   db_filter_inventory(dt        = pip_inventory,
+#                       pfw_table = dl_aux$pfw)
 
 
   
