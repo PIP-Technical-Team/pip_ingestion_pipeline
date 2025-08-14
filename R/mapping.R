@@ -118,6 +118,125 @@ mp_cache <-
   }
 
 
+
+
+
+#' Create list of cache files
+#'
+#' @param cache_dir character: direcoty path of cache files
+#' @param load logical: whether to load the list of cache files
+#' @param save logical: whether to create the list again and save it
+#' @param gls list: globals from `pip_create_globals()`
+#' @param cache_ppp numeric: PPP year. 
+#'
+#' @return
+#' @export
+create_cache <- 
+  function(cache_dir,
+           cache_ids,
+           save = FALSE,
+           gls, 
+           cache_ppp, 
+           dl_aux) {
+    
+    dir <- fs::path(gls$PIP_PIPE_DIR, "pc_data/cache/global_list/")
+    
+    # global_file <- paste0(dir, "global_list.rds")
+    global_name      <- paste0("global_list_", cache_ppp)
+    global_name_inv  <- paste0("global_list_inventory", cache_ppp)
+    global_file      <- fs::path(dir, global_name , ext = "qs")
+    global_inv       <- fs::path(dir, global_name_inv, ext = "qs")
+    
+    if (!fs::file_exists(global_file)) {
+      save <- TRUE
+      cli::cli_alert("file {.file {global_file}} does not exist. 
+                     It will be created and saved")
+    }
+    
+    # Compare names of each file with the ones already saved
+    # if different, then create cache again and save both cache 
+    # and new inventory
+    ch_names <- names(cache_dir)
+    if (!fs::file_exists(global_inv)) {
+      save <- TRUE
+      cli::cli_alert("file {.file {global_inv}} does not exist. 
+                     cache will be created and saved")
+    } else {
+      inv <- qs::qread(global_inv)
+      if (!identical(inv, cache_ids)) {
+        cli::cli_alert("current cache inventory in file  does not match with 
+                       the new one. Cache will be recreated")
+        save <- TRUE
+      }
+    }
+    
+    if (isTRUE(save)) {
+      
+      cli::cli_progress_step("Creating global cache list")
+      cache <- purrr::map(.x = cache_dir, 
+                      .f = ~{
+                        tryCatch(
+                          expr = {
+                            # Your code...
+                            fst::read_fst(path = .x,
+                                          as.data.table = TRUE)
+                          }, # end of expr section
+                          
+                          error = function(e) {
+                            NULL
+                          }, # end of error section
+                          
+                          warning = function(w) {
+                            NULL
+                          } # end of finally section
+                          
+                        ) # End of trycatch
+                        
+                      }, 
+                      .progress = TRUE) |> 
+        setNames(cache_ids) |> 
+        purrr::compact() 
+      
+      
+     
+      qs::qsave(cache, global_file, preset =  "fast")
+      qs::qsave(cache_ids, global_inv, preset =  "fast")
+      cli::cli_progress_step("DONE!")
+      # readr::write_rds(y, global_file)
+      
+    }
+    
+    
+    global_file
+    
+  }
+
+
+
+
+load_cache <- \(cache_file) {
+   # load from file
+  
+  if (file.exists(cache_file)) {
+    
+    cli::cli_progress_step("Loading global cache file",  spinner = TRUE)
+    
+    # x <- readr::read_rds(global_file)
+    x <- qs::qread(cache_file, nthreads = 2)
+    
+    cli::cli_progress_step("Done!")
+    
+  } else {
+    cli::cli_abort("file {.file {global_file}} does not exist. 
+                   Use option {.code save = TRUE} instead")
+  }
+  
+  x
+}
+
+
+
+
 #' Title
 #'
 #' @param cache 

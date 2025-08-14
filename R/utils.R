@@ -495,6 +495,25 @@ cache_inventory_path <- function(CACHE_SVY_DIR){
   fs::path(CACHE_SVY_DIR, "_crr_inventory/crr_inventory.fst")
 }
 
+
+
+filter_cache_inventory <- \(x, dl_aux) {
+  svy_in_pfw <- dl_aux$pfw[, link] 
+  
+  pattern <-  "([[:alnum:]]{3}_[[:digit:]]{4}_[[:alnum:]\\-]+)(.*)"
+  
+  cache_names <- 
+    x[, cache_id] |> 
+    gsub(pattern = pattern, 
+         replacement = "\\1", 
+         x = _)
+  
+  to_drop_cache     <- which(!cache_names %in% svy_in_pfw)
+  x[!to_drop_cache]
+}
+
+
+
 get_cache_files <- function(x) {
   x$cache_file
 }

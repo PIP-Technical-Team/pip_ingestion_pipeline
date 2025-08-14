@@ -89,10 +89,22 @@ load_aux_data <- \(aux_tb) {
 
 # aux_versions <- purrr::map_df(aux_tb$auxname, ~{
 #   y <- attr(dl_aux[[.x]], "version")
-#   w <- data.table(aux = .x, 
+#   w <- data.table(aux = .x,
 #                   version = y)
 #   w
 # })
+
+
+
+
+get_aux_versions <- \(dl_aux) {
+      lapply(names(dl_aux), \(.x) {
+      y <- attr(dl_aux[[.x]], "version")
+      data.table(aux = .x,
+                 version = y)
+    }) |>
+      rbindlist(fill = TRUE)
+}
 
 
 # temporal change.
