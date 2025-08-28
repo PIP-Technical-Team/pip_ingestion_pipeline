@@ -39,14 +39,15 @@ db_create_dsm_table <- function(lcu_table,
   )
 
   if (nrow(dt[.joyn == "x"]) > 0) {
-    msg <- "We should not have NOT-matching observations from survey-mean tables"
-    hint <- "Make sure CPI table is up to date"
-    rlang::abort(c(
-      msg,
-      i = hint
-    ),
-    class = "pipdm_error"
-    )
+    
+    nocpi <- gsub("([^_]+_[^_]+_[^_]+)(_.+)", "\\1",
+                  x = dt[.joyn == "x", cache_id])
+    
+    msg <- "{length(nocpi)} survey{?s} {?does/do} not have associated CPI value"
+    hint <- "Check CPI for: {nocpi}"
+    cli::cli_abort(c(msg,i = hint),
+                 class = "pipdm_error"
+                 )
   }
 
   dt <- dt[
@@ -72,13 +73,14 @@ db_create_dsm_table <- function(lcu_table,
   )
 
   if (nrow(jn[.joyn == "x"]) > 0) {
-    msg <- "We should not have NOT-matching observations from survey-mean tables"
-    hint <- "Make sure PPP table is up to date"
-    rlang::abort(c(
-      msg,
-      i = hint
-    ),
-    class = "pipdm_error"
+    
+    noppp <- gsub("([^_]+_[^_]+_[^_]+)(_.+)", "\\1",
+                  x = jn[.joyn == "x", cache_id])
+    
+    msg <- "{length(noppp)} survey{?s} {?does/do} not have associated PPP value"
+    hint <- "Check PPP for: {noppp}"
+    cli::cli_abort(c(msg,i = hint),
+                   class = "pipdm_error"
     )
   }
 
