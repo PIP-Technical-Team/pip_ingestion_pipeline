@@ -12,7 +12,7 @@ db_create_reg_pop_table <- function(pop_table,
                                     pip_years,
                                     region_code =
                                       c(
-                                        "pcn_region_code",
+                                        "region_code",
                                         "region_code"
                                       )) {
 

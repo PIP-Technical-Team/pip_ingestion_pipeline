@@ -31,7 +31,7 @@ db_create_ref_year_table <- function(dsm_table,
                                      pip_years,
                                      region_code =
                                        c(
-                                         "pcn_region_code",
+                                         "region_code",
                                          "wb_region_code"
                                        )) {
 

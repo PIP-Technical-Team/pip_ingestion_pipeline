@@ -18,7 +18,7 @@ db_create_ref_estimation_table <- function(ref_year_table, dist_table) {
   dt <- joyn::joyn(ref_year_table, dist_table,
                     by = c(
                       "survey_id", "cache_id", "wb_region_code",
-                      "pcn_region_code", "country_code", "survey_acronym",
+                      "region_code", "country_code", "survey_acronym",
                       "surveyid_year", "survey_year",
                       "welfare_type", "pop_data_level"
                     ),
@@ -67,7 +67,7 @@ db_create_ref_estimation_table <- function(ref_year_table, dist_table) {
   # dt$median <- dt$survey_median_ppp
   dt <- dt %>%
     data.table::setnames(
-      "pcn_region_code", "region_code"
+      "region_code", "region_code"
     )
 
   # Order final columns

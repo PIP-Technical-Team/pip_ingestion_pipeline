@@ -88,7 +88,7 @@ db_finalize_ref_year_table <- function(dt, pop_table) {
   # Select final columns
   cols <- c(
     "survey_id", "cache_id", "wb_region_code",
-    "pcn_region_code", "country_code", "reference_year",
+    "region_code", "country_code", "reference_year",
     "surveyid_year", "survey_year", "survey_time", "survey_acronym",
     "survey_coverage", "survey_comparability",
     "comparable_spell", "welfare_type", "survey_mean_lcu",

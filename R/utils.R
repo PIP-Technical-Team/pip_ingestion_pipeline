@@ -598,7 +598,7 @@ create_framework <- function(pfw) {
     c(
       "wb_region_code",
       "country_code",
-      "pcn_region_code",
+      "region_code",
       "ctryname",
       "year",
       "surveyid_year",

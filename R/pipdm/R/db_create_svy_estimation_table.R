@@ -74,7 +74,7 @@ db_create_svy_estimation_table <- function(dsm_table, dist_table, gdp_table, pce
   # dt$median <- dt$survey_median_ppp
   dt <- dt %>%
     data.table::setnames(
-      c("gdp", "pce", "pcn_region_code"),
+      c("gdp", "pce", "region_code"),
       c("reporting_gdp", "reporting_pce", "region_code")
     )
 

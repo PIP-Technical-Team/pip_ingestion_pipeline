@@ -34,7 +34,7 @@ db_create_coverage_table <- function(ref_year_table,
   dt <- ref_year_table[
     ,
     c(
-      "pcn_region_code", # "wb_region_code",
+      "region_code", # "wb_region_code",
       "country_code", "reporting_year",
       "survey_year", "welfare_type",
       "pop_data_level", "reporting_level"
@@ -46,7 +46,7 @@ db_create_coverage_table <- function(ref_year_table,
            by = list(
              country_code, reporting_year,
              pop_data_level, welfare_type,
-             pcn_region_code, # wb_region_code,
+             region_code, # wb_region_code,
              reporting_level
            )
   ]
@@ -78,7 +78,7 @@ db_create_coverage_table <- function(ref_year_table,
   # Merge with cl (to get *_region_code for all countries)
   pop_table <-
     merge(pop_table,
-          cl_table[, c('country_code', 'pcn_region_code', 'africa_split_code')],
+          cl_table[, c('country_code', 'region_code', 'africa_split_code')],
           by = 'country_code',
           all.x = TRUE)
   
@@ -99,8 +99,8 @@ db_create_coverage_table <- function(ref_year_table,
   
   # Merge dt with pop_table (full outer join)
   dt <- merge(dt, pop_table,
-              by.x = c("country_code", "reporting_year", "pop_data_level", "pcn_region_code"),
-              by.y = c("country_code", "year", "pop_data_level", "pcn_region_code"),
+              by.x = c("country_code", "reporting_year", "pop_data_level", "region_code"),
+              by.y = c("country_code", "year", "pop_data_level", "region_code"),
               all = TRUE
   )
   
@@ -198,7 +198,7 @@ db_create_coverage_table <- function(ref_year_table,
   
   # PCN Regional coverage
   out_region <- dt  |> 
-    fgroup_by(reporting_year, pcn_region_code) |> 
+    fgroup_by(reporting_year, region_code) |> 
     fsummarise(coverage = fmean(coverage, pop)) |> 
     fungroup()
   
@@ -208,15 +208,15 @@ db_create_coverage_table <- function(ref_year_table,
     fgroup_by(reporting_year) |>
     fsummarise(coverage = fmean(coverage, pop)) |>
     fungroup() |> 
-    ftransform(pcn_region_code = "WLD")
+    ftransform(region_code = "WLD")
   
   # Total coverage (World less Other High Income)
   out_tot <- dt |>
-    fsubset(pcn_region_code != "OHI") |>
+    fsubset(region_code != "OHI") |>
     fgroup_by(reporting_year) |>
     fsummarise(coverage = stats::weighted.mean(coverage, pop)) |>
     fungroup() |> 
-    ftransform(pcn_region_code = "TOT")
+    ftransform(region_code = "TOT")
   
   # Income group coverage
   out_inc <- dt |>
@@ -232,14 +232,14 @@ db_create_coverage_table <- function(ref_year_table,
     fgroup_by(reporting_year, africa_split_code) |> 
     fselect(coverage, pop) |> 
     fmean(w = pop, keep.w = FALSE) |> 
-    frename(pcn_region_code   = africa_split_code) |> 
+    frename(region_code   = africa_split_code) |> 
     qDT()
   
   
   # Create output list
   out <- list(region = rowbind(out_region, out_wld, out_tot, out_ssa, 
                                fill = TRUE) |> 
-                setorder(pcn_region_code, reporting_year ),
+                setorder(region_code, reporting_year ),
               incgrp = out_inc,
               country_year_coverage = dt)
   

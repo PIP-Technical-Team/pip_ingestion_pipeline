@@ -20,7 +20,7 @@ db_create_censoring_table <- function(censored, coverage_list, coverage_threshol
   
   # world coverage
   wld <- data.table::merge.data.table(
-    x = re[pcn_region_code == "WLD"],
+    x = re[region_code == "WLD"],
     y = ig, 
     by = 'reporting_year')
   
@@ -28,15 +28,15 @@ db_create_censoring_table <- function(censored, coverage_list, coverage_threshol
       coverage := fifelse(coverage_incgrp < coverage_threshold, 0, coverage)
       ]
   
-  wld <- wld[, c('reporting_year', 'pcn_region_code', 'coverage')]
+  wld <- wld[, c('reporting_year', 'region_code', 'coverage')]
   
   # update regional table with world data
-  re[pcn_region_code == "WLD"] <- wld
+  re[region_code == "WLD"] <- wld
 
   # Filter by threshold
   dt <- re[coverage < coverage_threshold]
   
-  data.table::setnames(dt, 'pcn_region_code', 'region_code')
+  data.table::setnames(dt, 'region_code', 'region_code')
   
   ## account for AFE and AFW to get the same values as for SSA
   # ssa <- 

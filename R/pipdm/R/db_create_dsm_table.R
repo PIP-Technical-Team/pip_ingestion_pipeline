@@ -150,7 +150,7 @@ db_create_dsm_table <- function(lcu_table,
   dt <- dt[, .SD,
     .SDcols =
       c(
-        "survey_id", "cache_id", "wb_region_code", "pcn_region_code",
+        "survey_id", "cache_id", "wb_region_code", "region_code",
         "country_code", "survey_acronym", "survey_coverage",
         "survey_comparability", "comparable_spell",
         "surveyid_year", "reporting_year",
@@ -216,7 +216,7 @@ add_aggregated_mean <- function(dt) {
       # survey_id       = unique(survey_id),
       # cache_id        = unique(cache_id),
       wb_region_code       = unique(wb_region_code),
-      pcn_region_code      = unique(pcn_region_code),
+      region_code      = unique(region_code),
       country_code         = unique(country_code),
       survey_acronym       = unique(survey_acronym),
       survey_coverage      = unique(survey_coverage),
