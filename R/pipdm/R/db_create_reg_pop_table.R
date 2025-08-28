@@ -10,18 +10,16 @@
 db_create_reg_pop_table <- function(pop_table,
                                     cl_table,
                                     pip_years,
-                                    region_code =
-                                      c(
-                                        "region_code",
-                                        "region_code"
-                                      )) {
+                                    region_code = "region_code"
+                                      ) {
 
   # Match argument
-  region_code <- match.arg(region_code)
+  rc <- match.arg(region_code)
 
   # Subselect columns
-  cl_table$region_code_to_use <- cl_table[[region_code]]
-  cl_table <- cl_table[, c("country_code", "region_code_to_use")]
+  cl_table[, region_code_to_use := get(rc)
+           ][, 
+             c("country_code", "region_code_to_use")]
 
   # Merge POP table w/ WDI meta (left join)
   dt <- data.table::merge.data.table(
