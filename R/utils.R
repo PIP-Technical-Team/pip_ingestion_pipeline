@@ -595,9 +595,7 @@ prep_aux_data <- function(maindir = PIP_DATA_DIR,
 #' @examples
 create_framework <- function(pfw) {
   meta_vars <- 
-    c(
-      "wb_region_code",
-      "country_code",
+    c("country_code",
       "region_code",
       "ctryname",
       "year",

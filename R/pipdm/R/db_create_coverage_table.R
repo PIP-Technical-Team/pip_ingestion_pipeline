@@ -46,7 +46,7 @@ db_create_coverage_table <- function(ref_year_table,
            by = list(
              country_code, reporting_year,
              pop_data_level, welfare_type,
-             region_code, # wb_region_code,
+             region_code, 
              reporting_level
            )
   ]

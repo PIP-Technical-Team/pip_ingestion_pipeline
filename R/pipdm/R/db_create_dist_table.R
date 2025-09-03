@@ -157,7 +157,7 @@ db_create_dist_table <- function(dl,
     dsm_table[, .SD,
               .SDcols =
                 c(
-                  "survey_id", "cache_id", "wb_region_code", "region_code",
+                  "survey_id", "cache_id",  "region_code",
                   "country_code", "surveyid_year", "survey_year",
                   "reporting_year", "survey_acronym", "welfare_type",
                   "cpi", "ppp", "pop_data_level", "reporting_level"
@@ -236,7 +236,7 @@ db_create_dist_table <- function(dl,
   data.table::setcolorder(
     dt,
     c(
-      "survey_id", "cache_id", "wb_region_code", "region_code",
+      "survey_id", "cache_id",  "region_code",
       "country_code", "survey_acronym", "surveyid_year",
       "survey_year", "reporting_year", "welfare_type",
       "reporting_level", "survey_median_lcu",

@@ -150,7 +150,7 @@ db_create_dsm_table <- function(lcu_table,
   dt <- dt[, .SD,
     .SDcols =
       c(
-        "survey_id", "cache_id", "wb_region_code", "region_code",
+        "survey_id", "cache_id",  "region_code",
         "country_code", "survey_acronym", "survey_coverage",
         "survey_comparability", "comparable_spell",
         "surveyid_year", "reporting_year",
@@ -211,11 +211,12 @@ add_aggregated_mean <- function(dt) {
   dt_sub <- dt[is_used_for_aggregation == TRUE]
 
   # Compute aggregated mean (weighted population average)
+  # this is horrible, horrible code. Who did this? If it was me, 
+  # I truly apologize for anyone who reads it and has to deal with it.
   dt_agg <-
     dt_sub[, .(
       # survey_id       = unique(survey_id),
       # cache_id        = unique(cache_id),
-      wb_region_code       = unique(wb_region_code),
       region_code      = unique(region_code),
       country_code         = unique(country_code),
       survey_acronym       = unique(survey_acronym),

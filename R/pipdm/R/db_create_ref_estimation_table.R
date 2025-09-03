@@ -17,7 +17,7 @@ db_create_ref_estimation_table <- function(ref_year_table, dist_table) {
   dist_table$reporting_year <- NULL
   dt <- joyn::joyn(ref_year_table, dist_table,
                     by = c(
-                      "survey_id", "cache_id", "wb_region_code",
+                      "survey_id", "cache_id", 
                       "region_code", "country_code", "survey_acronym",
                       "surveyid_year", "survey_year",
                       "welfare_type", "pop_data_level"
@@ -72,7 +72,7 @@ db_create_ref_estimation_table <- function(ref_year_table, dist_table) {
 
   # Order final columns
   cols <- c(
-    "survey_id", "cache_id", "region_code", "wb_region_code",
+    "survey_id", "cache_id", "region_code",
     "country_code", "reporting_year", "surveyid_year",
     "survey_year", "survey_time", "survey_acronym", "survey_coverage",
     "survey_comparability", "comparable_spell", "welfare_type",

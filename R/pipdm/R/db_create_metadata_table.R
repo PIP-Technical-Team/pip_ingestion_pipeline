@@ -10,7 +10,7 @@ db_create_metadata_table <- function(pfw_table, lcu_table) {
   # PFW columns
   pfw_table <-
     pfw_table[, c(
-      "wb_region_code", "region_code", "country_code",
+       "region_code", "country_code",
       "survey_coverage", "survey_acronym", "surveyid_year",
       "reporting_year", "survey_year", "welfare_type",
       "survey_comparability", "comp_note"
@@ -48,7 +48,7 @@ db_create_metadata_table <- function(pfw_table, lcu_table) {
   # Order columns
   dt %>% data.table::setcolorder(
     c(
-      "survey_id", "cache_id", "wb_region_code", "region_code",
+      "survey_id", "cache_id", "region_code",
       "country_code", "survey_acronym", "survey_coverage",
       "surveyid_year", "reporting_year", "survey_year",
       "welfare_type"
