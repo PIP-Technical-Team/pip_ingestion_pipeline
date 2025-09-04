@@ -526,6 +526,23 @@ get_survey_id <- function(x) {
   x$survey_id
 }
 
+get_orig_dta_file <- \(x) {
+  x$orig
+}
+
+
+delete_old_cache_id <- \(orig_dta_files, 
+                         cache_id_in_inventory, 
+                         gls){
+  cache_file <- fs::path(gls$CACHE_SVY_DIR_PC) |> 
+    fs::dir_ls(type = "file",
+               regexp = cache_id)
+  
+  unlink(cache_file)
+  TRUE
+}
+
+
 
 aux_out_files_fun <- function(OUT_AUX_DIR, aux_names) {
   purrr::map_chr(aux_names, ~ fs::path(OUT_AUX_DIR, .x,  ext = "fst"))
