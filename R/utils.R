@@ -540,21 +540,36 @@ delete_old_cache_id <- \(fs_status,
   
   tpi <- copy(pipeline_inventory)
   tpi[, path := unclass(orig)
-      ][orig := NULL]
+      ][, 
+        orig := NULL]
   
   if (nrow(tfs) == 0L) return(NULL)
   
   to_del <- joyn::joyn(tfs, 
                        tpi,
-                       by = "path = orig",
+                       by = "path",
                        match_type = "1:m",
                        keep = "inner",
                        y_vars_to_keep = "cache_id") |> 
     _[, cache_id]
   
+  tryCatch(
+    expr = {
+      # Your code...
+      fs::path(gls$CACHE_SVY_DIR_PC, to_del, ext = "fst") |> 
+        fs::file_delete()
+    }, # end of expr section
+    
+    error = function(e) {
+      e$message
+    }, # end of error section
+    
+    warning = function(w) {
+      w$message
+    } # end of finally section
+    
+  ) # End of trycatch
   
-  fs::path(gls$CACHE_SVY_DIR_PC, to_del, ext = "fst") |> 
-    fs::file_delete()
 }
 
 
