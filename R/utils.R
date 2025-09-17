@@ -696,7 +696,9 @@ get_groupdata_means <- function(cache_inventory,
 
 
 
-check_fs_status <- function(dir_path, fs_paths) {
+check_fs_status <- function(dir_path, 
+                            fs_paths, 
+                            name) {
   
   # Validate fs_paths -----------------------------------
   if (!is.character(fs_paths)) {
@@ -726,17 +728,17 @@ check_fs_status <- function(dir_path, fs_paths) {
   update_dt <- tryCatch({
     
     # If the fs_status pin doesn't exist ----------------
-    if (!"fs_status" %in% pins::pin_list(board)) {
+    if (!name %in% pins::pin_list(board)) {
       pins::pin_write(board, 
                       info_dt_new, 
-                      name = "fs_status",
+                      name = name,
                       type = "qs")
       return(info_dt_new)   # <- you had `info_dt` here, typo
     }
     
     # If the pin exists ---------------------------------
     
-    prev_info <- pins::pin_read(board, "fs_status")
+    prev_info <- pins::pin_read(board, name)
     
     join_info <- joyn::joyn(
       x                = prev_info,
@@ -765,7 +767,7 @@ check_fs_status <- function(dir_path, fs_paths) {
     
     pins::pin_write(board, 
                     updated_snapshot, 
-                    name = "fs_status",
+                    name = name,
                     type = "qs")
     
     join_info
