@@ -531,15 +531,30 @@ get_orig_dta_file <- \(x) {
 }
 
 
-delete_old_cache_id <- \(orig_dta_files, 
-                         cache_id_in_inventory, 
+delete_old_cache_id <- \(fs_status, 
+                         pipeline_inventory, 
                          gls){
-  cache_file <- fs::path(gls$CACHE_SVY_DIR_PC) |> 
-    fs::dir_ls(type = "file",
-               regexp = cache_id)
   
-  unlink(cache_file)
-  TRUE
+  tfs <- fs_status[status != "unchanged"]
+  tfs[, path := unclass(path)]
+  
+  tpi <- copy(pipeline_inventory)
+  tpi[, path := unclass(orig)
+      ][orig := NULL]
+  
+  if (nrow(tfs) == 0L) return(NULL)
+  
+  to_del <- joyn::joyn(tfs, 
+                       tpi,
+                       by = "path = orig",
+                       match_type = "1:m",
+                       keep = "inner",
+                       y_vars_to_keep = "cache_id") |> 
+    _[, cache_id]
+  
+  
+  fs::path(gls$CACHE_SVY_DIR_PC, to_del, ext = "fst") |> 
+    fs::file_delete()
 }
 
 
@@ -663,3 +678,92 @@ get_groupdata_means <- function(cache_inventory,
 
 }
 
+
+
+
+check_fs_status <- function(dir_path, fs_paths) {
+  
+  # Validate fs_paths -----------------------------------
+  if (!is.character(fs_paths)) {
+    cli::cli_abort("`fs_paths` must be a character vector of paths.")
+  }
+  
+  fs_paths <- collapse::funique(fs_paths)
+  
+  if (!dir.exists(dir_path)) {
+    dir.create(dir_path, recursive = TRUE)
+  }
+  # Create the board or simply get it if it already exists
+  board <- pins::board_folder(dir_path,
+                              versioned = TRUE)
+  
+  # Prepare new snapshot -------------------------------
+  info_dt_new <- fs::file_info(fs_paths) |>
+    ftransform(
+      status            = "unchanged",
+      modification_time = as.POSIXct(modification_time)
+    ) |>
+    fselect(path, 
+            modification_time, 
+            status) |>
+    qDT()
+  
+  update_dt <- tryCatch({
+    
+    # If the fs_status pin doesn't exist ----------------
+    if (!"fs_status" %in% pins::pin_list(board)) {
+      pins::pin_write(board, 
+                      info_dt_new, 
+                      name = "fs_status",
+                      type = "qs")
+      return(info_dt_new)   # <- you had `info_dt` here, typo
+    }
+    
+    # If the pin exists ---------------------------------
+    
+    prev_info <- pins::pin_read(board, "fs_status")
+    
+    join_info <- joyn::joyn(
+      x                = prev_info,
+      y                = info_dt_new,
+      by               = "path",
+      keep_common_vars = TRUE,
+      suffixes         = c(".old", ".new"),
+      match_type       = "1:1",
+      reportvar        = ".joyn",
+      verbose          = FALSE
+    ) |> 
+      setDT()
+    
+    join_info[, status := fcase(
+      .joyn == "x", "deleted",
+      .joyn == "y", "added",
+      .joyn == "x & y" & modification_time.new > modification_time.old, "modified",
+      default = "unchanged"
+    )]
+    
+    updated_snapshot <- join_info |>
+      fsubset(.joyn %in% c("x & y", "y")) |>
+      fselect(c("path", 
+                "modification_time" = "modification_time.new", 
+                "status"))
+    
+    pins::pin_write(board, 
+                    updated_snapshot, 
+                    name = "fs_status",
+                    type = "qs")
+    
+    join_info
+    
+  }, error = function(e) {
+    warning("Error checking filesystem status: ", conditionMessage(e))
+    return(NULL)
+  })
+  
+  
+  update_dt[status != "unchanged",
+            .(path, 
+              status, 
+              modification_time  = modification_time.old)]
+ 
+}

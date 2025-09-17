@@ -201,18 +201,18 @@ load_pip_inventory <- \(file) {
 #                       pfw_table = dl_aux$pfw)
 
 
-pip_inventory_file <- fs::path(gls$PIP_DATA_DIR, '_inventory/inventory.fst')
-
-pip_inventory <- 
-           load_pip_inventory(pip_inventory_file)
-
-# Load PIPELINE inventory file
-pfwt <- pipload::pip_load_aux("pfw")
-pipeline_inventory <- 
-           db_filter_inventory(dt        = pip_inventory,
-                               pfw_table = pfwt) |>
-             _[module  != "PC-GROUP"]
-
-dta_paths <- as.character(pipeline_inventory$orig)
+# pip_inventory_file <- fs::path(gls$PIP_DATA_DIR, '_inventory/inventory.fst')
+# 
+# pip_inventory <- 
+#            load_pip_inventory(pip_inventory_file)
+# 
+# # Load PIPELINE inventory file
+# pfwt <- pipload::pip_load_aux("pfw")
+# pipeline_inventory <- 
+#            db_filter_inventory(dt        = pip_inventory,
+#                                pfw_table = pfwt) |>
+#              _[module  != "PC-GROUP"]
+# 
+# dta_paths <- as.character(pipeline_inventory$orig)
 
 
