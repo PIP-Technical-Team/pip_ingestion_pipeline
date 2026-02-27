@@ -85,3 +85,37 @@ PPP year), run independently via Sys.setenv(TAR_PROJECT = "ppp2021").
 ## Phase Logs
 
 See individual phase files in .process/phases/ for detailed records.
+
+
+---
+
+## Phase 7: Housekeeping (commit 6ae31a34)
+
+### Changes
+
+1. **Worktree relocated**
+   - Old: `E:/PIP/pipeline_refactor/`
+   - New: `E:/PovcalNet/01.personal/wb384996/PIP/pipeline_refactor/`
+   - Method: `Copy-Item` + manual worktree metadata (git worktree move was blocked by file locks)
+
+2. **Store paths updated** (`_targets.yaml`)
+   - Old: `E:/PIP/pipeline_targets_cache/store_{2017,2021}`
+   - New: `E:/PovcalNet/01.personal/wb384996/PIP/pipeline_targets_cache/store_{2017,2021}`
+   - Both store directories created (empty — stores will rebuild on next `tar_make()`)
+
+3. **renv removed entirely**
+   - Deleted: `renv/`, `renv.lock`, `.renvignore`
+   - Removed commented `source("renv/activate.R")` from `.Rprofile`
+   - Packages managed at system/user library level going forward
+
+4. **README.md rewritten**
+   - Full how-to-use documentation: prerequisites, run commands, pipeline stages,
+     lazy cache loading explanation, output file inventory, development notes
+
+### Current State
+
+**Last completed:** Phase 7 - housekeeping (worktree move + renv removal + README)
+**Target count:** 66
+**Worktree location:** `E:/PovcalNet/01.personal/wb384996/PIP/pipeline_refactor/`
+**Stores:** `E:/PovcalNet/01.personal/wb384996/PIP/pipeline_targets_cache/store_{2017,2021}/`
+**Next action:** Run `tar_make()` end-to-end and validate outputs against production
