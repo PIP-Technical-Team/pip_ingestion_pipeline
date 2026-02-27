@@ -37,9 +37,9 @@ PPP year), run independently via `Sys.setenv(TAR_PROJECT = "ppp2021")`.
 
 | Phase | Description | Status |
 |-------|-------------|--------|
-| 1 | Infrastructure: worktree, .process/, copilot-instructions.md | IN PROGRESS |
-| 2 | Flatten `R/pipdm/R/` into `R/`, adopt 2021 DAG as canonical | NOT STARTED |
-| 3 | Named projects + parameterize `py` via `TAR_PROJECT` | NOT STARTED |
+| 1 | Infrastructure: worktree, .process/, copilot-instructions.md | ✅ COMPLETE |
+| 2 | Flatten `R/pipdm/R/` into `R/`, adopt 2021 DAG as canonical | ✅ COMPLETE |
+| 3 | Named projects + parameterize `py` via `TAR_PROJECT` | IN PROGRESS |
 | 4 | Remove `cue = tar_cue(mode = "always")`, fix dependency chains | NOT STARTED |
 | 5 | Lazy cache loading with dynamic branching per survey | NOT STARTED |
 | 6 | Validation against current 2021 production outputs | NOT STARTED |
@@ -70,8 +70,23 @@ PPP year), run independently via `Sys.setenv(TAR_PROJECT = "ppp2021")`.
 
 ## Current State
 
-**Last completed:** Phase 1 setup (in progress)
-**Next action:** Complete Phase 1 infrastructure files, then begin Phase 2.
+**Last completed:** Phase 2 — flattened pipdm, adopted 2021 DAG, updated _targets.yaml
+**Currently in progress:** Phase 3 — named projects are configured in _targets.yaml; need to update _common.R and smoke test
+**Next action:** Check _common.R for store validation `stopifnot`, ensure `py` flows correctly from `TAR_PROJECT`, run smoke test with `tar_manifest()`.
+
+### Phase 2 Summary
+- Moved 46 files from `R/pipdm/R/` → `R/` (renamed `utils.R` → `pipdm_utils.R`)
+- Created unified `_targets.R` from 2021 canonical version
+- PPP year derived from `TAR_PROJECT` env var: `switch(tar_project, ppp2017=2017, ppp2021=2021)`
+- Updated `_targets.yaml` with two named projects (`ppp2017`, `ppp2021`) using local SSD stores
+- Fixed `create_cache()` in `mapping.R`: added missing `force` parameter
+
+### Files changed since Phase 1 commit
+- `_targets.R` — new unified version (old backed up as `_targets_old_2017.R.bak`)
+- `_targets.yaml` — named projects with local stores
+- `R/mapping.R` — `force` parameter fix in `create_cache()`
+- `R/*.R` — 44 files moved from `R/pipdm/R/` (+ `pipdm_utils.R`)
+- `R/pipdm/` — removed entirely
 
 ## Phase Logs
 

@@ -1,2 +1,5 @@
-main:
-  store: //w1wbgencifs01/pip/pip_ingestion_pipeline/pc_data/_targets
+ppp2017:
+  store: E:/PIP/pipeline_targets_cache/store_2017
+
+ppp2021:
+  store: E:/PIP/pipeline_targets_cache/store_2021
