@@ -77,6 +77,8 @@ list(
                            branch  = branch)),
 
   # Load aux data
+  # NOTE: cue=always because aux files live on network share and can change
+  # without {targets} detecting it (no format="file" tracking on inputs)
   tar_target(dl_aux1,
              load_aux_data(aux_tb),
              cue = tar_cue(mode = "always")),
@@ -104,6 +106,8 @@ list(
                                  pfw_table = dl_aux$pfw) |>
                _[module  != "PC-GROUP"]),
 
+  # NOTE: cue=always because this detects external filesystem changes
+  # (file modification times) that {targets} cannot track
   tar_target(fs_status,
              check_fs_status(
                dir_path = fs::path(gls$CACHE_SVY_DIR_PC),
@@ -130,8 +134,7 @@ list(
                cpi_table          = dl_aux$cpi,
                ppp_table          = dl_aux$ppp,
                pfw_table          = dl_aux$pfw,
-               pop_table          = dl_aux$pop),
-             cue = tar_cue(mode = "always")),
+               pop_table          = dl_aux$pop)),
 
   # Create synthetic cache files
   tar_target(pipeline_inventory2,
@@ -165,6 +168,8 @@ list(
   tar_target(cache_dir,
              get_cache_files(cache_inventory)),
 
+  # NOTE: cue=always because this detects external filesystem changes
+  # to cache .fst files written outside the dependency graph
   tar_target(cache_status,
              check_fs_status(
                dir_path = fs::path(gls$CACHE_SVY_DIR_PC),
@@ -202,8 +207,7 @@ list(
   ### LCU survey mean list ----
   tar_target(
     svy_mean_lcu,
-    mp_svy_mean_lcu(cache, gd_means),
-    cue = tar_cue(mode = "always")
+    mp_svy_mean_lcu(cache, gd_means)
   ),
 
   ### LCU table ------
@@ -663,6 +667,7 @@ list(
   ),
 
   ### Data timestamp file ----
+  # NOTE: cue=always so timestamp reflects actual run time
   tar_target(run_time,
              as.character(Sys.time()),
              cue = tar_cue(mode = "always")
@@ -680,8 +685,7 @@ list(
   ## Convert AUX files to qs ---------
   tar_target(
     aux_qs_out,
-    convert_to_qs(dir = gls$OUT_AUX_DIR_PC),
-    cue = tar_cue(mode = "always")
+    convert_to_qs(dir = gls$OUT_AUX_DIR_PC)
   )
 )
 
