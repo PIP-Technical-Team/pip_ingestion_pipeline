@@ -44,7 +44,6 @@ cts <- yrs <- NULL
 force_create_cache_file         <- FALSE
 save_pip_update_cache_inventory <- FALSE
 force_gd_2_synth                <- FALSE
-save_mp_cache                   <- FALSE
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -156,9 +155,6 @@ list(
                verbose            = TRUE
              )),
 
-  # Cache IDs
-  tar_target(cache_ppp, gls$cache_ppp),
-
   # Filter cache inventory with PFW
   tar_target(cache_inventory,
              filter_cache_inventory(cache_inventory1, dl_aux)),
@@ -168,31 +164,13 @@ list(
   tar_target(cache_dir,
              get_cache_files(cache_inventory)),
 
-  # NOTE: cue=always because this detects external filesystem changes
-  # to cache .fst files written outside the dependency graph
-  tar_target(cache_status,
-             check_fs_status(
-               dir_path = fs::path(gls$CACHE_SVY_DIR_PC),
-               fs_paths = as.character(cache_dir),
-               name = "cache_status"),
-             cue = tar_cue(mode = "always")
-  ),
 
-  # Create cache global list
-  tar_target(cache_file,
-             create_cache(cache_dir    = cache_dir,
-                          gls          = gls,
-                          cache_ppp    = cache_ppp,
-                          cache_status = cache_status,
-                          force        = save_mp_cache),
-             format = "file"),
+  # ---- Lazy cache: no monolithic .qs serialize/deserialize ----
+  # Downstream targets (svy_mean_lcu, lorenz, dl_dist_stats,
+  # survey_files) now read each .fst file on demand via
+  # read_cache_survey(), eliminating the create_cache/load_cache
+  # bottleneck. cache_dir and cache_ids are used directly.
 
-  # Load cache file
-  tar_target(cache,
-             load_cache(cache_file)),
-
-  tar_target(assert_cache_length,
-             tar_cancel(length(cache) == length(cache_dir))),
 
   ## Mean estimates ------------
 
@@ -207,7 +185,7 @@ list(
   ### LCU survey mean list ----
   tar_target(
     svy_mean_lcu,
-    mp_svy_mean_lcu(cache, gd_means)
+    mp_svy_mean_lcu(cache_dir, cache_ids, gd_means)
   ),
 
   ### LCU table ------
@@ -238,15 +216,15 @@ list(
   ### Lorenz curves (for microdata) ----
   tar_target(
     lorenz,
-    mp_lorenz(cache)
+    mp_lorenz(cache_dir, cache_ids)
   ),
 
   ### Dist statistics list ------
   tar_target(dl_dist_stats,
-             mp_dl_dist_stats(dt         = cache,
+             mp_dl_dist_stats(cache_dir  = cache_dir,
+                              cache_ids  = cache_ids,
                               mean_table = svy_mean_ppp_table,
                               pop_table  = dl_aux$pop,
-                              cache_id   = cache_ids,
                               ppp_year   = py)
   ),
 
@@ -353,7 +331,7 @@ list(
   tar_target(
     survey_files,
     mp_survey_files(
-      cache       = cache,
+      cache_dir   = cache_dir,
       cache_ids   = cache_ids,
       output_dir  = gls$OUT_SVY_DIR_PC,
       cols        = c('welfare', 'weight', 'area'),
