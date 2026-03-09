@@ -535,7 +535,7 @@ delete_old_cache_id <- \(fs_status,
                          pipeline_inventory, 
                          gls){
   
-  tfs <- fs_status[status != "unchanged"]
+  tfs <- fs_status[!status %in% c("unchanged", "added")]
   tfs[, path := unclass(path)]
   
   tpi <- copy(pipeline_inventory)

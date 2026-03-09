@@ -11,7 +11,7 @@ save_aux_data <- function(x,
                           compress = FALSE) {
 
 
-  type <- gsub("(.+)(\\.)([a-z]{3}$)", "\\3", filename)
+  type <- fs::path_ext(filename) 
 
   if (type == 'fst') {
 

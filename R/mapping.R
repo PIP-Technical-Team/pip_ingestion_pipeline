@@ -134,7 +134,8 @@ create_cache <-
   function(cache_dir, 
            gls, 
            cache_ppp, 
-           cache_status) {
+           cache_status, 
+           force = FALSE) {
     
     dir <- fs::path(gls$PIP_PIPE_DIR, "pc_data/cache/global_list/")
     
@@ -147,7 +148,7 @@ create_cache <-
       fs::path_ext_remove()
     
     tfs <- cache_status[status != "unchanged"]
-    if (nrow(tfs) == 0L) return(global_file)
+    if (nrow(tfs) == 0L && force == FALSE) return(global_file)
     
     cache <- purrr::map(.x = cache_dir, 
                     .f = ~{
