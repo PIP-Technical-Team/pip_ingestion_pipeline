@@ -5,7 +5,8 @@
 
 gls <- pipfun::pip_create_globals(
   root_dir   = Sys.getenv("PIP_ROOT_DIR"), 
-  # out_dir    = fs::path("y:/pip_ingestion_pipeline/temp/"),
+  # root_dir   = fs::path("y:/pip_ingestion_pipeline/temp/"), 
+  out_dir    = fs::path("y:/pip_ingestion_pipeline/temp/"),
   vintage    = list(release = release, 
                     ppp_year = py, 
                     identity = identity), 

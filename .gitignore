@@ -54,3 +54,6 @@ E:/PovcalNet/01.personal/wb384996/PIP/pipeline_targets_cache/
 # Sandbox / old pipeline copies
 _sandbox/
 _old/
+
+# Compound GPID local config (user-specific, never commit)
+compound-gpid.local.md

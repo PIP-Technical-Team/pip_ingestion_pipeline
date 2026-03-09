@@ -14,7 +14,7 @@ library(targets)
 library(data.table)
 
 # Paths
-refactored_store <- "E:/PIP/pipeline_targets_cache/store_2021"
+refactored_store <- "E:/PovcalNet/01.personal/wb384996/PIP/pipeline_targets_cache/store_2021"
 original_store   <- "E:/PovcalNet/01.personal/wb384996/PIP/pip_ingestion_pipeline/_targets"
 
 cli::cli_h1("PIP Pipeline Validation")
