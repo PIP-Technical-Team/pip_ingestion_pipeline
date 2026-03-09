@@ -96,8 +96,8 @@ load_and_qsave <- function(path, ...) {
         path_qs <- 
           fs::path_ext_remove(path) |> 
           fs::path(ext = "qs")
-        
-        qs::qsave(df, path_qs, , ...)
+
+        qs2::qs_save(df, path_qs, ...)
         "saved"
         
       }, # end of expr section
