@@ -124,7 +124,8 @@ db_create_coverage_table <- function(
     pop_table,
     by = c("country_code", "reporting_year", "reporting_level", "region_code"),
     match_type = "1:1",
-    keep = "full"
+    keep = "full",
+    reportvar = FALSE
   )
 
   # ---- Create coverage column ----
