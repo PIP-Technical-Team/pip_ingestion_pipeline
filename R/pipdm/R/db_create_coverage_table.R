@@ -124,7 +124,8 @@ db_create_coverage_table <- function(
     pop_table,
     by = c("country_code", "reporting_year", "reporting_level", "region_code"),
     match_type = "1:1",
-    keep = "full"
+    keep = "full", 
+    reportvar = FALSE
   )
 
   # ---- Create coverage column ----
@@ -241,7 +242,7 @@ db_create_coverage_table <- function(
   out_tot <- dt |>
     fsubset(region_code != "OHI") |>
     fgroup_by(reporting_year) |>
-    fsummarise(coverage = stats::weighted.mean(coverage, pop)) |>
+    fsummarise(coverage = fmean(coverage, w=pop)) |>
     fungroup() |>
     ftransform(region_code = "TOT")
 
