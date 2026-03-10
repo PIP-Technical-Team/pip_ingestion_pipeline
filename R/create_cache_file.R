@@ -16,30 +16,28 @@
 #'
 #' @return list: creation status and cache data availability
 #' @export
-create_cache_file <- function(pipeline_inventory,
-                              pip_data_dir,
-                              cache_svy_dir,
-                              tool = c("PC", "TB"),
-                              compress = 100,
-                              verbose = FALSE,
-                              force = FALSE,
-                              cpi_table,
-                              ppp_table,
-                              pfw_table,
-                              pop_table
-                              ) {
-
-
+create_cache_file <- function(
+  pipeline_inventory,
+  pip_data_dir,
+  cache_svy_dir,
+  tool = c("PC", "TB"),
+  compress = 100,
+  verbose = FALSE,
+  force = FALSE,
+  cpi_table,
+  ppp_table,
+  pfw_table,
+  pop_table
+) {
   # Tool
   tool <- match.arg(tool)
 
   # orrespondence file
-  crr_dir      <- fs::path(cache_svy_dir, "_crr_inventory")
+  crr_dir <- fs::path(cache_svy_dir, "_crr_inventory")
   if (!fs::dir_exists(crr_dir)) {
     fs::dir_create(fs::path(crr_dir, "vintage"), recurse = TRUE)
   }
   crr_filename <- fs::path(crr_dir, "crr_inventory", ext = "fst")
-  
 
   # Get all survey ids
   if (verbose) {
@@ -52,35 +50,38 @@ create_cache_file <- function(pipeline_inventory,
   if (!force) {
     new_svy_ids <- find_new_svy_data(
       pipeline_inventory = pipeline_inventory,
-      pip_data_dir       = pip_data_dir,
-      tool               = tool,
-      cache_svy_dir      = cache_svy_dir, 
-      pfw_table          = pfw_table
+      pip_data_dir = pip_data_dir,
+      tool = tool,
+      cache_svy_dir = cache_svy_dir,
+      pfw_table = pfw_table
     )
 
     if (verbose) {
       cli::cli_alert("Found {.field {nrow(new_svy_ids)}} new survey(s)...")
     }
-  } else { # if force is TRUE
+  } else {
+    # if force is TRUE
 
     new_svy_ids <-
-      pipeline_inventory[
-        ,
+      pipeline_inventory[,
         .(filename, cache_id)
-      ][
-        ,
+      ][,
         svy_ids := gsub("(.+)(\\.dta)", "\\1", filename)
       ]
     if (verbose) {
-      cli::cli_alert("Since {.code force = TRUE}, {.field {nrow(new_svy_ids)}}
-                     cache files will be recreated.", wrap = TRUE)
+      cli::cli_alert(
+        "Since {.code force = TRUE}, {.field {nrow(new_svy_ids)}}
+                     cache files will be recreated.",
+        wrap = TRUE
+      )
     }
   }
 
   # Early return
   if (nrow(new_svy_ids) == 0) {
     if (!(fs::file_exists(crr_filename))) {
-      cli::cli_alert_warning("Correspondence inventory file not found.
+      cli::cli_alert_warning(
+        "Correspondence inventory file not found.
                            It will be created",
         wrap = TRUE
       )
@@ -93,16 +94,13 @@ create_cache_file <- function(pipeline_inventory,
       )
     }
 
-    crr <- fst::read_fst(crr_filename,
-      as.data.table = TRUE
-    )
+    crr <- fst::read_fst(crr_filename, as.data.table = TRUE)
 
     return(invisible(list(
       processed_data = "No data processed",
       data_available = crr
     )))
-
-  }  # end of `nrow(new_svy_ids) == 0`
+  } # end of `nrow(new_svy_ids) == 0`
 
   #--------- Process data: Load, clean, and save ---------
   if (verbose) {
@@ -124,15 +122,15 @@ create_cache_file <- function(pipeline_inventory,
       pb$tick(tokens = list(what = id_what))
 
       process_svy_data_to_cache(
-        survey_id     = .x,
-        cache_id      = .y,
-        pip_data_dir  = pip_data_dir,
+        survey_id = .x,
+        cache_id = .y,
+        pip_data_dir = pip_data_dir,
         cache_svy_dir = cache_svy_dir,
-        compress      = compress,
-        cpi_table        = cpi_table,
-        ppp_table        = ppp_table,
-        pfw_table        = pfw_table,
-        pop_table        = pop_table
+        compress = compress,
+        cpi_table = cpi_table,
+        ppp_table = ppp_table,
+        pfw_table = pfw_table,
+        pop_table = pop_table
       )
     }
   )
@@ -141,16 +139,17 @@ create_cache_file <- function(pipeline_inventory,
 
   crr_status <- pip_update_cache_inventory(
     pipeline_inventory = pipeline_inventory,
-    pip_data_dir       = pip_data_dir,
-    cache_svy_dir      = cache_svy_dir,
-    tool               = tool
+    pip_data_dir = pip_data_dir,
+    cache_svy_dir = cache_svy_dir,
+    tool = tool
   )
 
   if (verbose) {
     if (crr_status) {
       cli::cli_alert_success("Correspondence inventory file saved")
     } else {
-      cli::cli_alert_danger('Correspondence inventory file
+      cli::cli_alert_danger(
+        'Correspondence inventory file
                           {.strong {col_red("NOT")}} saved',
         wrap = TRUE
       )
@@ -158,9 +157,7 @@ create_cache_file <- function(pipeline_inventory,
   }
 
   # load correspondence file
-  crr <- fst::read_fst(crr_filename,
-    as.data.table = TRUE
-  )
+  crr <- fst::read_fst(crr_filename, as.data.table = TRUE)
 
   #--------- DONE ---------
 

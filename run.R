@@ -1,8 +1,13 @@
 # Uncomment to run targets sequentially on your local machine.
-targets::tar_make()#_future()
-targets::tar_visnetwork(targets_only = TRUE)
+for (proj in c("ppp2021", "ppp2017")) {
+  Sys.setenv(TAR_PROJECT = proj)
+  # targets::tar_make()
+  run_tar()
+}
 
-pushover("Done running targets")
+# to run only one PPP year
+Sys.setenv(TAR_PROJECT = "ppp2017")
+run_tar()
 
 # targets::tar_visnetwork()
 # Uncomment to run targets in parallel
