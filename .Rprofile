@@ -25,7 +25,8 @@ if (requireNamespace("gert", quietly = TRUE)) {
   }
 }
 
-if (requireNamespace("pushoverr", quietly = TRUE)) {
+if (requireNamespace("pushoverr", quietly = TRUE) &&
+  requireNamespace("targets", quietly = TRUE)) {
   run_tar <- function(...) {
     s <- Sys.time()
     start <- format(s, "%H:%M")

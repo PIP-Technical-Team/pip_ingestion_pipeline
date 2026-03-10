@@ -21,6 +21,7 @@
 #'   are accumulated here keyed as `"CC_YYYY"`.
 #'
 #' @return invisible TRUE (side-effect: writes files to `dir/lineup_data/`).
+#' @family cmd
 #' @export
 estimate_and_write_full_cmd <- function(md, CF, qs, py, dir, env_acc = NULL) {
   aux_dir <- fs::path(dir, "_aux")
@@ -58,6 +59,7 @@ estimate_and_write_full_cmd <- function(md, CF, qs, py, dir, env_acc = NULL) {
 #'
 #' @param l_cmd list of data.tables, each representing a country-year.
 #' @return list of data.tables with cumulative columns added.
+#' @family cmd
 #' @export
 select_and_order <- function(l_cmd) {
   lapply(l_cmd, function(dt) {
@@ -82,6 +84,7 @@ select_and_order <- function(l_cmd) {
 #' @param py integer. PPP base year (2011, 2017, or 2021).
 #'
 #' @return numeric vector of welfare values, or NULL.
+#' @family cmd
 #' @export
 #'
 #' @examples
@@ -90,7 +93,18 @@ select_and_order <- function(l_cmd) {
 #' }
 get_cmd_welfare <- function(country_code, reporting_year, CF, qs, py = 2021) {
   cf <- CF[code == country_code & year == reporting_year]
-  stopifnot(nrow(cf) == 1)
+
+  if (nrow(cf) == 0L) {
+    cli::cli_warn(
+      "No CMD coefficient row found for {country_code} / {reporting_year}. Skipping."
+    )
+    return(NULL)
+  }
+  if (nrow(cf) > 1L) {
+    cli::cli_abort(
+      "Multiple CMD coefficient rows ({nrow(cf)}) found for {country_code} / {reporting_year}."
+    )
+  }
 
   welfare <- if (is.na(cf$t1_comp1)) {
     exp(cf$t2_comp1 + cf$t2_qf * qs)
@@ -124,6 +138,7 @@ get_cmd_welfare <- function(country_code, reporting_year, CF, qs, py = 2021) {
 #' @param env_acc environment or NULL. Accumulator for distributional stats.
 #'
 #' @return Named list of data.tables (or NULLs) keyed by `md$id`.
+#' @family cmd
 #' @export
 #'
 #' @examples
@@ -178,6 +193,7 @@ list_cmd_welfare <- function(md, CF, qs, py, env_acc = NULL) {
 #' @param env_acc environment or NULL. Stats accumulator.
 #'
 #' @return `dt` with attributes added.
+#' @family cmd
 #' @export
 add_cmd_attributes <- function(
   dt,
@@ -209,6 +225,7 @@ add_cmd_attributes <- function(
 #' @param path character / fs_path. Directory to write to.
 #'
 #' @return invisible TRUE.
+#' @family cmd
 #' @export
 write_cmd_dist <- function(l_cmd, path) {
   country_years <- names(l_cmd)
@@ -235,6 +252,7 @@ write_cmd_dist <- function(l_cmd, path) {
 #' @param branch character. Branch name (default `"qs_file"`).
 #'
 #' @return list with two data.tables of coefficients.
+#' @family cmd
 #' @export
 load_cmd_coeff <- function(branch = "qs_file") {
   base_url <- "https://raw.githubusercontent.com"
@@ -265,6 +283,7 @@ load_cmd_coeff <- function(branch = "qs_file") {
 #' @param n integer. Number of quantiles (default 1 000).
 #'
 #' @return numeric vector of length `n`.
+#' @family cmd
 #' @export
 calc_cmd_quantiles <- function(n = 1000L) {
   quantiles <- seq(1, n, 1) / n - 5 / (n * 10)
@@ -280,6 +299,8 @@ calc_cmd_quantiles <- function(n = 1000L) {
 #' @param qq data.table with columns `reporting_level`, `welfare`, `weight`.
 #'
 #' @return data.table with cumulative columns and `index`.
+#' @family cmd
+#' @family lineup
 #' @export
 get_csum_dist <- function(qq) {
   first_rows <- data.table(reporting_level = funique(qq$reporting_level)) |>

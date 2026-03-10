@@ -251,7 +251,8 @@ num_vars_to_attr <- function(df, num_var, name_var) {
 #' @param dt data.table. Data containing the grouping variable.
 #' @param x character. Column name of the data-level variable.
 #' @return integer scalar.
-#' @noRd
+#' @keywords internal
+#' @export
 get_ordered_level <- function(dt, x) {
   x_level <- unique(dt[[x]])
   d1 <- c("national")

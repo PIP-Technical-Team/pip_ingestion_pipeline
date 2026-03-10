@@ -17,9 +17,9 @@ write_refy_dist <- function(df_refy, path) {
 
   qs::qsave(
     x = df_refy,
-    file = fs::path(path, paste0(cntry_code, "_", ref_year, ".qs")),
+    file = fs::path(path, paste0(cntry_code, "_", ref_year), ext = "qs"),
     preset = "fast",
-    nthreads = 4L
+    nthreads = getOption("Ncpus", parallel::detectCores(logical = FALSE))
   )
 
   invisible(TRUE)
@@ -39,12 +39,12 @@ write_refy_dist <- function(df_refy, path) {
 #' @param path character / fs_path. Directory to write `.qs` files.
 #' @param gls list. Global settings from [pipfun::pip_create_globals()].
 #' @param dl_aux list. Auxiliary data.
+#' @param py integer. PPP base year (2011, 2017, or 2021). Must be supplied
+#'   explicitly — do not rely on `gls$vintage_dir` parsing.
 #'
 #' @return invisible TRUE (side-effect: writes files).
-#' @export
-write_multiple_refy_dist <- function(df_refy, cntry_refy, path, gls, dl_aux) {
-  py <- as.integer(strsplit(gls$vintage_dir, "_")[[1L]][2L])
-
+#' @keywords internal
+write_multiple_refy_dist <- function(df_refy, cntry_refy, path, gls, dl_aux, py) {
   lapply(
     cli::cli_progress_along(cntry_refy, total = length(cntry_refy)),
     FUN = \(i) {
@@ -83,8 +83,11 @@ write_multiple_refy_dist <- function(df_refy, cntry_refy, path, gls, dl_aux) {
 #' @param gls list. Global settings.
 #' @param dl_aux list. Auxiliary data.
 #' @param env_acc environment or NULL. Distributional stats accumulator.
+#' @param py integer. PPP base year (2011, 2017, or 2021). Must be supplied
+#'   explicitly — do not rely on `gls$vintage_dir` parsing.
 #'
 #' @return invisible TRUE.
+#' @family lineup
 #' @export
 write_csum_refy <- function(
   df_refy,
@@ -92,10 +95,9 @@ write_csum_refy <- function(
   path,
   gls,
   dl_aux,
-  env_acc = NULL
+  env_acc = NULL,
+  py
 ) {
-  py <- as.integer(strsplit(gls$vintage_dir, "_")[[1L]][2L])
-
   if (is.null(env_acc)) {
     env_acc <- new.env(parent = .GlobalEnv)
   }

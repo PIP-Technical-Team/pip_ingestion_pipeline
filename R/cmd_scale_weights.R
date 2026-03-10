@@ -12,6 +12,7 @@
 #'
 #' @return data.table with columns `country_code`, `data_level`,
 #'   `reporting_year` (numeric), `reporting_pop`.
+#' @family cmd
 #' @export
 get_pop_to_scale <- function(aux_dir) {
   fst::read_fst(path = fs::path(aux_dir, "pop.fst")) |>
@@ -33,6 +34,7 @@ get_pop_to_scale <- function(aux_dir) {
 #' @param pop data.table. Output of [get_pop_to_scale()].
 #'
 #' @return Named list of rescaled data.tables.
+#' @family cmd
 #' @export
 scale_weights <- function(l_cmd, pop) {
   # Step 1: aggregate weight sums across the list
@@ -59,41 +61,29 @@ scale_weights <- function(l_cmd, pop) {
 
   wt_check[, scaling_factor := reporting_pop / weight_sum]
 
-  # Step 3: build scaling lookup and apply
-  scaling_lookup <- wt_check[,
+  # Step 3: build scaling lookup keyed for fast merge
+  scaling_lookup <- wt_check[
+    !round(scaling_factor, 5L) == 1,
     .(country_code, reporting_year, reporting_level, scaling_factor)
   ]
-  scaling_lookup[, key := paste(country_code, reporting_year, sep = "_")]
 
-  to_scale <- scaling_lookup[!round(scaling_factor, 5L) == 1, key]
+  if (nrow(scaling_lookup) == 0L) {
+    return(l_cmd)
+  }
 
-  # Attach key as attribute for matching
-  l_cmd <- lapply(l_cmd, function(x) {
-    attr(x, "key") <- paste(
-      funique(x$country_code),
-      funique(x$reporting_year),
-      sep = "_"
-    )
-    x
-  })
+  setkey(scaling_lookup, country_code, reporting_year, reporting_level)
 
   lapply(l_cmd, function(x) {
-    if (!attr(x, "key") %in% to_scale) {
-      return(x)
-    }
-
-    x <- joyn::joyn(
-      x = x,
-      y = scaling_lookup,
-      by = c("country_code", "reporting_year", "reporting_level"),
-      match_type = "m:1",
-      reportvar = FALSE,
-      keep = "left",
-      verbose = FALSE
-    ) |>
-      fmutate(weight = weight * scaling_factor)
-
-    gv(x, c("scaling_factor", "key")) <- NULL
+    cn   <- funique(x$country_code)
+    yr   <- funique(x$reporting_year)
+    rl   <- funique(x$reporting_level)
+    sf   <- scaling_lookup[
+      .(cn, yr, rl),
+      scaling_factor,
+      nomatch = NULL
+    ]
+    if (!length(sf)) return(x)
+    x[, weight := weight * sf[[1L]]]
     x
   })
 }

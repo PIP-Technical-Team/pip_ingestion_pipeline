@@ -741,6 +741,27 @@ list(
     load_cmd_coeff(branch = cmd_coeff_branch)
   ),
 
+  # Record the resolved GitHub commit SHA for the coefficient branch.
+  # This pins the exact data version used and ensures reproducibility even
+  # if the branch HEAD moves.
+  tar_target(
+    cmd_coeff_version,
+    {
+      ref_url <- paste(
+        "https://api.github.com/repos/PIP-Technical-Team/aux_missing_countries",
+        "git/ref/heads",
+        cmd_coeff_branch,
+        sep = "/"
+      )
+      resp <- httr::GET(ref_url, httr::add_headers(Accept = "application/vnd.github+json"))
+      if (!httr::http_error(resp)) {
+        httr::content(resp)$object$sha
+      } else {
+        NA_character_
+      }
+    }
+  ),
+
   # Build logit-transformed quantile vector
   tar_target(
     cmd_qs,
@@ -757,7 +778,7 @@ list(
   ),
 
   # Estimate CMD distributions, write .fst files to lineup_data/, and
-  # accumulate per-country dist_stats in an environment for later assembly.
+  # accumulate per-country dist_stats; return as a hashable data.table.
   tar_target(
     cmd_dist_out,
     {
@@ -773,27 +794,20 @@ list(
         dir = fs::path(gls$OUT_DIR_PC, gls$vintage_dir),
         env_acc = env_acc
       )
-      env_acc
+      rowbind(as.list(env_acc))
     }
   ),
 
   # Assemble CMD dist-stats and join welfare_type from the missing_data aux
   tar_target(
     cmd_dist_stats,
-    {
-      dt <- rowbind(as.list(cmd_dist_out))
-      joyn::left_join(
-        x = dt,
-        y = cmd_md_countries[, .(
-          country_code,
-          reporting_year = year,
-          welfare_type
-        )],
-        by = c("country_code", "reporting_year"),
-        reportvar = FALSE,
-        verbose = FALSE
-      )
-    }
+    joyn::left_join(
+      x = cmd_dist_out,
+      y = cmd_md_countries[, .(country_code, reporting_year = year, welfare_type)],
+      by = c("country_code", "reporting_year"),
+      reportvar = FALSE,
+      verbose = FALSE
+    )
   ),
 
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -834,7 +848,7 @@ list(
   ),
 
   # Estimate and save cumulative-sum lineup distributions as .fst files.
-  # Also accumulates dist_stats in env_lineup_acc for the summary table.
+  # Returns a hashable data.table of dist_stats (not an environment).
   tar_target(
     lineup_dist_out,
     {
@@ -846,21 +860,18 @@ list(
         path = gls$OUT_LINEUP_DIR_PC,
         gls = gls,
         dl_aux = dl_aux,
-        env_acc = env_lineup_acc
+        env_acc = env_lineup_acc,
+        py = py
       )
-      env_lineup_acc
+      rowbind(as.list(env_lineup_acc))
     }
   ),
 
   # Merge lineup dist-stats with CMD dist-stats into a single table
   tar_target(
     lineup_dist_stats,
-    {
-      ld_dt <- rowbind(as.list(lineup_dist_out))
-      cmd_dt <- cmd_dist_stats
-      rowbind(ld_dt, cmd_dt) |>
-        setorder(country_code, reporting_year)
-    }
+    rowbind(lineup_dist_out, cmd_dist_stats) |>
+      setorder(country_code, reporting_year)
   ),
 
   # Save the merged dist-stats summary table to estimations/

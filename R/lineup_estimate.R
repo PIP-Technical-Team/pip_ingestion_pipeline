@@ -20,9 +20,13 @@
 #' @param py integer. PPP base year (2011, 2017, or 2021). Default 2021.
 #' @param dl_aux list. Auxiliary data (output of [read_aux_list()]).
 #' @param env_acc environment or NULL. Accumulator for `dt_dist` data.tables.
+#' @param rescale_countries character vector. Country codes whose total weight
+#'   should be rescaled to match national population in `dl_aux$pop`.
+#'   Defaults to `"ARG"`. Set to `character(0)` to disable.
 #'
 #' @return data.table with welfare and weight columns, plus distributional
 #'   statistics attached as R attributes.
+#' @family lineup
 #' @export
 get_refy_distributions <- function(
   df_refy,
@@ -31,7 +35,8 @@ get_refy_distributions <- function(
   gls,
   py = 2021,
   dl_aux,
-  env_acc = NULL
+  env_acc = NULL,
+  rescale_countries = "ARG"
 ) {
   # Drop factors
   df_refy <- lapply(df_refy, function(x) {
@@ -59,15 +64,30 @@ get_refy_distributions <- function(
     )
 
   # Move non-join metadata to attributes
+  meta_vars <- c(
+    "survey_id",
+    "survey_acronym",
+    "distribution_type",
+    "is_interpolated",
+    "lineup_approach"
+  )
+  # Guard: these must be unique per country-year for safe attribute promotion
+  non_unique <- meta_vars[vapply(
+    meta_vars,
+    function(v) data.table::uniqueN(df_refy[[v]]) > 1L,
+    logical(1L)
+  )]
+  if (length(non_unique)) {
+    cli::cli_abort(
+      c(
+        "Non-unique metadata column{?s} in df_refy for {cntry_code} / {ref_year}:",
+        "x" = "{.val {non_unique}} must each have a single unique value."
+      )
+    )
+  }
   df_refy <- df_refy |>
     vars_to_attr(
-      vars = c(
-        "survey_id",
-        "survey_acronym",
-        "distribution_type",
-        "is_interpolated",
-        "lineup_approach"
-      )
+      vars = meta_vars
     )
 
   # Load cached survey data
@@ -109,8 +129,8 @@ get_refy_distributions <- function(
     fungroup() |>
     fmutate(welfare = welfare_ppp * mult_factor)
 
-  # ARG: re-scale to national population
-  if (cntry_code == "ARG") {
+  # Country-specific weight rescaling to national population
+  if (cntry_code %in% rescale_countries) {
     yr_col <- as.character(ref_year)
     pop_tab <- dl_aux$pop[country_code == cntry_code & data_level == "national"]
     if (!yr_col %in% names(pop_tab)) {
@@ -201,6 +221,7 @@ get_refy_distributions <- function(
 #'
 #' @return data.table with the same columns as `df` but `nobs` rows per
 #'   `reporting_level`, with all original attributes preserved.
+#' @family lineup
 #' @export
 get_refy_quantiles <- function(df, nobs = 2e4) {
   setorder(df, reporting_level, welfare)
@@ -233,6 +254,7 @@ get_refy_quantiles <- function(df, nobs = 2e4) {
 #'   `predicted_mean_ppp`, `svy_mean`.
 #'
 #' @return `df_refy` with two new columns.
+#' @family lineup
 #' @export
 get_refy_mult_factor <- function(df_refy) {
   df_refy |>
@@ -265,6 +287,8 @@ get_refy_mult_factor <- function(df_refy) {
 #' @return List with:
 #'   - `dist_stats`: nested list of statistics per reporting level.
 #'   - `dt_dist`: flat data.table with one row per reporting level.
+#' @family lineup
+#' @family cmd
 #' @export
 get_dist_stats <- function(df) {
   required <- c(
@@ -281,6 +305,9 @@ get_dist_stats <- function(df) {
 
   levels <- funique(df$reporting_level)
 
+  # Pre-split once to avoid repeated row-filtering in every metric loop
+  df_split <- split(df, df$reporting_level)
+
   min_v <- as.list(fmin(df$welfare, g = df$reporting_level))
   max_v <- as.list(fmax(df$welfare, g = df$reporting_level))
   mean_v <- as.list(fmean(df$welfare, w = df$weight, g = df$reporting_level))
@@ -292,36 +319,36 @@ get_dist_stats <- function(df) {
 
   gini_v <- sapply(levels, \(x) {
     wbpip::md_compute_gini(
-      welfare = df$welfare[df$reporting_level == x],
-      weight = df$weight[df$reporting_level == x]
+      welfare = df_split[[x]]$welfare,
+      weight  = df_split[[x]]$weight
     )
   }) |>
     as.list()
 
   mld_v <- sapply(levels, \(x) {
     wbpip::md_compute_mld(
-      welfare = df$welfare[df$reporting_level == x],
-      weight = df$weight[df$reporting_level == x],
-      mean = mean_v[[x]]
+      welfare = df_split[[x]]$welfare,
+      weight  = df_split[[x]]$weight,
+      mean    = mean_v[[x]]
     )
   }) |>
     as.list()
 
   pol_v <- sapply(levels, \(x) {
     wbpip::md_compute_polarization(
-      welfare = df$welfare[df$reporting_level == x],
-      weight = df$weight[df$reporting_level == x],
-      gini = gini_v[[x]],
-      mean = mean_v[[x]],
-      median = median_v[[x]]
+      welfare = df_split[[x]]$welfare,
+      weight  = df_split[[x]]$weight,
+      gini    = gini_v[[x]],
+      mean    = mean_v[[x]],
+      median  = median_v[[x]]
     )
   }) |>
     as.list()
 
   deciles <- lapply(levels, \(x) {
     d <- wbpip:::md_compute_quantiles_share(
-      welfare = df$welfare[df$reporting_level == x],
-      weight = df$weight[df$reporting_level == x]
+      welfare = df_split[[x]]$welfare,
+      weight  = df_split[[x]]$weight
     )
     names(d) <- paste0("decile", seq_along(d))
     qDT(list2DF(as.list(d)))

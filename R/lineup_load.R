@@ -153,6 +153,12 @@ extract_attr <- function(
   attr,
   verbose = FALSE
 ) {
+  # Always enforce mutual exclusion — this is a programming error, not a user
+  # choice, so it must not be gated behind `verbose`.
+  if (dist_stats && aux_data) {
+    cli::cli_abort("`dist_stats` and `aux_data` cannot both be TRUE.")
+  }
+
   l_attr <- base::attributes(df)
 
   a <- if (dist_stats) {
@@ -164,9 +170,6 @@ extract_attr <- function(
   }
 
   if (verbose) {
-    if (dist_stats && aux_data) {
-      cli::cli_abort("`dist_stats` and `aux_data` cannot both be TRUE.")
-    }
     n_attr <- if (dist_stats) {
       names(l_attr$dist_stats)
     } else if (aux_data) {
