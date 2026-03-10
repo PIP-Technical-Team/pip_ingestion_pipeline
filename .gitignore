@@ -43,5 +43,17 @@ vignettes/*.pdf
 tmp/
 
 # Targets folder
-_targets/* 
+_targets/*
+
+# Local target stores (not on network)
+E:/PovcalNet/01.personal/wb384996/PIP/pipeline_targets_cache/
+
+# Testing file
 /R/_testing.R
+
+# Sandbox / old pipeline copies
+_sandbox/
+_old/
+
+# Compound GPID local config (user-specific, never commit)
+compound-gpid.local.md

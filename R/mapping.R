@@ -1,6 +1,29 @@
-mp_svy_mean_lcu <- function(cache, gd_means) {
-  purrr::map2(cache, gd_means,
-              db_compute_survey_mean)
+#' Read a single survey from cache
+#'
+#' Reads a single .fst cache file lazily (on demand) instead of
+#' loading the entire cache into memory.
+#'
+#' @param path character: path to .fst file
+#' @return data.table or NULL on error
+#' @noRd
+read_cache_survey <- function(path) {
+  tryCatch(
+    expr = fst::read_fst(path = path, as.data.table = TRUE),
+    error   = function(e) NULL,
+    warning = function(w) NULL
+  )
+}
+
+mp_svy_mean_lcu <- function(cache_dir, cache_ids, gd_means) {
+  purrr::map(
+    .x = cli::cli_progress_along(cache_ids, name = "Survey means"),
+    .f = \(i) {
+      dt <- read_cache_survey(cache_dir[i])
+      if (is.null(dt)) return(NULL)
+      gd_mean <- gd_means[[cache_ids[i]]]
+      db_compute_survey_mean(dt, gd_mean)
+    }
+  )
 }
 
 
@@ -131,15 +154,13 @@ mp_cache <-
 #' @return
 #' @export
 create_cache <- 
-  function(cache_dir, 
-           gls, 
-           cache_ppp, 
-           cache_status, 
+  function(cache_dir,
+           gls,
+           cache_ppp,
+           cache_status,
            force = FALSE) {
-    
-    dir <- fs::path(gls$PIP_PIPE_DIR, "pc_data/cache/global_list/")
-    
-    # global_file <- paste0(dir, "global_list.rds")
+
+    dir <- fs::path(gls$PIP_PIPE_DIR, "pc_data/cache/global_list/")    # global_file <- paste0(dir, "global_list.rds")
     global_name <- paste0("global_list_", cache_ppp)
     global_file <- fs::path(dir, global_name , ext = "qs")
     
@@ -231,10 +252,16 @@ load_cache <- \(cache_file) {
 #' @export
 #'
 #' @examples
-mp_lorenz <- function(cache) {
-  d <- purrr::map(cache, db_compute_lorenz)
-  purrr::keep(d, ~!is.null(.x))
-  
+mp_lorenz <- function(cache_dir, cache_ids) {
+  d <- purrr::map(
+    .x = cli::cli_progress_along(cache_ids, name = "Lorenz curves"),
+    .f = \(i) {
+      dt <- read_cache_survey(cache_dir[i])
+      if (is.null(dt)) return(NULL)
+      db_compute_lorenz(dt)
+    }
+  )
+  purrr::keep(d, \(x) !is.null(x))
 }
 
 
@@ -253,43 +280,45 @@ mp_lorenz <- function(cache) {
 #' @export
 #'
 #' @examples
-mp_dl_dist_stats <- function(dt         ,
+mp_dl_dist_stats <- function(cache_dir  ,
+                             cache_ids  ,
                              mean_table ,
                              pop_table  ,
-                             cache_id   , 
                              ppp_year) {
-  
-  purrr::map2(.x = dt, 
-              .y = cache_id, 
-              .f = ~{
-                db_compute_dist_stats(dt         = .x,
-                                      mean_table = mean_table,
-                                      pop_table  = pop_table,
-                                      cache_id   = .y, 
-                                      ppp_year   = ppp_year)
-              })
-  
+
+  purrr::map(
+    .x = cli::cli_progress_along(cache_ids, name = "Dist stats"),
+    .f = \(i) {
+      dt <- read_cache_survey(cache_dir[i])
+      if (is.null(dt)) return(NULL)
+      db_compute_dist_stats(dt         = dt,
+                            mean_table = mean_table,
+                            pop_table  = pop_table,
+                            cache_id   = cache_ids[i],
+                            ppp_year   = ppp_year)
+    }
+  )
 }
 
-
-mp_survey_files <- function(cache          ,
+mp_survey_files <- function(cache_dir      ,
                             cache_ids      ,
                             output_dir     ,
                             cols           ,
                             compress       ) {
-  
-  x <- purrr::map(.x = cli::cli_progress_along(cache_ids), 
-                   .f = ~{
-                     save_survey_data(
-                       dt              = cache[[.x]],
-                       cache_filename  = cache_ids[[.x]],
-                       output_dir      = output_dir,
-                       cols            = cols,
-                       compress        = compress) 
-                     
-                   })
-  return(x)
-  
-}
 
+  x <- purrr::map(
+    .x = cli::cli_progress_along(cache_ids, name = "Survey files"),
+    .f = \(i) {
+      dt <- read_cache_survey(cache_dir[i])
+      if (is.null(dt)) return(NULL)
+      save_survey_data(
+        dt              = dt,
+        cache_filename  = cache_ids[i],
+        output_dir      = output_dir,
+        cols            = cols,
+        compress        = compress)
+    }
+  )
+  return(x)
+}
 
