@@ -1,0 +1,154 @@
+# Lineup distribution write functions
+# Adapted from pip_lineups_pipeline/pipdata_pip_write_lineups.R
+
+#' Write a single reference-year distribution as a `.qs` file
+#'
+#' Saves `df_refy` (including all R attributes) to
+#' `{path}/{country_code}_{ref_year}.qs`.
+#'
+#' @param df_refy data.table. Output of [get_refy_distributions()].
+#' @param path character / fs_path. Directory to write to.
+#'
+#' @return invisible TRUE.
+#' @keywords internal
+write_refy_dist <- function(df_refy, path) {
+  cntry_code <- attributes(df_refy)$country_code
+  ref_year <- attributes(df_refy)$reporting_year
+
+  qs::qsave(
+    x = df_refy,
+    file = fs::path(path, paste0(cntry_code, "_", ref_year, ".qs")),
+    preset = "fast",
+    nthreads = 4L
+  )
+
+  invisible(TRUE)
+}
+
+
+#' Estimate and save all reference-year distributions as `.qs` files
+#'
+#' Iterates over every element of `cntry_refy`, calls
+#' [get_refy_distributions()] → [get_refy_quantiles()] →
+#' [add_aux_data_attr()] → [write_refy_dist()] for every country-year
+#' combination.
+#'
+#' @param df_refy data.table. Full reference-year table.
+#' @param cntry_refy list. Each element is `list(country_code, year)` where
+#'   `year` is a vector of reference years for that country.
+#' @param path character / fs_path. Directory to write `.qs` files.
+#' @param gls list. Global settings from [pipfun::pip_create_globals()].
+#' @param dl_aux list. Auxiliary data.
+#'
+#' @return invisible TRUE (side-effect: writes files).
+#' @export
+write_multiple_refy_dist <- function(df_refy, cntry_refy, path, gls, dl_aux) {
+  py <- as.integer(strsplit(gls$vintage_dir, "_")[[1L]][2L])
+
+  lapply(
+    cli::cli_progress_along(cntry_refy, total = length(cntry_refy)),
+    FUN = \(i) {
+      x <- cntry_refy[[i]]
+      lapply(x$year, FUN = \(year = x$year, country_code = x$country_code) {
+        suppressMessages(
+          get_refy_distributions(
+            df_refy = df_refy,
+            cntry_code = country_code,
+            ref_year = year,
+            gls = gls,
+            py = py
+          ) |>
+            get_refy_quantiles(nobs = 2e4) |>
+            add_aux_data_attr(dl_aux = dl_aux, df_refy = df_refy, py = py) |>
+            write_refy_dist(path = path)
+        )
+      })
+    }
+  )
+
+  invisible(TRUE)
+}
+
+
+#' Estimate and save cumulative-sum distributions as `.fst` files
+#'
+#' For every country-year in `cntry_refy`, calls
+#' [get_refy_distributions()] → [get_refy_quantiles()] →
+#' [get_csum_dist()] → [write_ind_csum()].
+#' Distributional statistics are accumulated in `env_acc` when provided.
+#'
+#' @param df_refy data.table. Full reference-year table.
+#' @param cntry_refy list. Country-year list; see [write_multiple_refy_dist()].
+#' @param path character / fs_path. Directory to write `.fst` files.
+#' @param gls list. Global settings.
+#' @param dl_aux list. Auxiliary data.
+#' @param env_acc environment or NULL. Distributional stats accumulator.
+#'
+#' @return invisible TRUE.
+#' @export
+write_csum_refy <- function(
+  df_refy,
+  cntry_refy,
+  path,
+  gls,
+  dl_aux,
+  env_acc = NULL
+) {
+  py <- as.integer(strsplit(gls$vintage_dir, "_")[[1L]][2L])
+
+  if (is.null(env_acc)) {
+    env_acc <- new.env(parent = .GlobalEnv)
+  }
+
+  lapply(
+    cli::cli_progress_along(cntry_refy, total = length(cntry_refy)),
+    FUN = \(i) {
+      x <- cntry_refy[[i]]
+      lapply(x$year, FUN = \(year = x$year, country_code = x$country_code) {
+        suppressMessages(
+          get_refy_distributions(
+            df_refy = df_refy,
+            cntry_code = country_code,
+            ref_year = year,
+            gls = gls,
+            py = py,
+            dl_aux = dl_aux,
+            env_acc = env_acc
+          ) |>
+            get_refy_quantiles(nobs = 2e4) |>
+            get_csum_dist() |>
+            write_ind_csum(
+              path = path,
+              country_code = country_code,
+              ref_year = year
+            )
+        )
+      })
+    }
+  )
+
+  invisible(TRUE)
+}
+
+
+#' Write a single cumulative-sum distribution as an `.fst` file
+#'
+#' Saves `df_refy` to `{path}/{country_code}_{ref_year}.fst` with
+#' zero compression for fast access.
+#'
+#' @param df_refy data.table. Output of [get_csum_dist()].
+#' @param country_code character. ISO3c code.
+#' @param ref_year integer. Reference year.
+#' @param path character / fs_path. Target directory.
+#'
+#' @return invisible TRUE.
+#' @keywords internal
+write_ind_csum <- function(df_refy, country_code, ref_year, path) {
+  fst::write_fst(
+    x = df_refy,
+    path = fs::path(path, paste0(country_code, "_", ref_year, ".fst")),
+    compress = 0L
+  )
+
+  invisible(TRUE)
+}

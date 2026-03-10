@@ -43,6 +43,10 @@ max_year_country <- 2024
 max_year_aggregate <- 2025
 max_year_lineup <- 2024
 
+## CMD (Cross-country Missing Data) settings
+cmd_coeff_branch <- "2026_03_update" # branch in aux_missing_countries repo
+cmd_n_quantiles <- 10000L # number of CMD quantiles per distribution
+
 ## Filter creation of synth data (NULL = all)
 cts <- yrs <- NULL
 
@@ -725,5 +729,176 @@ list(
   tar_target(
     aux_qs_out,
     convert_to_qs(dir = gls$OUT_AUX_DIR_PC)
+  ),
+
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # CMD (Cross-country Missing Data) targets ---------
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+  # Download CMD coefficients from GitHub
+  tar_target(
+    cmd_coeff,
+    load_cmd_coeff(branch = cmd_coeff_branch)
+  ),
+
+  # Build logit-transformed quantile vector
+  tar_target(
+    cmd_qs,
+    calc_cmd_quantiles(n = cmd_n_quantiles)
+  ),
+
+  # Identify missing-data countries from the auxiliary missing_data table.
+  # Columns: country_code, year, reporting_pop, region_code, welfare_type.
+  # The id column ("CC_YYYY") is used as the .fst filename key downstream.
+  tar_target(
+    cmd_md_countries,
+    dl_aux$missing_data |>
+      fmutate(id = paste(country_code, year, sep = "_"))
+  ),
+
+  # Estimate CMD distributions, write .fst files to lineup_data/, and
+  # accumulate per-country dist_stats in an environment for later assembly.
+  tar_target(
+    cmd_dist_out,
+    {
+      fs::dir_create(gls$OUT_LINEUP_DIR_PC)
+      # Select the PPP-year-specific coefficient table
+      CF <- cmd_coeff[[paste0("ppp", py)]]
+      env_acc <- new.env(parent = emptyenv())
+      estimate_and_write_full_cmd(
+        md = cmd_md_countries,
+        CF = CF,
+        qs = cmd_qs,
+        py = py,
+        dir = fs::path(gls$OUT_DIR_PC, gls$vintage_dir),
+        env_acc = env_acc
+      )
+      env_acc
+    }
+  ),
+
+  # Assemble CMD dist-stats and join welfare_type from the missing_data aux
+  tar_target(
+    cmd_dist_stats,
+    {
+      dt <- rowbind(as.list(cmd_dist_out))
+      joyn::left_join(
+        x = dt,
+        y = cmd_md_countries[, .(
+          country_code,
+          reporting_year = year,
+          welfare_type
+        )],
+        by = c("country_code", "reporting_year"),
+        reportvar = FALSE,
+        verbose = FALSE
+      )
+    }
+  ),
+
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # Lineup distribution targets ---------
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+  # Prepare the reference-year table for use in lineup estimation
+  tar_target(
+    df_refy_lineups,
+    prep_df_refy_for_lineups(dt_prod_ref_estimation)
+  ),
+
+  # Compute multiplication factors (extrapolation / interpolation)
+  tar_target(
+    df_refy_mult,
+    get_refy_mult_factor(df_refy_lineups)
+  ),
+
+  # Reference-year table formatted for the lineup estimations output file
+  tar_target(
+    lineup_prod_refy_estimation,
+    prep_df_refy_for_lineups(data.table::copy(df_refy_mult))
+  ),
+
+  # Lookup table of all lineup reference years
+  tar_target(
+    lineup_years_dt,
+    data.table(year = gls$PIP_LINEUP_YEARS)
+  ),
+
+  # Build the full list of country-year combinations to estimate
+  tar_target(
+    lineup_full_list,
+    get_full_list(
+      lineup_years = gls$PIP_LINEUP_YEARS,
+      df_refy = df_refy_mult
+    )
+  ),
+
+  # Estimate and save cumulative-sum lineup distributions as .fst files.
+  # Also accumulates dist_stats in env_lineup_acc for the summary table.
+  tar_target(
+    lineup_dist_out,
+    {
+      fs::dir_create(gls$OUT_LINEUP_DIR_PC)
+      env_lineup_acc <- new.env(parent = emptyenv())
+      write_csum_refy(
+        df_refy = df_refy_mult,
+        cntry_refy = lineup_full_list,
+        path = gls$OUT_LINEUP_DIR_PC,
+        gls = gls,
+        dl_aux = dl_aux,
+        env_acc = env_lineup_acc
+      )
+      env_lineup_acc
+    }
+  ),
+
+  # Merge lineup dist-stats with CMD dist-stats into a single table
+  tar_target(
+    lineup_dist_stats,
+    {
+      ld_dt <- rowbind(as.list(lineup_dist_out))
+      cmd_dt <- cmd_dist_stats
+      rowbind(ld_dt, cmd_dt) |>
+        setorder(country_code, reporting_year)
+    }
+  ),
+
+  # Save the merged dist-stats summary table to estimations/
+  tar_target(
+    lineup_dist_stats_file,
+    save_estimations(
+      dt = lineup_dist_stats,
+      dir = gls$OUT_EST_DIR_PC,
+      name = "lineup_dist_stats",
+      time = gls$TIME,
+      compress = gls$FST_COMP_LVL
+    ),
+    format = "file"
+  ),
+
+  # Save the reference-year estimation table used for lineups
+  tar_target(
+    lineup_prod_refy_file,
+    save_estimations(
+      dt = lineup_prod_refy_estimation,
+      dir = gls$OUT_EST_DIR_PC,
+      name = "prod_refy_estimation",
+      time = gls$TIME,
+      compress = gls$FST_COMP_LVL
+    ),
+    format = "file"
+  ),
+
+  # Save the lineup reference-year lookup table
+  tar_target(
+    lineup_years_file,
+    save_estimations(
+      dt = lineup_years_dt,
+      dir = gls$OUT_EST_DIR_PC,
+      name = "lineup_years",
+      time = gls$TIME,
+      compress = gls$FST_COMP_LVL
+    ),
+    format = "file"
   )
 )
