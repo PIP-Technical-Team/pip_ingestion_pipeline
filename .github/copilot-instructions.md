@@ -114,15 +114,28 @@ _packages.R             # Package loading (same as 00.packages.R, legacy)
 - **Data manipulation:** `data.table` syntax (`:=`, `.SD`, `.()`), not
   `dplyr`/tidyverse
 - **Joins:** `joyn::joyn()` with explicit match types, not `merge()` or
-  `*_join()`
+  `*_join()`; never call `joyn` inside `lapply` over a list — use
+  `setkey()` + `[.(key)]` lookup instead
 - **Pipes:** Base R `|>` pipe (not `%>%`)
 - **Iteration:** `purrr::map()` family
 - **File I/O:** `fst::read_fst()` / `write_fst()` for tabular data,
   `qs::qsave()` / `qread()` for complex objects
 - **CLI output:** `cli::cli_alert()`, `cli::cli_progress_step()` for user
   feedback
-- **Error handling:** `tryCatch()` with explicit error/warning handlers
+- **Error handling:** `cli::cli_abort()` / `cli::cli_warn()` with descriptive
+  context messages; never use bare `stopifnot()` in production batch code
 - **Package conflicts:** Resolved via `conflicted` in `00.packages.R`
+- **`{targets}` return types:** A `tar_target()` expression must return a
+  value that `qs` serialises deterministically — `data.table`, `list`, or
+  atomic vector.  **Never return an `environment`** (reference semantics
+  cause non-deterministic hashes; downstream targets will always re-run).
+  If you use an accumulator environment inside a target, convert it before
+  returning: `rowbind(as.list(env_acc))`.
+- **Explicit parameters over internal derivation:** If a function needs a
+  scalar value (e.g. `py`) that the caller already has, accept it as a
+  parameter.  Do not reconstruct it by parsing a larger object (e.g.
+  `strsplit(gls$vintage_dir, "_")[[1]][2]`) — such parsing is fragile,
+  undocumented, and silently wrong when formats change.
 
 ## Refactoring Plan (Current)
 

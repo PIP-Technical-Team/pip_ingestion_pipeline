@@ -11,17 +11,17 @@ test_that("transform_input with scalar year broadcasts to all countries", {
   out <- transform_input(inp)
   expect_length(out, 2L)
   expect_equal(out[[1L]]$country_code, "ZAF")
-  expect_equal(out[[1L]]$year,         2020)
+  expect_equal(out[[1L]]$year, 2020)
   expect_equal(out[[2L]]$country_code, "COL")
 })
 
 test_that("transform_input with list of year vectors produces one element per country-year", {
   inp <- list(
     country_code = c("ZAF", "COL"),
-    year         = list(c(2020L, 2021L), c(2015L))
+    year = list(c(2020L, 2021L), c(2015L))
   )
   out <- transform_input(inp)
-  expect_length(out, 3L)   # 2 + 1
+  expect_length(out, 3L) # 2 + 1
   codes <- vapply(out, `[[`, character(1L), "country_code")
   expect_equal(sort(codes), sort(c("ZAF", "ZAF", "COL")))
 })

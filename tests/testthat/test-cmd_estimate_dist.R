@@ -47,13 +47,18 @@ test_that("calc_cmd_quantiles values are finite real numbers", {
 # ---- get_cmd_welfare ---------------------------------------------------------
 
 test_that("get_cmd_welfare uses tier-1 when t1_comp1 is not NA", {
-  CF <- make_cf(t1_comp1 = 1.0, t1_qf = 0.0)   # welfare = exp(1) everywhere
+  CF <- make_cf(t1_comp1 = 1.0, t1_qf = 0.0) # welfare = exp(1) everywhere
   w <- get_cmd_welfare("ETH", 2021L, CF, small_qs, py = 2021L)
   expect_equal(w, rep(exp(1), length(small_qs)), tolerance = 1e-10)
 })
 
 test_that("get_cmd_welfare uses tier-2 when t1_comp1 is NA", {
-  CF <- make_cf(t1_comp1 = NA_real_, t1_qf = NA_real_, t2_comp1 = 1.0, t2_qf = 0.0)
+  CF <- make_cf(
+    t1_comp1 = NA_real_,
+    t1_qf = NA_real_,
+    t2_comp1 = 1.0,
+    t2_qf = 0.0
+  )
   w <- get_cmd_welfare("ETH", 2021L, CF, small_qs, py = 2021L)
   expect_equal(w, rep(exp(1), length(small_qs)), tolerance = 1e-10)
 })
@@ -93,11 +98,20 @@ test_that("get_cmd_welfare applies different floor for py=2017", {
 test_that("get_csum_dist returns expected columns", {
   qq <- data.table(
     reporting_level = c("national", "national", "national"),
-    welfare         = c(1.0, 2.0, 3.0),
-    weight          = c(100, 200, 300)
+    welfare = c(1.0, 2.0, 3.0),
+    weight = c(100, 200, 300)
   )
   out <- get_csum_dist(qq)
-  expected_cols <- c("reporting_level", "welfare", "weight", "cw", "cwy", "cwy2", "cwylog", "index")
+  expected_cols <- c(
+    "reporting_level",
+    "welfare",
+    "weight",
+    "cw",
+    "cwy",
+    "cwy2",
+    "cwylog",
+    "index"
+  )
   expect_true(all(expected_cols %in% names(out)))
 })
 

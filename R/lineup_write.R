@@ -44,7 +44,14 @@ write_refy_dist <- function(df_refy, path) {
 #'
 #' @return invisible TRUE (side-effect: writes files).
 #' @keywords internal
-write_multiple_refy_dist <- function(df_refy, cntry_refy, path, gls, dl_aux, py) {
+write_multiple_refy_dist <- function(
+  df_refy,
+  cntry_refy,
+  path,
+  gls,
+  dl_aux,
+  py
+) {
   lapply(
     cli::cli_progress_along(cntry_refy, total = length(cntry_refy)),
     FUN = \(i) {

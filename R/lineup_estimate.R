@@ -71,20 +71,6 @@ get_refy_distributions <- function(
     "is_interpolated",
     "lineup_approach"
   )
-  # Guard: these must be unique per country-year for safe attribute promotion
-  non_unique <- meta_vars[vapply(
-    meta_vars,
-    function(v) data.table::uniqueN(df_refy[[v]]) > 1L,
-    logical(1L)
-  )]
-  if (length(non_unique)) {
-    cli::cli_abort(
-      c(
-        "Non-unique metadata column{?s} in df_refy for {cntry_code} / {ref_year}:",
-        "x" = "{.val {non_unique}} must each have a single unique value."
-      )
-    )
-  }
   df_refy <- df_refy |>
     vars_to_attr(
       vars = meta_vars
@@ -94,19 +80,20 @@ get_refy_distributions <- function(
   cache_id <- funique(df_refy$cache_id)
   gv(df_refy, "cache_id") <- NULL
 
+  svy_cols <- c(
+    "country_code",
+    "surveyid_year",
+    "survey_acronym",
+    "survey_year",
+    "welfare_ppp",
+    "weight",
+    "reporting_level",
+    "welfare_type",
+    "imputation_id"
+  )
   df_svy <- collapse::rowbind(lapply(as.list(cache_id), function(x) {
     pipload::pip_load_cache(cache_id = x, version = gls$vintage_dir) |>
-      fselect(
-        country_code,
-        surveyid_year,
-        survey_acronym,
-        survey_year,
-        welfare_ppp,
-        weight,
-        reporting_level,
-        welfare_type,
-        imputation_id
-      )
+      get_vars(svy_cols)
   }))
 
   # Join and scale weights
@@ -131,12 +118,17 @@ get_refy_distributions <- function(
 
   # Country-specific weight rescaling to national population
   if (cntry_code %in% rescale_countries) {
-    yr_col <- as.character(ref_year)
-    pop_tab <- dl_aux$pop[country_code == cntry_code & data_level == "national"]
-    if (!yr_col %in% names(pop_tab)) {
-      cli::cli_abort("Year {yr_col} not found in dl_aux$pop for ARG.")
+    pop_tab <- dl_aux$pop[
+      country_code == cntry_code &
+        pop_data_level == "national" &
+        year == ref_year
+    ]
+    if (nrow(pop_tab) == 0L) {
+      cli::cli_abort(
+        "Year {ref_year} not found in dl_aux$pop for {cntry_code}."
+      )
     }
-    pop_national <- as.numeric(pop_tab[[yr_col]])
+    pop_national <- pop_tab$pop[1L]
     df <- df |>
       fmutate(
         .w_sum = fsum(weight),
@@ -320,7 +312,7 @@ get_dist_stats <- function(df) {
   gini_v <- sapply(levels, \(x) {
     wbpip::md_compute_gini(
       welfare = df_split[[x]]$welfare,
-      weight  = df_split[[x]]$weight
+      weight = df_split[[x]]$weight
     )
   }) |>
     as.list()
@@ -328,8 +320,8 @@ get_dist_stats <- function(df) {
   mld_v <- sapply(levels, \(x) {
     wbpip::md_compute_mld(
       welfare = df_split[[x]]$welfare,
-      weight  = df_split[[x]]$weight,
-      mean    = mean_v[[x]]
+      weight = df_split[[x]]$weight,
+      mean = mean_v[[x]]
     )
   }) |>
     as.list()
@@ -337,10 +329,10 @@ get_dist_stats <- function(df) {
   pol_v <- sapply(levels, \(x) {
     wbpip::md_compute_polarization(
       welfare = df_split[[x]]$welfare,
-      weight  = df_split[[x]]$weight,
-      gini    = gini_v[[x]],
-      mean    = mean_v[[x]],
-      median  = median_v[[x]]
+      weight = df_split[[x]]$weight,
+      gini = gini_v[[x]],
+      mean = mean_v[[x]],
+      median = median_v[[x]]
     )
   }) |>
     as.list()
@@ -348,7 +340,7 @@ get_dist_stats <- function(df) {
   deciles <- lapply(levels, \(x) {
     d <- wbpip:::md_compute_quantiles_share(
       welfare = df_split[[x]]$welfare,
-      weight  = df_split[[x]]$weight
+      weight = df_split[[x]]$weight
     )
     names(d) <- paste0("decile", seq_along(d))
     qDT(list2DF(as.list(d)))
@@ -444,38 +436,44 @@ aux_data <- function(cde, yr, reporting_level, dl_aux, df_refy, py = 2021) {
 
   stopifnot(py %in% c(2011L, 2017L, 2021L))
   output <- list()
-  yr <- as.character(yr)
+  yr_num <- as.numeric(yr)
 
-  # PCE
-  output[["pce"]] <- if (yr %in% names(dl_aux$pce)) {
-    dl_aux$pce[country_code == cde, ..yr] |> unlist() |> unname() |> funique()
+  # PCE (long format: country_code, year, pce, pce_data_level)
+  pce_row <- dl_aux$pce[country_code == cde & year == yr_num]
+  output[["pce"]] <- if (nrow(pce_row) > 0L) {
+    funique(pce_row$pce)
   } else {
     NA_real_
   }
 
-  # POP
-  tempvs <- c("data_level", yr)
-  temp <- dl_aux$pop[country_code == cde, ..tempvs]
-  output[["pop"]] <- setNames(as.list(temp[[yr]]), temp$data_level)
+  # POP (long format: country_code, year, pop_data_level, pop)
+  pop_rows <- dl_aux$pop[country_code == cde & year == yr_num]
+  output[["pop"]] <- setNames(
+    as.list(pop_rows$pop),
+    pop_rows$pop_data_level
+  )
 
-  # GDP
+  # GDP (long format: country_code, year, gdp, gdp_data_level)
   output[["gdp"]] <- dl_aux$gdp[
-    country_code == cde & data_level %in% reporting_level,
-    ..yr
+    country_code == cde &
+      gdp_data_level %in% reporting_level &
+      year == yr_num,
+    gdp
   ] |>
     funique() |>
     as.numeric()
 
-  # PPP
-  tempvs <- c("data_level", as.character(py))
-  temp <- dl_aux$ppp[country_code == cde, ..tempvs]
-  output[["ppp"]] <- setNames(as.list(temp[[tempvs[2L]]]), temp$data_level)
+  # PPP (long format: country_code, ppp_year, ppp, ppp_data_level)
+  ppp_rows <- dl_aux$ppp[country_code == cde]
+  output[["ppp"]] <- setNames(
+    as.list(ppp_rows$ppp),
+    ppp_rows$ppp_data_level
+  )
 
-  # CPI
-  output[["cpi"]] <- if (yr %in% names(dl_aux$cpi)) {
-    tempvs <- c("data_level", yr)
-    temp <- dl_aux$cpi[country_code == cde, ..tempvs]
-    setNames(as.list(temp[[yr]]), temp$data_level)
+  # CPI (long format: country_code, cpi_year, survey_year, cpi, cpi_data_level)
+  cpi_rows <- dl_aux$cpi[country_code == cde & survey_year == yr_num]
+  output[["cpi"]] <- if (nrow(cpi_rows) > 0L) {
+    setNames(as.list(cpi_rows$cpi), cpi_rows$cpi_data_level)
   } else {
     NA_real_
   }

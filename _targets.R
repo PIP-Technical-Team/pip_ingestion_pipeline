@@ -753,7 +753,10 @@ list(
         cmd_coeff_branch,
         sep = "/"
       )
-      resp <- httr::GET(ref_url, httr::add_headers(Accept = "application/vnd.github+json"))
+      resp <- httr::GET(
+        ref_url,
+        httr::add_headers(Accept = "application/vnd.github+json")
+      )
       if (!httr::http_error(resp)) {
         httr::content(resp)$object$sha
       } else {
@@ -803,7 +806,11 @@ list(
     cmd_dist_stats,
     joyn::left_join(
       x = cmd_dist_out,
-      y = cmd_md_countries[, .(country_code, reporting_year = year, welfare_type)],
+      y = cmd_md_countries[, .(
+        country_code,
+        reporting_year = year,
+        welfare_type
+      )],
       by = c("country_code", "reporting_year"),
       reportvar = FALSE,
       verbose = FALSE
@@ -821,9 +828,11 @@ list(
   ),
 
   # Compute multiplication factors (extrapolation / interpolation)
+  # Uses the full dt_prod_ref_estimation (not the deduplicated df_refy_lineups)
+  # because cache_id must remain intact for loading survey microdata.
   tar_target(
     df_refy_mult,
-    get_refy_mult_factor(df_refy_lineups)
+    get_refy_mult_factor(dt_prod_ref_estimation)
   ),
 
   # Reference-year table formatted for the lineup estimations output file
@@ -855,7 +864,8 @@ list(
       fs::dir_create(gls$OUT_LINEUP_DIR_PC)
       env_lineup_acc <- new.env(parent = emptyenv())
       write_csum_refy(
-        df_refy = df_refy_mult,
+        # fmt: skip
+        df_refy    = df_refy_mult,
         cntry_refy = lineup_full_list,
         path = gls$OUT_LINEUP_DIR_PC,
         gls = gls,

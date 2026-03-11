@@ -7,6 +7,7 @@ for (proj in c("ppp2021", "ppp2017")) {
 
 # to run only one PPP year
 Sys.setenv(TAR_PROJECT = "ppp2017")
+Sys.setenv(TAR_PROJECT = "ppp2021")
 run_tar()
 
 # targets::tar_visnetwork()
@@ -14,3 +15,7 @@ run_tar()
 # on local processes or a Sun Grid Engine cluster.
 # targets::tar_make_clustermq(workers = 2L)
 # targets::tar_make(callr_function = NULL)
+
+## Uncomment to debug
+tar_load_globals()
+tar_meta(fields = error, complete_only = TRUE)

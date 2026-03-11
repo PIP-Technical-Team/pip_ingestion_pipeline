@@ -74,15 +74,17 @@ scale_weights <- function(l_cmd, pop) {
   setkey(scaling_lookup, country_code, reporting_year, reporting_level)
 
   lapply(l_cmd, function(x) {
-    cn   <- funique(x$country_code)
-    yr   <- funique(x$reporting_year)
-    rl   <- funique(x$reporting_level)
-    sf   <- scaling_lookup[
+    cn <- funique(x$country_code)
+    yr <- funique(x$reporting_year)
+    rl <- funique(x$reporting_level)
+    sf <- scaling_lookup[
       .(cn, yr, rl),
       scaling_factor,
       nomatch = NULL
     ]
-    if (!length(sf)) return(x)
+    if (!length(sf)) {
+      return(x)
+    }
     x[, weight := weight * sf[[1L]]]
     x
   })
