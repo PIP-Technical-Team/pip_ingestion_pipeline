@@ -125,7 +125,7 @@ write_csum_refy <- function(
   )
 
   if (is.null(env_acc)) {
-    env_acc <- new.env(parent = .GlobalEnv)
+    env_acc <- new.env(parent = emptyenv())
   }
 
   lapply(
@@ -204,6 +204,8 @@ write_ind_csum <- function(df_refy, country_code, ref_year, path) {
 #' @param dl_aux list. Auxiliary data (output of [read_aux_list()]).
 #' @param py integer. PPP base year (2011, 2017, or 2021). Must be supplied
 #'   explicitly — do not derive from `gls`.
+#' @param nobs integer. Number of quantile bins passed to [get_refy_quantiles()].
+#'   Default 20 000. Reduce to speed up smoke tests.
 #'
 #' @return data.table with distributional statistics for all reference years of
 #'   this country (one row per year × reporting level). Columns are those
@@ -218,8 +220,15 @@ process_country_lineup <- function(
   path,
   gls,
   dl_aux,
-  py
+  py,
+  nobs = 2e4
 ) {
+  if (length(country_entry$year) == 0L) {
+    cli::cli_abort(
+      "country_entry$year is empty for {.val {country_entry$country_code}}"
+    )
+  }
+
   env_acc <- new.env(parent = emptyenv())
   country_code <- country_entry$country_code
 
@@ -234,7 +243,7 @@ process_country_lineup <- function(
         dl_aux = dl_aux,
         env_acc = env_acc
       ) |>
-        get_refy_quantiles(nobs = 2e4) |>
+        get_refy_quantiles(nobs = nobs) |>
         get_csum_dist() |>
         write_ind_csum(
           path = path,
@@ -244,5 +253,7 @@ process_country_lineup <- function(
     )
   })
 
-  rowbind(as.list(env_acc))
+  result <- rowbind(as.list(env_acc))
+  setorder(result, reporting_year, reporting_level)
+  result
 }

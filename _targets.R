@@ -867,7 +867,6 @@ list(
   tar_target(
     lineup_dist_country,
     {
-      fs::dir_create(gls$OUT_LINEUP_DIR_PC)
       process_country_lineup(
         country_entry = lineup_full_list,
         df_refy = df_refy_mult,

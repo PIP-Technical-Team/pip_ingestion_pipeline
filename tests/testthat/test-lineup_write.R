@@ -142,6 +142,18 @@ test_that("write_ind_csum round-trips data correctly", {
   expect_equal(back$weight, qq$weight)
 })
 
+# ── write_csum_refy() deprecation ────────────────────────────────────────────
+
+test_that("write_csum_refy emits a lifecycle deprecation warning", {
+  # lifecycle::expect_deprecated() handles the warn-once cache correctly
+  lifecycle::expect_deprecated(
+    tryCatch(
+      write_csum_refy(NULL, NULL, NULL, NULL, NULL),
+      error = function(e) NULL
+    )
+  )
+})
+
 # ── process_country_lineup() integration smoke test ──────────────────────────
 # Requires a running PIP pipeline environment (PIP_ROOT_DIR and access to
 # cache files on the network).  Skip on CI / developer machines without data.
@@ -165,7 +177,10 @@ test_that("process_country_lineup returns data.table with correct columns", {
     ),
     create_dir = FALSE
   )
-  dl_aux <- read_aux_list(fs::path(gls$OUT_DIR_PC, gls$vintage_dir))
+  dl_aux <- tryCatch(
+    read_aux_list(fs::path(gls$OUT_DIR_PC, gls$vintage_dir)),
+    error = function(e) skip(paste("aux data unavailable:", conditionMessage(e)))
+  )
 
   # Load df_refy_mult from the targets store if available
   skip_if(
