@@ -844,43 +844,80 @@ list(
   # Lookup table of all lineup reference years
   tar_target(
     lineup_years_dt,
-    data.table(year = gls$PIP_LINEUP_YEARS)
+    data.table(lineup_years = gls$PIP_LINEUP_YEARS)
   ),
 
-  # Build the full list of country-year combinations to estimate
+  # Build the full list of country-year combinations to estimate.
+  # iteration = "list" is required so that pattern = map(lineup_full_list)
+  # in lineup_dist_country receives one element per branch.
   tar_target(
     lineup_full_list,
     get_full_list(
       lineup_years = gls$PIP_LINEUP_YEARS,
       df_refy = df_refy_mult
-    )
+    ),
+    iteration = "list"
   ),
 
-  # Estimate and save cumulative-sum lineup distributions as .fst files.
-  # Returns a hashable data.table of dist_stats (not an environment).
+  # Per-country dynamic branch: one branch per element of lineup_full_list
+  # (172 branches total). Each branch processes all reference years for one
+  # country, writes the .fst files, and returns a data.table of dist-stats.
+  # Only countries whose upstream data changed are re-executed on incremental
+  # runs, cutting re-run time from ~58 min to seconds.
   tar_target(
-    lineup_dist_out,
+    lineup_dist_country,
     {
       fs::dir_create(gls$OUT_LINEUP_DIR_PC)
-      env_lineup_acc <- new.env(parent = emptyenv())
-      write_csum_refy(
-        # fmt: skip
-        df_refy    = df_refy_mult,
-        cntry_refy = lineup_full_list,
+      process_country_lineup(
+        country_entry = lineup_full_list,
+        df_refy = df_refy_mult,
         path = gls$OUT_LINEUP_DIR_PC,
         gls = gls,
         dl_aux = dl_aux,
-        env_acc = env_lineup_acc,
         py = py
       )
-      rowbind(as.list(env_lineup_acc))
+    },
+    pattern = map(lineup_full_list),
+    iteration = "list"
+  ),
+
+  # Combine per-country dist-stats into a single table.
+  # Produces the same output shape as the former monolithic lineup_dist_out.
+  tar_target(
+    lineup_dist_out,
+    rowbind(lineup_dist_country, use.names = TRUE)
+  ),
+
+  # Add welfare_type to lineup dist-stats from the reference-year table
+  # (get_dist_stats() does not include welfare_type; pipeline-run.R
+  #  joins it from df_refy afterwards)
+  tar_target(
+    lineup_dist_out_wt,
+    {
+      wt_lookup <- df_refy_mult[,
+        .(country_code, reporting_year, welfare_type, reporting_level)
+      ] |>
+        funique()
+
+      joyn::left_join(
+        x = lineup_dist_out,
+        y = wt_lookup,
+        by = c("country_code", "reporting_year", "reporting_level"),
+        reportvar = FALSE,
+        verbose = FALSE
+      )
     }
   ),
 
   # Merge lineup dist-stats with CMD dist-stats into a single table
   tar_target(
     lineup_dist_stats,
-    rowbind(lineup_dist_out, cmd_dist_stats) |>
+    rowbind(
+      lineup_dist_out_wt,
+      cmd_dist_stats,
+      use.names = TRUE,
+      fill = TRUE
+    ) |>
       setorder(country_code, reporting_year)
   ),
 
