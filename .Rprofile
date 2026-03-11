@@ -25,8 +25,10 @@ if (requireNamespace("gert", quietly = TRUE)) {
   }
 }
 
-if (requireNamespace("pushoverr", quietly = TRUE) &&
-  requireNamespace("targets", quietly = TRUE)) {
+if (
+  requireNamespace("pushoverr", quietly = TRUE) &&
+    requireNamespace("targets", quietly = TRUE)
+) {
   run_tar <- function(...) {
     s <- Sys.time()
     start <- format(s, "%H:%M")
@@ -123,6 +125,11 @@ if (requireNamespace("pushoverr", quietly = TRUE) &&
     ) # End of tryCatch
 
     msg_safe <- gsub("\\}", "}}", gsub("\\{", "{{", msg))
+
+    if (fs::file_exists("pushoverr.R")) {
+      source("pushoverr.R")
+    }
+
     pushoverr::pushover(msg_safe)
     cli::cli_alert(msg_safe)
 
