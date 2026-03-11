@@ -179,7 +179,9 @@ test_that("process_country_lineup returns data.table with correct columns", {
   )
   dl_aux <- tryCatch(
     read_aux_list(fs::path(gls$OUT_DIR_PC, gls$vintage_dir)),
-    error = function(e) skip(paste("aux data unavailable:", conditionMessage(e)))
+    error = function(e) {
+      skip(paste("aux data unavailable:", conditionMessage(e)))
+    }
   )
 
   # Load df_refy_mult from the targets store if available
