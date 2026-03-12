@@ -39,9 +39,9 @@ cli::cli_alert_info(
 branch <- "DEV"
 release <- "20260324"
 identity <- "PROD"
-max_year_country <- 2024
-max_year_aggregate <- 2025
-max_year_lineup <- 2024
+max_year_country <- 2025
+max_year_aggregate <- 2026
+max_year_lineup <- 2026
 
 ## CMD (Cross-country Missing Data) settings
 cmd_coeff_branch <- "2026_03_update" # branch in aux_missing_countries repo
