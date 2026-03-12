@@ -495,6 +495,25 @@ cache_inventory_path <- function(CACHE_SVY_DIR){
   fs::path(CACHE_SVY_DIR, "_crr_inventory/crr_inventory.fst")
 }
 
+
+
+filter_cache_inventory <- \(x, dl_aux) {
+  svy_in_pfw <- dl_aux$pfw[, link] 
+  
+  pattern <-  "([[:alnum:]]{3}_[[:digit:]]{4}_[[:alnum:]\\-]+)(.*)"
+  
+  cache_names <- 
+    x[, cache_id] |> 
+    gsub(pattern = pattern, 
+         replacement = "\\1", 
+         x = _)
+  
+  to_drop_cache     <- which(!cache_names %in% svy_in_pfw)
+  x[!to_drop_cache]
+}
+
+
+
 get_cache_files <- function(x) {
   x$cache_file
 }
@@ -506,6 +525,53 @@ get_cache_id <- function(x) {
 get_survey_id <- function(x) {
   x$survey_id
 }
+
+get_orig_dta_file <- \(x) {
+  x$orig
+}
+
+
+delete_old_cache_id <- \(fs_status, 
+                         pipeline_inventory, 
+                         gls){
+  
+  tfs <- fs_status[!status %in% c("unchanged", "added")]
+  tfs[, path := unclass(path)]
+  
+  tpi <- copy(pipeline_inventory)
+  tpi[, path := unclass(orig)
+      ][, 
+        orig := NULL]
+  
+  if (nrow(tfs) == 0L) return(NULL)
+  
+  to_del <- joyn::joyn(tfs, 
+                       tpi,
+                       by = "path",
+                       match_type = "1:m",
+                       keep = "inner",
+                       y_vars_to_keep = "cache_id") |> 
+    _[, cache_id]
+  
+  tryCatch(
+    expr = {
+      # Your code...
+      fs::path(gls$CACHE_SVY_DIR_PC, to_del, ext = "fst") |> 
+        fs::file_delete()
+    }, # end of expr section
+    
+    error = function(e) {
+      e$message
+    }, # end of error section
+    
+    warning = function(w) {
+      w$message
+    } # end of finally section
+    
+  ) # End of trycatch
+  
+}
+
 
 
 aux_out_files_fun <- function(OUT_AUX_DIR, aux_names) {
@@ -562,7 +628,8 @@ prep_aux_data <- function(maindir = PIP_DATA_DIR,
     auxfiles = aux_dirs
   )
   
-  return(aux_tb)
+  aux_tb[!(auxname %chin% c("maddison"))]
+  
 }
 
 #' Create framework data from Price FrameWork data (subsample)
@@ -575,10 +642,8 @@ prep_aux_data <- function(maindir = PIP_DATA_DIR,
 #' @examples
 create_framework <- function(pfw) {
   meta_vars <- 
-    c(
-      "wb_region_code",
-      "country_code",
-      "pcn_region_code",
+    c("country_code",
+      "region_code",
       "ctryname",
       "year",
       "surveyid_year",
@@ -628,3 +693,94 @@ get_groupdata_means <- function(cache_inventory,
 
 }
 
+
+
+
+check_fs_status <- function(dir_path, 
+                            fs_paths, 
+                            name) {
+  
+  # Validate fs_paths -----------------------------------
+  if (!is.character(fs_paths)) {
+    cli::cli_abort("`fs_paths` must be a character vector of paths.")
+  }
+  
+  fs_paths <- collapse::funique(fs_paths)
+  
+  if (!dir.exists(dir_path)) {
+    dir.create(dir_path, recursive = TRUE)
+  }
+  # Create the board or simply get it if it already exists
+  board <- pins::board_folder(dir_path,
+                              versioned = TRUE)
+  
+  # Prepare new snapshot -------------------------------
+  info_dt_new <- fs::file_info(fs_paths) |>
+    ftransform(
+      status            = "unchanged",
+      modification_time = as.POSIXct(modification_time)
+    ) |>
+    fselect(path, 
+            modification_time, 
+            status) |>
+    qDT()
+  
+  update_dt <- tryCatch({
+    
+    # If the fs_status pin doesn't exist ----------------
+    if (!name %in% pins::pin_list(board)) {
+      pins::pin_write(board, 
+                      info_dt_new, 
+                      name = name,
+                      type = "qs")
+      return(info_dt_new)   # <- you had `info_dt` here, typo
+    }
+    
+    # If the pin exists ---------------------------------
+    
+    prev_info <- pins::pin_read(board, name)
+    
+    join_info <- joyn::joyn(
+      x                = prev_info,
+      y                = info_dt_new,
+      by               = "path",
+      keep_common_vars = TRUE,
+      suffixes         = c(".old", ".new"),
+      match_type       = "1:1",
+      reportvar        = ".joyn",
+      verbose          = FALSE
+    ) |> 
+      setDT()
+    
+    join_info[, status := fcase(
+      .joyn == "x", "deleted",
+      .joyn == "y", "added",
+      .joyn == "x & y" & modification_time.new > modification_time.old, "modified",
+      default = "unchanged"
+    )]
+    
+    updated_snapshot <- join_info |>
+      fsubset(.joyn %in% c("x & y", "y")) |>
+      fselect(c("path", 
+                "modification_time" = "modification_time.new", 
+                "status"))
+    
+    pins::pin_write(board, 
+                    updated_snapshot, 
+                    name = name,
+                    type = "qs")
+    
+    join_info
+    
+  }, error = function(e) {
+    warning("Error checking filesystem status: ", conditionMessage(e))
+    return(NULL)
+  })
+  
+  
+  update_dt[status != "unchanged",
+            .(path, 
+              status, 
+              modification_time  = modification_time.old)]
+ 
+}

@@ -88,8 +88,9 @@ cache_inventory <-
 
 cache_ppp <- gls$cache_ppp
 cache_ids <- get_cache_id(cache_inventory)
-cache_dir <- get_cache_files(cache_inventory)
-names(cache_dir) <-  cache_ids
+cache_dir <- get_cache_files(cache_inventory) |> 
+  setNames(cache_ids)
+
 
 cache   <- mp_cache(cache_dir = cache_dir, 
                     load      = TRUE, 

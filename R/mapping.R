@@ -1,6 +1,29 @@
-mp_svy_mean_lcu <- function(cache, gd_means) {
-  purrr::map2(cache, gd_means,
-              db_compute_survey_mean)
+#' Read a single survey from cache
+#'
+#' Reads a single .fst cache file lazily (on demand) instead of
+#' loading the entire cache into memory.
+#'
+#' @param path character: path to .fst file
+#' @return data.table or NULL on error
+#' @noRd
+read_cache_survey <- function(path) {
+  tryCatch(
+    expr = fst::read_fst(path = path, as.data.table = TRUE),
+    error   = function(e) NULL,
+    warning = function(w) NULL
+  )
+}
+
+mp_svy_mean_lcu <- function(cache_dir, cache_ids, gd_means) {
+  purrr::map(
+    .x = cli::cli_progress_along(cache_ids, name = "Survey means"),
+    .f = \(i) {
+      dt <- read_cache_survey(cache_dir[i])
+      if (is.null(dt)) return(NULL)
+      gd_mean <- gd_means[[cache_ids[i]]]
+      db_compute_survey_mean(dt, gd_mean)
+    }
+  )
 }
 
 
@@ -17,7 +40,7 @@ mp_svy_mean_lcu <- function(cache, gd_means) {
 #'
 #' @examples
 mp_cache <- 
-  function(cache_dir = NULL, 
+  function(cache_dir, 
            load = TRUE, 
            save = FALSE, 
            gls, 
@@ -26,8 +49,10 @@ mp_cache <-
     dir <- fs::path(gls$PIP_PIPE_DIR, "pc_data/cache/global_list/")
     
     # global_file <- paste0(dir, "global_list.rds")
-    global_name <- paste0("global_list_", cache_ppp)
-    global_file <- fs::path(dir, global_name , ext = "qs")
+    global_name      <- paste0("global_list_", cache_ppp)
+    global_name_inv  <- paste0("global_list_inventory", cache_ppp)
+    global_file      <- fs::path(dir, global_name , ext = "qs")
+    global_inv       <- fs::path(dir, global_name_inv, ext = "qs")
     
     if (!fs::file_exists(global_file)) {
       save <- TRUE
@@ -35,15 +60,25 @@ mp_cache <-
                      It will be created and saved")
     }
     
+    # Compare names of each file with the ones already saved
+    # if different, then create cache again and save both cache 
+    # and new inventory
+    ch_names <- names(cache_dir)
+    if (!fs::file_exists(global_inv)) {
+      save <- TRUE
+      cli::cli_alert("file {.file {global_inv}} does not exist. 
+                     cache will be created and saved")
+    } else {
+      inv <- qs::qread(global_inv)
+      if (!identical(inv, ch_names)) {
+        cli::cli_alert("current cache inventory in file  does not match with 
+                       the new one. Cache will be recreated")
+        save <- TRUE
+      }
+    }
+    
     if (isTRUE(save)) {
       
-      if (is.null(cache_dir)) {
-        cli::cli_abort("You must provide a {.code cache_dir} vector")
-      }
-      
-      ch_names <- gsub("(.+/)([A-Za-z0-9_\\-]+)(\\.fst$)", "\\2", cache_dir)
-      names(ch_names) <- NULL
-      names(cache_dir) <- ch_names
       
       cli::cli_progress_step("Creating list")
       y <- purrr::map(.x = cli::cli_progress_along(ch_names), 
@@ -69,6 +104,7 @@ mp_cache <-
       
       names(y) <- ch_names
       qs::qsave(y, global_file, preset =  "fast")
+      qs::qsave(ch_names, global_inv, preset =  "fast")
       # readr::write_rds(y, global_file)
       
     }
@@ -105,6 +141,109 @@ mp_cache <-
   }
 
 
+
+
+
+#' Create list of cache files
+#'
+#' @param cache_dir character: direcoty path of cache files
+#' @param load logical: whether to load the list of cache files
+#' @param gls list: globals from `pip_create_globals()`
+#' @param cache_ppp numeric: PPP year. 
+#'
+#' @return
+#' @export
+create_cache <- 
+  function(cache_dir,
+           gls,
+           cache_ppp,
+           cache_status,
+           force = FALSE) {
+
+    dir <- fs::path(gls$PIP_PIPE_DIR, "pc_data/cache/global_list/")    # global_file <- paste0(dir, "global_list.rds")
+    global_name <- paste0("global_list_", cache_ppp)
+    global_file <- fs::path(dir, global_name , ext = "qs")
+    
+    cache_ids   <- cache_dir |> 
+      fs::path_file() |> 
+      fs::path_ext_remove()
+    
+    tfs <- cache_status[status != "unchanged"]
+    if (nrow(tfs) == 0L && force == FALSE) return(global_file)
+    
+    cache <- purrr::map(.x = cache_dir, 
+                    .f = ~{
+                      tryCatch(
+                        expr = {
+                          # Your code...
+                          fst::read_fst(path = .x,
+                                        as.data.table = TRUE)
+                        }, # end of expr section
+                        
+                        error = function(e) {
+                          NULL
+                        }, # end of error section
+                        
+                        warning = function(w) {
+                          NULL
+                        } # end of finally section
+                        
+                      ) # End of trycatch
+                      
+                    }, 
+                    .progress = TRUE) |> 
+      setNames(cache_ids) |> 
+      purrr::compact() 
+    
+    qs::qsave(cache, global_file, preset =  "fast")
+
+    
+    global_file
+    
+  }
+
+
+update_global_cache_inv <- \(cache_dir, gls, cache_ppp) {
+  
+  dir <- fs::path(gls$PIP_PIPE_DIR, "pc_data/cache/global_list/")
+  
+  cache_ids   <- cache_dir |> 
+    fs::path_file() |> 
+    fs::path_ext_remove()
+  
+  global_name_inv  <- paste0("global_list_inventory", cache_ppp)
+  global_inv       <- fs::path(dir, global_name_inv, ext = "qs")
+  qs::qsave(cache_ids, global_inv, preset =  "fast")
+  global_inv
+}
+
+
+
+
+
+load_cache <- \(cache_file) {
+   # load from file
+  
+  if (file.exists(cache_file)) {
+    
+    cli::cli_progress_step("Loading global cache file",  spinner = TRUE)
+    
+    # x <- readr::read_rds(global_file)
+    x <- qs::qread(cache_file, nthreads = 2)
+    
+    cli::cli_progress_step("Done!")
+    
+  } else {
+    cli::cli_abort("file {.file {global_file}} does not exist. 
+                   Use option {.code save = TRUE} instead")
+  }
+  
+  x
+}
+
+
+
+
 #' Title
 #'
 #' @param cache 
@@ -113,10 +252,16 @@ mp_cache <-
 #' @export
 #'
 #' @examples
-mp_lorenz <- function(cache) {
-  d <- purrr::map(cache, db_compute_lorenz)
-  purrr::keep(d, ~!is.null(.x))
-  
+mp_lorenz <- function(cache_dir, cache_ids) {
+  d <- purrr::map(
+    .x = cli::cli_progress_along(cache_ids, name = "Lorenz curves"),
+    .f = \(i) {
+      dt <- read_cache_survey(cache_dir[i])
+      if (is.null(dt)) return(NULL)
+      db_compute_lorenz(dt)
+    }
+  )
+  purrr::keep(d, \(x) !is.null(x))
 }
 
 
@@ -135,43 +280,45 @@ mp_lorenz <- function(cache) {
 #' @export
 #'
 #' @examples
-mp_dl_dist_stats <- function(dt         ,
+mp_dl_dist_stats <- function(cache_dir  ,
+                             cache_ids  ,
                              mean_table ,
                              pop_table  ,
-                             cache_id   , 
                              ppp_year) {
-  
-  purrr::map2(.x = dt, 
-              .y = cache_id, 
-              .f = ~{
-                db_compute_dist_stats(dt         = .x,
-                                      mean_table = mean_table,
-                                      pop_table  = pop_table,
-                                      cache_id   = .y, 
-                                      ppp_year   = ppp_year)
-              })
-  
+
+  purrr::map(
+    .x = cli::cli_progress_along(cache_ids, name = "Dist stats"),
+    .f = \(i) {
+      dt <- read_cache_survey(cache_dir[i])
+      if (is.null(dt)) return(NULL)
+      db_compute_dist_stats(dt         = dt,
+                            mean_table = mean_table,
+                            pop_table  = pop_table,
+                            cache_id   = cache_ids[i],
+                            ppp_year   = ppp_year)
+    }
+  )
 }
 
-
-mp_survey_files <- function(cache          ,
+mp_survey_files <- function(cache_dir      ,
                             cache_ids      ,
                             output_dir     ,
                             cols           ,
                             compress       ) {
-  
-  x <- purrr::map(.x = cli::cli_progress_along(cache_ids), 
-                   .f = ~{
-                     save_survey_data(
-                       dt              = cache[[.x]],
-                       cache_filename  = cache_ids[[.x]],
-                       output_dir      = output_dir,
-                       cols            = cols,
-                       compress        = compress) 
-                     
-                   })
-  return(x)
-  
-}
 
+  x <- purrr::map(
+    .x = cli::cli_progress_along(cache_ids, name = "Survey files"),
+    .f = \(i) {
+      dt <- read_cache_survey(cache_dir[i])
+      if (is.null(dt)) return(NULL)
+      save_survey_data(
+        dt              = dt,
+        cache_filename  = cache_ids[i],
+        output_dir      = output_dir,
+        cols            = cols,
+        compress        = compress)
+    }
+  )
+  return(x)
+}
 
