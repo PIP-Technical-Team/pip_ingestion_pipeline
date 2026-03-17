@@ -52,7 +52,7 @@ cts <- yrs <- NULL
 
 ## Save/force flags
 force_create_cache_file <- FALSE
-save_pip_update_cache_inventory <- FALSE
+save_pip_update_cache_inventory <- TRUE
 force_gd_2_synth <- FALSE
 
 

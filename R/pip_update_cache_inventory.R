@@ -14,8 +14,8 @@ pip_update_cache_inventory <- function(
   tool = c("PC", "TB"),
   save = TRUE,
   load = FALSE,
-  verbose = FALSE) {
-
+  verbose = FALSE
+) {
   tool <- match.arg(tool)
 
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -23,18 +23,18 @@ pip_update_cache_inventory <- function(
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
   cch <- data.table::data.table(
-    cache_file =
-      list.files(
-        path       = cache_svy_dir,
-        full.names = TRUE,
-        pattern    = "\\.fst$"
-      )
+    cache_file = list.files(
+      path = cache_svy_dir,
+      full.names = TRUE,
+      pattern = "\\.fst$"
+    )
   )
 
   if (nrow(cch) == 0) {
-    cli::cli_alert_warning("There is no data in directory {.field {cache_svy_dir}}\n
+    cli::cli_alert_warning(
+      "There is no data in directory {.field {cache_svy_dir}}\n
                            Cache inventory not created",
-                           wrap = TRUE
+      wrap = TRUE
     )
     return(invisible(FALSE))
   }
@@ -44,28 +44,32 @@ pip_update_cache_inventory <- function(
 
   # Filter pipeline inventory and select relevant variables
   cols <- c("orig", "filename", "survey_id")
-  
+
   # convert GROUP to SYNTH in pipeline inventory (TEMPORAL)
   w_group <- grep("GROUP$", pipeline_inventory$cache_id)
   pipeline_inventory[w_group, cache_id := gsub("GROUP", "SYNTH", cache_id)]
 
-  crr <- joyn::joyn(cch, pipeline_inventory,
-                     by         = "cache_id",
-                     match_type = "1:1",
-                     keep       = "inner",
-                     reportvar  = FALSE,
-                     y_vars_to_keep = cols,
-                     verbose    = FALSE
+  crr <- joyn::joyn(
+    cch,
+    pipeline_inventory,
+    by = "cache_id",
+    match_type = "1:1",
+    keep = "inner",
+    reportvar = FALSE,
+    y_vars_to_keep = cols,
+    verbose = FALSE
   )
 
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   ## Auxiliary variables for joins --------
   crr[,
-      wt := gsub("(.+)_([[:upper:]]+)_([[:upper:]]+$)", "\\2", cache_id)
+    wt := gsub("(.+)_([[:upper:]]+)_([[:upper:]]+$)", "\\2", cache_id)
   ][,
-    welfare_type := fcase(wt == "CON", "consumption",
-                          wt == "INC", "income",
-                          default =  "")
+    welfare_type := fcase(
+      wt == "CON" , "consumption" ,
+      wt == "INC" , "income"      ,
+      default = ""
+    )
   ][, wt := NULL]
 
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -73,10 +77,14 @@ pip_update_cache_inventory <- function(
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   time <- format(Sys.time(), "%Y%m%d%H%M%S") # find a way to account for time zones
 
-  
-  crr_dir      <- fs::path(cache_svy_dir, "_crr_inventory")
+  crr_dir <- fs::path(cache_svy_dir, "_crr_inventory") |>
+    fs::dir_create()
+
+  fs::path(crr_dir, "vintage") |>
+    fs::dir_create()
+
   crr_filename <- fs::path(crr_dir, "crr_inventory")
-  crr_vintage  <- fs::path(crr_dir, "vintage", paste0("crr_inventory_", time))
+  crr_vintage <- fs::path(crr_dir, "vintage", paste0("crr_inventory_", time))
 
   crr_fst <- fs::path(crr_filename, ext = "fst")
 
@@ -84,7 +92,6 @@ pip_update_cache_inventory <- function(
   # Current inventory   ---------
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   if (file.exists(crr_fst)) {
-
     cci <- fst::read_fst(crr_fst, as.data.table = TRUE)
 
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -96,21 +103,26 @@ pip_update_cache_inventory <- function(
       }
 
       # Update values with new information
-      crr <- joyn::joyn(cci, crr, 
-                         by            = "cache_id",
-                         match_type    = "1:1",
-                         update_values = TRUE,
-                         reportvar     = FALSE,
-                         verbose       = FALSE)
+      crr <- joyn::joyn(
+        cci,
+        crr,
+        by = "cache_id",
+        match_type = "1:1",
+        update_values = TRUE,
+        reportvar = FALSE,
+        verbose = FALSE
+      )
 
       # remove information that is not longer necessary
-      crr <- joyn::joyn(crr, cch,
-                         by            = "cache_id",
-                         match_type    = "1:1",
-                         verbose       = FALSE,
-                         keep          = "inner",
-                         reportvar     = FALSE )
-
+      crr <- joyn::joyn(
+        crr,
+        cch,
+        by = "cache_id",
+        match_type = "1:1",
+        verbose = FALSE,
+        keep = "inner",
+        reportvar = FALSE
+      )
     } else {
       if (verbose) {
         cli::cli_alert_info("cache inventory has not changed")
@@ -124,30 +136,29 @@ pip_update_cache_inventory <- function(
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
   if (save) {
-
     # fst
     fst::write_fst(crr, crr_fst)
     fst::write_fst(crr, fs::path(crr_vintage, ext = "fst"))
 
     # dta
     haven::write_dta(crr, fs::path(crr_filename, ext = "dta"))
-    haven::write_dta(crr, fs::path(crr_vintage,  ext = "dta"))
+    haven::write_dta(crr, fs::path(crr_vintage, ext = "dta"))
 
     if (isTRUE(verbose)) {
-      cli::cli_alert_info("file {.url {crr_fst}} has been updated. You
+      cli::cli_alert_info(
+        "file {.url {crr_fst}} has been updated. You
                           can review it by loading it by typing
                           {.code pipload::pip_load_cache_inventory()}",
-                          wrap = TRUE
+        wrap = TRUE
       )
     }
-
-
   } else {
     if (isTRUE(verbose)) {
-      cli::cli_alert_warning("Cache inventory was {cli::col_red('NOT')} updated",
-                             wrap = TRUE)
+      cli::cli_alert_warning(
+        "Cache inventory was {cli::col_red('NOT')} updated",
+        wrap = TRUE
+      )
     }
-
   }
 
   if (load) {
@@ -155,5 +166,4 @@ pip_update_cache_inventory <- function(
   } else {
     return(invisible(TRUE))
   }
-
 }
