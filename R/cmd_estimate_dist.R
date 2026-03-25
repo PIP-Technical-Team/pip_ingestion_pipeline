@@ -34,18 +34,38 @@ estimate_and_write_full_cmd <- function(md, CF, qs, py, dir, env_acc = NULL) {
 
   for (x in seq_along(countries)) {
     cn <- countries[x]
-    l_cmd <- list_cmd_welfare(
-      md[country_code == cn],
-      CF,
-      qs,
-      py = py,
-      env_acc = env_acc
+    md_cn <- md[country_code == cn]
+
+    tryCatch(
+      {
+        l_cmd <- list_cmd_welfare(
+          md_cn,
+          CF,
+          qs,
+          py = py,
+          env_acc = env_acc
+        )
+
+        l_cmd <- scale_weights(l_cmd = l_cmd, pop = pop)
+        l_cmd <- select_and_order(l_cmd)
+
+        write_cmd_dist(l_cmd, path = lineup_dir)
+      },
+      error = function(e) {
+        na_cols <- names(md_cn)[vapply(md_cn, anyNA, logical(1L))]
+        na_msg <- if (length(na_cols) > 0L) {
+          paste0("NA found in: ", toString(na_cols))
+        } else {
+          "No NAs detected in md subset"
+        }
+
+        cli::cli_warn(c(
+          "Skipping {.val {cn}} (iteration {x}/{length(countries)}).",
+          "i" = na_msg,
+          "x" = conditionMessage(e)
+        ))
+      }
     )
-
-    l_cmd <- scale_weights(l_cmd = l_cmd, pop = pop)
-    l_cmd <- select_and_order(l_cmd)
-
-    write_cmd_dist(l_cmd, path = lineup_dir)
   }
 
   invisible(TRUE)

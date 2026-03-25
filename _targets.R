@@ -908,7 +908,7 @@ list(
     }
   ),
 
-  # Merge lineup dist-stats with CMD dist-stats into a single table
+  # Append lineup dist-stats with CMD dist-stats into a single table
   tar_target(
     lineup_dist_stats,
     rowbind(
