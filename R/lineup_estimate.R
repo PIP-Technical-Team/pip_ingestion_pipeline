@@ -231,7 +231,13 @@ get_refy_quantiles <- function(df, nobs = 2e4) {
   }) |>
     rowbind()
 
-  attributes(qx) <- df_attr
+  # loop over df_attr to add attributes using setattr
+  for (nm in names(df_attr)) {
+    if (!nm %in% c("dim", "row.names", "names", "class", ".internal.selfref")) {
+      setattr(qx, nm, df_attr[[nm]])
+    }
+  }
+  # attributes(qx) <- df_attr
   qx
 }
 
