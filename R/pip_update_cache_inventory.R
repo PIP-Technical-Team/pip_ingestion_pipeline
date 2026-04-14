@@ -91,7 +91,7 @@ pip_update_cache_inventory <- function(
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   # Current inventory   ---------
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  if (file.exists(crr_fst)) {
+  if (file.exists(crr_fst) && fst::metadata_fst(crr_fst)$nrOfRows > 0L) {
     cci <- fst::read_fst(crr_fst, as.data.table = TRUE)
 
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
