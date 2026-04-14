@@ -37,14 +37,15 @@ cli::cli_alert_info(
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 branch <- "DEV"
-release <- "20260324"
+release <- "20260430"
 identity <- "PROD"
+identity <- "INT"
 max_year_country <- 2025
 max_year_aggregate <- 2026
 max_year_lineup <- 2026
 
 ## CMD (Cross-country Missing Data) settings
-cmd_coeff_branch <- "2026_03_update" # branch in aux_missing_countries repo
+cmd_coeff_branch <- "main" # branch in aux_missing_countries repo
 cmd_n_quantiles <- 10000L # number of CMD quantiles per distribution
 
 ## Filter creation of synth data (NULL = all)
@@ -795,6 +796,7 @@ list(
         qs = cmd_qs,
         py = py,
         dir = fs::path(gls$OUT_DIR_PC, gls$vintage_dir),
+        pop_table = dl_aux$pop,
         env_acc = env_acc
       )
       rowbind(as.list(env_acc))

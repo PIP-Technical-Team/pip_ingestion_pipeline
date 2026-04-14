@@ -17,18 +17,27 @@
 #' @param dir fs_path / character. Vintage output directory
 #'   (`gls$OUT_LINEUP_DIR_PC` is passed here after stripping the
 #'   `lineup_data` suffix, i.e. pass `fs::path(gls$OUT_DIR_PC, gls$vintage_dir)`).
+#' @param pop_table data.table. Raw population table (`dl_aux$pop`) with columns
+#'   `country_code`, `year`, `pop_data_level`, `pop`.
 #' @param env_acc environment or NULL. When non-NULL, distributional statistics
 #'   are accumulated here keyed as `"CC_YYYY"`.
 #'
 #' @return invisible TRUE (side-effect: writes files to `dir/lineup_data/`).
 #' @family cmd
 #' @export
-estimate_and_write_full_cmd <- function(md, CF, qs, py, dir, env_acc = NULL) {
-  aux_dir <- fs::path(dir, "_aux")
+estimate_and_write_full_cmd <- function(
+  md,
+  CF,
+  qs,
+  py,
+  dir,
+  pop_table,
+  env_acc = NULL
+) {
   lineup_dir <- fs::path(dir, "lineup_data")
 
-  # Load population data for weight scaling
-  pop <- get_pop_to_scale(aux_dir = aux_dir)
+  # Reshape population data for weight scaling
+  pop <- get_pop_to_scale(pop_dt = pop_table)
 
   countries <- funique(md$country_code)
 

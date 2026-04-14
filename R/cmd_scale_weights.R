@@ -1,25 +1,25 @@
 # CMD population weight scaling
 # Adapted from CMD_new_methodoly/R/scale_weights.R
 
-#' Load and reshape population aux data for CMD weight scaling
+#' Reshape raw population table for CMD weight scaling
 #'
-#' Reads `pop.fst` from the `_aux` sub-folder of the vintage output directory,
-#' pivots from wide to long format, and returns a tidy data.table suitable
-#' for joining against CMD welfare distributions.
+#' Selects and renames columns from the raw auxiliary population table
+#' (`dl_aux$pop`) into the tidy format expected by [scale_weights()].
 #'
-#' @param aux_dir character / fs_path. Path to the `_aux` directory
-#'   (typically `fs::path(gls$OUT_DIR_PC, gls$vintage_dir, "_aux")`).
+#' @param pop_dt data.table. Raw population table with columns
+#'   `country_code`, `year`, `pop_data_level`, `pop`.
 #'
 #' @return data.table with columns `country_code`, `data_level`,
 #'   `reporting_year` (numeric), `reporting_pop`.
 #' @family cmd
 #' @export
-get_pop_to_scale <- function(aux_dir) {
-  fst::read_fst(path = fs::path(aux_dir, "pop.fst")) |>
-    pivot(ids = c("country_code", "data_level")) |>
-    frename(reporting_year = variable, reporting_pop = value) |>
-    qDT() |>
-    fmutate(reporting_year = as.numeric(as.character(reporting_year)))
+get_pop_to_scale <- function(pop_dt) {
+  pop_dt[, .(
+    country_code,
+    data_level = pop_data_level,
+    reporting_year = year,
+    reporting_pop = pop
+  )]
 }
 
 
