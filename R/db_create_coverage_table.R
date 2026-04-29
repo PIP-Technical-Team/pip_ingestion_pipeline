@@ -4,16 +4,16 @@
 #' 2) income group levels.
 #'
 #' @param ref_year_table data.table: Full interpolated means table. Output of
-#'   `db_create_ref_year_table()`.
+#' `db_create_ref_year_table()`.
 #' @param cl_table data.table: Country list table with all WDI countries.
 #' @param incgrp_table data.table: Table with historical income groups for all
-#'   WDI countries.
+#' WDI countries.
 #' @inheritParams db_create_ref_year_table
 #' @param digits numeric: The number of digits the returned coverage numbers are
-#'   rounded by.
+#' rounded by.
 #' @param urban_rural_countries character: A string with 3-letter country codes.
-#'   Countries where the coverage calculation is based on urban or rural
-#'   population numbers.
+#' Countries where the coverage calculation is based on urban or rural
+#' population numbers.
 #' @param gls list from `pipfun::pip_create_globals()`
 #'
 #' @return list
@@ -137,91 +137,34 @@ db_create_coverage_table <- function(
   year_threshold <- 3
   year_break <- 2019.5
 
-  # Step 1: Compute the absolute year differences (lags)
-  # Create temporary variables ya and yb
-  dt[
-    survey_year_before > reporting_year & is.na(survey_year_after),
-    ya := survey_year_before
-  ]
-
-  dt[
-    survey_year_after < reporting_year & is.na(survey_year_before),
-    yb := survey_year_after
-  ]
-
-  # Replace values in survey_year_before and survey_year_after based on the conditions
-  dt[survey_year_before > reporting_year, survey_year_before := NA]
-
-  dt[survey_year_after < reporting_year, survey_year_after := NA]
-
-  # For missing values, replace with the temporary variable values
-  dt[is.na(survey_year_before), survey_year_before := yb]
-
-  dt[is.na(survey_year_after), survey_year_after := ya]
-
-  dt[, c("yb", "ya") := NULL]
-
-  dt[, `:=`(
-    lag_before = abs(reporting_year - survey_year_before),
-    lag_after = abs(survey_year_after - reporting_year),
-    gap_before_break = abs(survey_year_before - year_break),
-    gap_after_break = abs(survey_year_after - year_break)
-  )]
-
-  # Step 2: Initial coverage check (based on nearest survey)
-  dt[, coverage := pmin(lag_before, lag_after, na.rm = TRUE) <= year_threshold]
-
-  # Step 3: Define COVID-period thresholds
-  threshold_low <- year_break - year_threshold
-  threshold_high <- year_break + year_threshold
-
-  # Step 4: Apply COVID-period rules (censored coverage window)
-  dt[
-    reporting_year %between%
-      c(threshold_low, threshold_high) &
-      ((survey_year_after %between% c(threshold_low, threshold_high)) |
-        (survey_year_before %between% c(threshold_low, threshold_high))),
-    coverage := NA_real_
-  ]
-
-  # Step 5: Adjust coverage based on COVID-period conditions
-  dt[
-    reporting_year %between%
-      c(threshold_low, threshold_high) &
-      ((survey_year_after > year_break & !is.na(survey_year_after)) |
-        survey_year_before > year_break) &
-      is.na(coverage),
-    coverage := lag_before <= year_threshold | lag_after <= gap_after_break
-  ]
-
-  dt[
-    reporting_year %between%
-      c(threshold_low, threshold_high) &
-      ((survey_year_after < year_break & !is.na(survey_year_after)) |
-        survey_year_before < year_break) &
-      is.na(coverage),
-    coverage := lag_before <= gap_before_break | lag_after <= year_threshold
-  ]
-
-  # dt[
-  #   reporting_year %between% c(threshold_low, threshold_high)
-  #   & survey_year_before > year_break
-  #   & is.na(survey_year_after)
-  #   & reporting_year < year_break
-  #   & coverage == TRUE,
-  #   coverage := lag_before <= gap_before_break | lag_after <= year_threshold
-  # ]
-
-  # Step 6: Clean up intermediate variables
-  cols_to_remove <- c(
-    "lag_before",
-    "lag_after",
-    "gap_before_break",
-    "gap_after_break"
+  # Step 1: Normalize the parsed survey years so that a single survey year is
+  # correctly assigned even when it falls after the reporting year.
+  normalized_surveys <- get_closest_coverage_surveys(
+    reporting_year = dt$reporting_year,
+    survey_year_1 = dt$survey_year_before,
+    survey_year_2 = dt$survey_year_after
   )
 
-  dt[, (cols_to_remove) := NULL]
-  dt[is.na(coverage), coverage := FALSE]
+  dt[, `:=`(
+    survey_year_before = normalized_surveys$before,
+    survey_year_after = normalized_surveys$after
+  )]
+
+  # Step 2: Apply the three-year rule with the COVID coverage break.
+  dt[,
+    coverage := is_coverage_survey_valid(
+      reporting_year = reporting_year,
+      survey_year = survey_year_before,
+      year_threshold = year_threshold,
+      year_break = year_break
+    ) |
+      is_coverage_survey_valid(
+        reporting_year = reporting_year,
+        survey_year = survey_year_after,
+        year_threshold = year_threshold,
+        year_break = year_break
+      )
+  ]
 
   # ---- Calculate world and regional coverage ----
 
@@ -255,13 +198,21 @@ db_create_coverage_table <- function(
     ftransform(incgroup_historical = "LIC/LMIC") |>
     fselect(c('reporting_year', 'incgroup_historical', 'coverage'))
 
-  out_ssa <- dt |>
-    fsubset(!is.na(africa_split_code)) |>
-    fgroup_by(reporting_year, africa_split_code) |>
-    fselect(coverage, pop) |>
-    fmean(w = pop, keep.w = FALSE) |>
-    frename(region_code = africa_split_code) |>
-    qDT()
+  if (dt[!is.na(africa_split_code), .N] == 0L) {
+    out_ssa <- data.table(
+      reporting_year = integer(),
+      region_code = character(),
+      coverage = numeric()
+    )
+  } else {
+    out_ssa <- dt |>
+      fsubset(!is.na(africa_split_code)) |>
+      fgroup_by(reporting_year, africa_split_code) |>
+      fselect(coverage, pop) |>
+      fmean(w = pop, keep.w = FALSE) |>
+      frename(region_code = africa_split_code) |>
+      qDT()
+  }
 
   # Create output list
   out <- list(
@@ -283,4 +234,61 @@ db_create_coverage_table <- function(
 impute_missing <- function(x) {
   x[is.na(x)] <- x[!is.na(x)][1]
   return(x)
+}
+
+#' Normalize coverage survey years
+#' @noRd
+get_closest_coverage_surveys <- function(
+  reporting_year,
+  survey_year_1,
+  survey_year_2
+) {
+  survey_year_before <- data.table::fcase(
+    !is.na(survey_year_1) & survey_year_1 <= reporting_year & !is.na(survey_year_2) & survey_year_2 <= reporting_year ,
+    pmax(survey_year_1, survey_year_2)                                                                                ,
+    !is.na(survey_year_1) & survey_year_1 <= reporting_year                                                           ,
+    survey_year_1                                                                                                     ,
+    !is.na(survey_year_2) & survey_year_2 <= reporting_year                                                           ,
+    survey_year_2                                                                                                     ,
+    default = NA_real_
+  )
+
+  survey_year_after <- data.table::fcase(
+    !is.na(survey_year_1) & survey_year_1 >= reporting_year & !is.na(survey_year_2) & survey_year_2 >= reporting_year ,
+    pmin(survey_year_1, survey_year_2)                                                                                ,
+    !is.na(survey_year_1) & survey_year_1 >= reporting_year                                                           ,
+    survey_year_1                                                                                                     ,
+    !is.na(survey_year_2) & survey_year_2 >= reporting_year                                                           ,
+    survey_year_2                                                                                                     ,
+    default = NA_real_
+  )
+
+  return(list(before = survey_year_before, after = survey_year_after))
+}
+
+#' Check whether a survey year counts for coverage
+#' @noRd
+is_coverage_survey_valid <- function(
+  reporting_year,
+  survey_year,
+  year_threshold = 3,
+  year_break = 2019.5
+) {
+  threshold_low <- year_break - year_threshold
+  threshold_high <- year_break + year_threshold
+
+  in_covid_window <- reporting_year >= threshold_low &
+    reporting_year <= threshold_high
+
+  same_covid_side <- !in_covid_window |
+    (reporting_year < year_break & survey_year <= year_break) |
+    (reporting_year > year_break & survey_year > year_break)
+
+  valid_survey <- !is.na(survey_year) &
+    abs(reporting_year - survey_year) <= year_threshold &
+    same_covid_side
+
+  valid_survey[is.na(valid_survey)] <- FALSE
+
+  return(valid_survey)
 }
