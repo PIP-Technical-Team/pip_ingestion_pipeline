@@ -7,6 +7,8 @@ for (proj in c("ppp2021", "ppp2017")) {
 
 # to run only one PPP year
 Sys.setenv(TAR_PROJECT = "ppp2021")
+Sys.setenv(TAR_PROJECT = "ppp2017")
+run_tar()
 
 
 # targets::tar_visnetwork()

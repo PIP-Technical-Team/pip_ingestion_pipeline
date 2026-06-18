@@ -37,9 +37,9 @@ cli::cli_alert_info(
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 branch <- "DEV"
-release <- "20260430"
-identity <- "PROD"
+release <- "20260922"
 identity <- "INT"
+identity <- "PROD"
 max_year_country <- 2025
 max_year_aggregate <- 2026
 max_year_lineup <- 2026
